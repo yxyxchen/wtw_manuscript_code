@@ -1,0 +1,8 @@
+ID: 183
+cbal: 1
+bk1 distrib: mixGam_rising
+bk2 distrib: mixGam_falling
+bk1 trial function: showTrials
+bk2 trial function: showTrials
+randSeed: 212773.0443000000086613
+sessionTime: 2017     1    27    10    52    20

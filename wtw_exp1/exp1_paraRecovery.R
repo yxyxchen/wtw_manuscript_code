@@ -1,0 +1,89 @@
+paraRecovery = function(){
+  # libraries and scripts
+  library("ggplot2")
+  library("dplyr")
+  library("tidyr")
+  source("subFxs/helpFxs.R")
+  source("subFxs/loadFxs.R")
+  source("subFxs/plotThemes.R")
+  library("latex2exp")
+  
+  # load model names
+  allData = loadAllData()
+  hdrData = allData$hdrData           
+  trialData = allData$trialData       
+  ids = hdrData$id[hdrData$stress == "no_stress"]                 
+  nSub = length(ids) 
+  
+  # check fit
+  modelName = "QL2"
+  paraNames = getParaNames(modelName)
+  nPara = length(paraNames)
+  expPara = loadExpPara(paraNames, sprintf("../../genData/wtw_exp1/expModelFit/%s", modelName))
+  expPassCheck = checkFit(paraNames, expPara)
+  expPara = expPara[expPassCheck, ]
+  simPara = loadExpPara(paraNames, sprintf("../../genData/wtw_exp1/simModelFit/%s/%s", modelName, modelName)) 
+  passCheck = checkFit(paraNames, simPara)
+  nPass = sum(passCheck)
+  
+  # output dir
+  dir.create(file.path("..", "..", "figures"))
+  dir.create(file.path("..", "..", "figures", "exp1"))
+  dir.create(file.path("..", "..", "figures", "exp1", "paraRecovery"))
+  
+  # plot 
+  plotData = expPara[,1:nPara] %>% gather(key = "para", value = "truth")
+  tempt = hdrData$condition[hdrData$stress == "no_stress"]
+  plotData$condition = rep(tempt[expPassCheck], nPara)
+  plotData$passCheck = rep(passCheck, nPara)
+  addData = simPara[,1:nPara] %>% gather(key = "para", value = "recovered")
+  plotData$recovered = addData$recovered
+  paraLabels = c("$\\alpha$", "$\\rho$", "$\\tau$", "$\\gamma$", "$\\eta$")
+  paraHats = c("$\\hat{\\alpha}$", "$\\hat{\\rho}$", "$\\hat{\\tau}$", "$\\hat{\\gamma}$", "$\\hat{\\eta}$")
+  figs = vector(mode = "list", length = nPara) # initialize the outputs 
+  rankTaus = vector(length = nPara)
+  ps = rankTaus = vector(length = nPara)
+  for(i in 1 : nPara){
+    paraName = paraNames[i]
+    paraLabel = paraLabels[i]
+    paraHat = paraHats[i]
+    plotData = data.frame(
+      passCheck = passCheck,
+      condition = tempt[expPassCheck],
+      truth = expPara[[paraName]],
+      recovered = simPara[[paraName]]
+    ) %>% filter(passCheck) 
+    lowLim = min(min(plotData$recovered), min(plotData$truth)) 
+    upLim = max(max(plotData$recovered), max(plotData$truth)) 
+    ran = upLim - lowLim
+    lowLim = lowLim - ran * 0.05
+    upLim = upLim + ran * 0.05
+    corRes = cor.test(plotData$truth, plotData$recovered, method = "kendall")
+    rankTaus[[i]] = corRes$estimate
+    ps[[i]] = corRes$p.value
+    figs[[i]] = plotData %>% ggplot(aes(truth, recovered, color = condition)) + geom_point()  +
+      scale_color_manual(values = conditionColors) + myTheme + xlab(TeX(paraLabel)) +
+      ylab(TeX(paraHat)) + geom_abline(xintercept = 0, slope = 1, linetype = "dashed") + 
+      theme(legend.position = "none") +
+      annotate("text", label = paste("list(r[tau] ==", round(rankTaus[[i]], 2), ", p < 0.001", ")"),
+               x= upLim - 0.4 * ran, y =max(plotData$recovered), parse = T, size = 5) +
+      xlim(c(lowLim, upLim)) +
+      ylim(c(lowLim, upLim)) +
+      coord_fixed(ratio = 1)
+    # ggsave(file.path("..", "figures", "exp1", "paraRecovery", sprintf("%s.eps", paraName)), figs[[i]], width = 4, height = 4)
+  }
+  
+  fig = (figs[[1]] | figs[[2]] | figs[[3]] | figs[[4]] | figs[[5]])
+  ggsave(file.path("..", "..", "figures", "exp1", "paraRecovery", "para.eps"), figs[[i]], width = 20, height = 4)
+  
+  ########## return outputs #######
+  outputs = list(
+    "p" = ps,
+    "rankTau" = rankTaus,
+    "fig" = fig,
+    "nPass" = nPass
+  )
+}
+
+
+   
