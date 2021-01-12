@@ -1,5 +1,6 @@
 # this scripts contains some supporting functions for the simulations
 drawSample = function(cond){
+  load("expParas.RData")
   # generates a sample from the designated delay distribution
   k = pareto[['k']]
   mu = pareto[['mu']]

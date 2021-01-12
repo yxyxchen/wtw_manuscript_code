@@ -2,8 +2,8 @@
 expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs = NULL){
   set.seed(123)
   # create output directories
+  dir.create("../../figures/wtw_exp1")
   dir.create("../../figures/wtw_exp1/expModelRep/")
-  dir.create("../../genData/wtw_exp1/expModelRep/")
   dir.create(sprintf("../../figures/wtw_exp1/expModelRep/%s",modelName))
   
   # load experiment parameters
@@ -101,9 +101,7 @@ expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs =
   rep = aucFig / cipFig +  plot_annotation(title = sprintf("%s, n = %d", modelName, sum(passCheck)),
                                      theme = theme(plot.title = element_text(hjust = 0.5, size = 20)))
   fileName = sprintf("../../figures/wtw_exp1/expModelRep/%s/rep.eps", modelName) 
-  ggsave(sprintf("../../figures/wtw_exp1/expModelRep/%s/rep.eps", modelName), rep, width = 4, height = 8)
   
-
   ##################################################################
   ##                     example participant                      ##
   ##################################################################

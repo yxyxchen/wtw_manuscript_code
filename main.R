@@ -22,6 +22,10 @@ nModel = length(models)
 iti = 2 # inter-trial interval in seconds 
 smallReward = 0 # initial token value
 
+# create the output fir 
+dir.create("../figures")
+dir.create("../genData")
+dir.create("../figures/cmb")
 #################################################################
 ##                    experiment schematics                    ##
 #################################################################
@@ -37,7 +41,6 @@ setwd(pwd)
 expCmb = (figs_[[1]][['pdf']] | figs_[[2]][['pdf']] | figs_[[3]][['pdf']]) /
   (figs_[[1]][['rt']] | figs_[[2]][['rt']] | figs_[[3]][['rt']]) +
   plot_annotation(tag_levels = 'a')
-dir.create(file.path("../figures/cmb"))
 ggsave(file.path("../figures/cmb", "exp.eps"), expCmb, width = 12, height = 6)
 
 
@@ -117,6 +120,7 @@ for(i in 1 : nExp){
   }
   figs_[[i]] = figs
 }
+# figures for example participants are saved separately for each experiment
 # pie charts and WAIC plots
 cmpOuts_ = vector("list", length = nExp)
 cmpFigs = vector("list", length = nExp)
@@ -125,8 +129,8 @@ for(i in 1 : nExp){
   setwd(file.path(pwd, wds[i])) # set the working directory
   source(sprintf("exp%d_expModelCmp.R", i)) 
   cmpOuts_[[i]] = expModelCmp()
-  cmpFigs[[i]] = outs[['4pie']] / outs[['4waic']]
-  comFigFulls[[i]] = outs[['6pie']] / outs[['6waic']]
+  cmpFigs[[i]] = cmpOuts_[[i]][['4pie']] / cmpOuts_[[i]][['4waic']]
+  comFigFulls[[i]] = cmpOuts_[[i]][['6pie']] / cmpOuts_[[i]][['6waic']]
 }
 # assemble the figures 
 setwd(pwd)
@@ -158,6 +162,7 @@ for(i in 1 : nExp){
 setwd(pwd)
 histPara = (outs_[[1]][["hist"]] / outs_[[2]][['hist']] / outs_[[3]][['hist']]) + plot_layout(heights = c(1, 0.5, 0.5))
 ggsave(file.path("../figures/cmb", "para_hist.eps"), histPara, width = 12, height = 8)
+# figures for correlation analysis are saved separately for each experiments
 # print summary stats
 outs_[[1]]$rhoTest
 outs_[[1]]$numOptim

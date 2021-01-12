@@ -116,7 +116,6 @@ if(isPlot){
   library("tidyverse")
   library("latex2exp")
   source('subFxs/plotThemes.R')
-  dir.create("../../figures/wtw_exp3/expSchematics")
   figCDF = data.frame(cdf = c(0, fastCDF, 0, slowCDF),
              time = c(0, time$HP, 0, time$LP),
              cond = rep(c('Early', 'Late'), each = length(fastCDF) + 1)) %>%
@@ -129,7 +128,7 @@ if(isPlot){
               aes(label = label, x = x), y = 0.4, size = 5, color = conditionColors[1]) + 
     geom_text(data = data.frame(label = c("LP = +8¢", "LP = -1¢"), cond = c("Early", "Late"), x = c(16, 22)),
               aes(label = label, x = x), y = 0.2, size = 5, color = conditionColors[2])
-  ggsave('../../figures/wtw_exp3/expSchematics/CDF.eps', width =4, height = 3)
+  
   # plot pdf
   # the end point is plotted as a separate dot 
   plotData = data.frame(
@@ -151,7 +150,6 @@ if(isPlot){
     geom_point(data = endPointData, aes(time, pdf, color = value), inherit.aes = F, size = 2) +
     scale_y_continuous(breaks = c(0, 0.02), labels = c(0, 0.02), limits = c(0, 0.022)) +
     theme(legend.position = "None") + ggtitle("Exp.3")
-  ggsave('../../figures/wtw_exp3/expSchematics/PDF.eps', width =4, height = 3)
   
   # plot reward rates
   figRewardRate = data.frame(rate = c (HPRate, LPRate), 
@@ -164,7 +162,6 @@ if(isPlot){
     scale_x_continuous(breaks = c(0, max(delayMaxs)/2, max(delayMaxs))) +
     scale_color_manual(values = conditionColors) +
     theme(legend.position = "none") + facet_grid(~condition) + ylim(c(-0.05, 0.5)) + ggtitle("Exp.3")
-  ggsave("../../figures/wtw_exp3/expSchematics/reward_rate.eps", width = 4, height = 3)
   
   # plot subjective value of waiting 
   figSV = data.frame(
@@ -179,7 +176,6 @@ if(isPlot){
     xlab("Elapsed time (s)") + ylab("Subjective value (¢)")  + 
     theme(legend.position = "none") + facet_grid(~condition) +
     scale_x_continuous(breaks = c(0, max(delayMaxs)/2, max(delayMaxs)))
-  ggsave("../../figures/wtw_exp3/expSchematics/subjective.eps", width = 4, height = 3)
 }    
 
 

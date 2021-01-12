@@ -77,8 +77,6 @@ MFPlot = function(){
     scale_fill_manual(values = conditionColors) + 
     scale_color_manual(values = conditionColors) +
     theme(legend.position =  "none")
-  ggsave("../../figures/wtw_exp3/MFPlot/wtw_timecourse.pdf", figWTW, width = 6, height = 4)
-
   
   ###################################################################
   ##              compare AUC in the two environments             ##
@@ -109,8 +107,6 @@ MFPlot = function(){
     xlab("LP muAUC / (s)") + ylab("HP muAUC / (s)") + 
     myTheme + xlim(c(-1,31)) + ylim(c(-1,31)) + 
     xlab("LP AUC (s)") + ylab("HP AUC (s)") + facet_grid(~block)
-  ggsave("../../figures/wtw_exp3/MFPlot/muWTW_comparison.eps", figAUC, width = 4, height = 4)
-  
   
   ###################################################################
   ##              compare sigma_wtw in the two environments             ##
@@ -134,7 +130,6 @@ MFPlot = function(){
     xlab(expression(bold(paste("LP ", sigma["WTW"], " (s"^2,")")))) +
     ylab(expression(bold(paste("HP ", sigma["WTW"], " (s"^2,")")))) + 
     myTheme + xlim(c(-1,16)) + ylim(c(-1,16)) + facet_grid(~block)
-  ggsave("../../figures/wtw_exp3/MFPlot/stdWTW_comparison.eps", figSigma, width = 4, height = 4)
   
   ###################################################################
   ##              plot  survival curves            ##
@@ -175,8 +170,7 @@ MFPlot = function(){
     scale_alpha_manual(values = c(0.8, 1))+
     xlab("Elapsed time (s)") + ylab("Survival rate") + myTheme +
     theme(legend.position = "none") 
-    ggsave("../../figures/wtw_exp3/MFPlot/survival_curve.pdf", figCurve, width = 4, height = 4)
-    
+  
     ############# return the output ###############
     outputs = list(
       "wtw" = figWTW,

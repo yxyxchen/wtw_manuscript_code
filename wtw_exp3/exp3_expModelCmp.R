@@ -7,7 +7,6 @@ expModelCmp = function(){
   source("subFxs/loadFxs.R")
   source("subFxs/plotThemes.R")
   load("expParas.RData")
-  dir.create("../../figures/wtw_exp3/expModelCmp")
   
   # load data
   allData = loadAllData()
@@ -73,7 +72,6 @@ expModelCmp = function(){
           axis.text = element_text(size=0, face = "bold"),
           axis.title = element_text(size= 20, face = "bold")) +
     ggtitle(sprintf("Exp.3, N = %d", sum(allPass)))
-  ggsave("../../figures/wtw_exp3/expModelCmp/4model.eps", fig4pie, width = 4, height = 4)
   
   waic_[!allPass,] = NA
   fig4WAIC = data.frame(
@@ -86,8 +84,6 @@ expModelCmp = function(){
     myTheme + xlab("") + ylab("WAIC") +
     scale_fill_manual(values = modelColors) + theme(legend.position = "none") +
     ylim(c(0, 400))
-  fileName = "../../figures/wtw_exp3/expModelCmp/waic_4model.eps"
-  ggsave(filename = fileName,  fig4WAIC, width = 4, height = 4)
   
   
 ################ compare all models ###########
@@ -125,9 +121,6 @@ expModelCmp = function(){
           axis.text=element_text(size=0, face = "bold"),
           axis.title=element_text(size= 20, face = "bold")) +
     ggtitle(sprintf("Exp.3, N = %d", sum(allPass)))
-    
-  ggsave("../../figures/wtw_exp3/expModelCmp/6model.eps", fig6pie, width = 4, height = 4)
-
   # plot WAIC
   waic_[!allPass,] = NA
   fig6WAIC = data.frame(
@@ -141,7 +134,6 @@ expModelCmp = function(){
     scale_fill_manual(values = modelColors) + theme(legend.position = "none") +
     ylim(c(0, 650))
   fileName = "../../figures/wtw_exp3/expModelCmp/waic_6models.eps"
-  ggsave(filename = fileName, fig6WAIC, width = 4, height = 4)
   
   ############# return outputs #############
   outputs = list(
@@ -152,4 +144,6 @@ expModelCmp = function(){
     "df4" = bestFitDf4,
     "df6" = bestFitDf6
   )
+  
+  return(outputs)
 }

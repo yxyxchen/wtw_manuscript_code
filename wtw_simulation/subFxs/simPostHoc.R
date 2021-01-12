@@ -33,6 +33,7 @@ simPostHoc = function(modelName, paraLabels, paraSamples){
   nRep = 10
   duration = 120 * 60
   nPeriod = 4
+  nCut = 4
   periodBreaks = seq(0, 16 * 60, length.out = nPeriod + 1)
   
   ######################### simulate with multiple parameter combinations #####################

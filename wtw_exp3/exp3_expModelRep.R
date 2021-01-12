@@ -2,6 +2,7 @@
 expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs = NULL){
   set.seed(123)
   # create output directories
+  dir.create("../../figures/wtw_exp3")
   dir.create("../../figures/wtw_exp3/expModelRep/")
   dir.create("../../genData/wtw_exp3/expModelRep")
   dir.create(sprintf("../../figures/wtw_exp3/expModelRep/%s",modelName))
@@ -94,8 +95,6 @@ expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs =
   # rep = grid.arrange(aucFig, cipFig, nrow = 2, top = textGrob(sprintf("%s, n = %d", modelName, sum(passCheck)), gp = gpar(fontsize = 20,font = 1)))
   rep = aucFig / cipFig +  plot_annotation(title = sprintf("%s, n = %d", modelName, sum(passCheck)),
                                      theme = theme(plot.title = element_text(hjust = 0.5, size = 20)))
-  fileName = sprintf("../../figures/wtw_exp3/expModelRep/%s/rep.eps", modelName) 
-  ggsave(filename = fileName, rep, width = 4, height = 8)
   
   #################################################################
   ##                     example participant                     ##

@@ -199,6 +199,7 @@ expParaAnalysis = function(){
   ####### combine figTraitAUC and figTriatSigma #######
   figTraitPerform = figTraitAUC & figTraitSigma 
   ggsave(file.path(figDir, "trait_perform.pdf"),  figTraitPerform, width = 24, height = 8)
+  
   ############### return outputs #############
   outputs = list(
     "hist" = hist,

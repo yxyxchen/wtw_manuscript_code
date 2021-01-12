@@ -2,6 +2,7 @@ expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs =
   set.seed(123)
   
   # create output directories
+  dir.create("../../figures/wtw_exp2")
   dir.create("../../figures/wtw_exp2/expModelRep/")
   dir.create(sprintf("../../figures/wtw_exp2/expModelRep/%s",modelName))
   dir.create("../../genData/wtw_exp2/expModelRep")
@@ -92,8 +93,6 @@ expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs =
     scale_color_manual(values = conditionColors) +
     theme(legend.position = "none") 
   rep = aucFig / cipFig 
-  fileName = sprintf("../../figures/wtw_exp2/expModelRep/%s/rep.eps", modelName)
-  ggsave(filename = fileName, rep, width = 4, height = 8)
   
   
   # prepare the data

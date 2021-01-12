@@ -4,9 +4,6 @@ expSchematics = function(smallReward, iti, isPlot){
   library("tidyverse")
   library(latex2exp)
   source('subFxs/plotThemes.R')
-  if(!dir.exists('../../figures/wtw_exp1/expSchematics')){
-    dir.create('../../figures/wtw_exp1/expSchematics')
-  }
   
   # load experiment parameters 
   load("expParas.RData")
@@ -142,7 +139,6 @@ expSchematics = function(smallReward, iti, isPlot){
       theme(legend.position = "none") + 
       scale_y_continuous(breaks = c(0, 0.05), labels = c(0, 0.05), limits = c(0, 0.08)) +
       ggtitle("Exp.1") 
-    ggsave('../../figures/wtw_exp1/expSchematics/PDF.eps', figPDF, width =4, height = 3)
     
     # plot CDFs 
     ## here we extend the HP CDF to 32s for display purposes
@@ -159,8 +155,6 @@ expSchematics = function(smallReward, iti, isPlot){
       scale_color_manual(values = conditionColors) +
       theme(legend.position = "none")
     
-    ggsave('../../figures/wtw_exp1/expSchematics/CDF.eps', figCDF, width =4, height = 3)
-    
     # plot reward rates
     optimData = data.frame(condition = c("HP", "LP"), waitThreshold = as.double(optimWaitThresholds))
     figRewardRate = data.frame(rewardRate = c(rewardRates[[1]], rewardRates[[2]]),
@@ -175,7 +169,6 @@ expSchematics = function(smallReward, iti, isPlot){
       scale_color_manual(values = conditionColors) +
       theme(legend.position = "none") + facet_grid(~condition) +
       ggtitle("Exp.1") 
-    ggsave("../../figures/wtw_exp1/expSchematics/reward_rate.eps", figRewardRate, width = 4, height = 3)
 
     # plot subjective value of waiting 
     delayClock = c(seq(0, delayMaxs[1], by = 0.1), seq(0, delayMaxs[2], by = 0.1)) # time starting from the token onset
@@ -191,7 +184,6 @@ expSchematics = function(smallReward, iti, isPlot){
       scale_x_continuous(breaks = c(0, max(delayMaxs)/2, max(delayMaxs)))+
       xlab("Trial time (s)") + ylab("Subjective value (¢)")  + 
       theme(legend.position = "none") + facet_grid(~condition)
-    ggsave("../../figures/wtw_exp1/expSchematics/subjective.eps", figSV, width = 4, height = 3)
   }
   
   # return outputs 

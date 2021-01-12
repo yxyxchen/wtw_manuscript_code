@@ -15,12 +15,6 @@ simExAnte = function(modelName, modelLabel, paras, delays_ = list()){
   # random seed
   set.seed(123)
   
-  # create output directories
-  dir.create(file.path("..", "..", "figures"))
-  dir.create(file.path("..", "..", "figures", "simulation"))
-  outputDir = file.path("..", "..", "figures", "simulation", "ex_ante")
-  dir.create(outputDir)
-  
   # load experiment parameters
   load('expParas.RData')
   
@@ -90,7 +84,6 @@ simExAnte = function(modelName, modelLabel, paras, delays_ = list()){
     geom_point(aes(y = asymAUC, color = condition), x = 20, shape = 8, data = condData) +
     ggtitle(modelLabel) + 
     theme(plot.title = element_text(hjust = 0.5))
-  ggsave(file.path(outputDir, sprintf("auc_%s.eps", modelLabel)), figAUC, width = 3, height = 3)
   
     
   ##################################################################
@@ -121,7 +114,6 @@ simExAnte = function(modelName, modelLabel, paras, delays_ = list()){
       theme(legend.position = "None",
             plot.title = element_text(hjust = 0.5)) +
       ggtitle(modelLabel)
-    ggsave(file.path(outputDir, sprintf("rvWait_%s.eps", modelLabel)), figRV, width = 6, height = 3)
   }else if(modelName == "omni"){
     for(condition in conditions){
       delayMax = ifelse(condition == "HP", delayMaxs[1], delayMaxs[2])
@@ -150,7 +142,6 @@ simExAnte = function(modelName, modelLabel, paras, delays_ = list()){
       ylab('Relative value of waiting') + 
       xlab("Elapsed time (s)") +
       ggtitle(modelLabel)
-    ggsave(file.path(outputDir, sprintf("rvWait_%s.eps", modelLabel)), figRV, width = 6, height = 3)
   }
  
   
@@ -198,7 +189,6 @@ simExAnte = function(modelName, modelLabel, paras, delays_ = list()){
           scale_color_manual(values = c("#636363", "black")) +
           theme(legend.position =  "None")
       }
-      ggsave(file.path(outputDir, sprintf("snippet-value%d_%s.eps", i, modelLabel)), figQwaits_[[i]], width = 3, height = 3)
     }
     
     ## plot Gs
@@ -220,7 +210,6 @@ simExAnte = function(modelName, modelLabel, paras, delays_ = list()){
         scale_color_manual(values = c("#636363", "black")) + theme(legend.position = "None") + 
         ggtitle(bquote(Omega^.(i)~"="~.(exampleT)~","~Lambda^.(i)~"="~.(exampleRs[i]))) + # add a title as a place holder, later change in illustrator 
           theme(plot.title = element_text(hjust = 0.5), legend.position = "None") 
-      ggsave(file.path(outputDir, sprintf("snippet-G%d_%s.eps", i, modelLabel)), figQwaits_[[i]], width = 3, height = 3)
     }
   }
   

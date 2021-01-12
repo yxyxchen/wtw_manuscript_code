@@ -57,7 +57,6 @@ MFPlot = function(){
     theme(plot.title = element_text(face = "bold", hjust = 0.5, color = themeColor)) +
     scale_color_manual(values = conditionColors) + scale_fill_manual(values = conditionColors) +
     theme(legend.position = "none")
-  ggsave("../../figures/wtw_exp2/MFPlot/wtw_timecourse.pdf", figWTW, width = 6, height = 4) 
   
   ################################################################
   ##              compare AUC in the two environments              ##
@@ -80,8 +79,7 @@ MFPlot = function(){
     annotate("text", x = 8, y = 3, label = sprintf('p = %0.3f*', wTest$p.value), size = 6) +
     xlab("LP AUC (s)") + ylab("HP AUC (s)") + 
     myTheme + xlim(c(-1,17)) + ylim(c(-1,17)) +
-    theme(plot.title = element_text(face = "bold", hjust = 0.5, color = themeColor)) 
-  ggsave("../../figures/wtw_exp2/MFPlot/muWTW_comparison.eps", figAUC, width = 4, height = 4)
+    theme(plot.title = element_text(face = "bold", hjust = 0.5, color = themeColor))
   
   ################################################################
   ##              compare sigma_wtw in the two environments              ##
@@ -104,7 +102,6 @@ MFPlot = function(){
     ylab(expression(bold(paste("HP ", sigma["WTW"], " (s"^2,")")))) + 
     myTheme + xlim(c(-1,6)) + ylim(c(-1,6)) +
     annotate("text", x = 5, y = 1, label = sprintf('p = %0.3f*', wTest$p.value))
-  ggsave("../../figures/wtw_exp2/MFPlot/stdWTW_comparison.eps", figSigma, width = 4, height = 4)
   
   
   ###################################################
@@ -140,7 +137,6 @@ MFPlot = function(){
     scale_alpha_manual(values = c(0.8, 1))+
     xlab("Elapsed time (s)") + ylab("Survival rate") + myTheme +
     theme(legend.position = "none") 
-  ggsave("../../figures/wtw_exp2/MFPlot/survival_curve.pdf", figCurve, width = 4, height = 4)
   
   ############# return the output ###############
   outputs = list(

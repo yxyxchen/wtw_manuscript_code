@@ -115,7 +115,6 @@ if(isPlot){
   library('ggplot2')
   source('subFxs/plotThemes.R')
   library("tidyr"); library('dplyr')
-  dir.create('../../figures/wtw_exp2/expSchematics')
   ## here we extend the HP CDF to 32s for display purposes
   figCDF = data.frame(CDF = c(0,c(rewardDelayCDFs$HP, rep(1, length(time$LP) - length(time$HP))), 0, rewardDelayCDFs$LP),
              time = c(0, time$LP, 0, time$LP),
@@ -128,7 +127,6 @@ if(isPlot){
     theme(plot.title = element_text(hjust = 0.5),
           legend.position = "none") +
     scale_color_manual(values = conditionColors) 
-  ggsave('../../figures/wtw_exp2/expSchematics/CDF.eps', figCDF, width =4, height = 3)
   
   # plot PDFs
   tempt = unlist(rewardDelayPDFs)
@@ -151,7 +149,6 @@ if(isPlot){
     theme(legend.position = "none") + scale_y_continuous(breaks = c(0, 0.125), limits = c(0, 0.15), labels = c(0, 0.125)) + 
     geom_segment(data =  vlineData, aes(color = condition, x = delay, xend = delay), y = 0, yend = 1 / 8) +
     ggtitle("Exp.2")
-  ggsave('../../figures/wtw_exp2/expSchematics/PDF.eps', figPDF, width =4, height = 3)
   
   # plot reward rates
   optimData = data.frame(condition = c("HP", "LP"), waitThreshold = as.double(optimWaitThresholds))
@@ -169,7 +166,6 @@ if(isPlot){
     theme(legend.position = "none")  + 
     scale_x_continuous(breaks = c(0, max(delayMaxs) / 2, max(delayMaxs))) +
     ggtitle("Exp.2")
-  ggsave("../../figures/wtw_exp2/expSchematics/reward_rate.eps", figRewardRate, width = 4, height = 3)
   
   # plot subjective value of waiting 
   figSV = data.frame(
@@ -184,7 +180,6 @@ if(isPlot){
     xlab("Elapsed time (s)") + ylab("Subjective value (¢)")  + 
     theme(legend.position = "none") + facet_grid(~condition) + 
     scale_x_continuous(breaks = c(0, max(delayMaxs) / 2, max(delayMaxs)))
-  ggsave("../../figures/wtw_exp2/expSchematics/subjective.eps", figSV, width = 4, height = 3)       
 }
 
 # return outputs 

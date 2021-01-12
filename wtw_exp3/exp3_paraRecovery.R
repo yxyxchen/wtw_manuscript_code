@@ -26,11 +26,6 @@ paraRecovery = function(){
   passCheck = checkFit(paraNames, simPara)
   nPass = sum(passCheck)
   
-  # output dir
-  dir.create(file.path("..", "..", "figures"))
-  dir.create(file.path("..", "..", "figures", "exp3"))
-  dir.create(file.path("..", "..", "figures", "exp3", "paraRecovery"))
-  
   # plot 
   plotData = expPara[,1:nPara] %>% gather(key = "para", value = "truth")
   tempt = hdrData$condition
@@ -65,7 +60,7 @@ paraRecovery = function(){
       myTheme + xlab(TeX(paraLabel)) +
       ylab(TeX(paraHat)) + geom_abline(xintercept = 0, slope = 1, linetype = "dashed") + 
       theme(legend.position = "none") +
-      annotate("text", label = paste("list(r[tau] ==", round(rankTaus[[i]], 2), ", p < 0.001 ", ")"),
+      annotate("text", label = paste("list(r ==", round(rankTaus[[i]], 2), ", p < 0.001 ", ")"),
                x= upLim - 0.4 * ran, y =max(plotData$recovered), parse = T, size = 5) +
       xlim(c(lowLim, upLim)) +
       ylim(c(lowLim, upLim)) +
@@ -74,7 +69,6 @@ paraRecovery = function(){
   }
   
   fig = (figs[[1]] | figs[[2]] | figs[[3]] | figs[[4]] | figs[[5]])
-  ggsave(file.path("..", "..", "figures", "exp3", "paraRecovery", "para.eps"), figs[[i]], width = 20, height = 4)
   
   ########## return outputs #######
   outputs = list(
