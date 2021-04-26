@@ -1,8 +1,12 @@
-modelRep = function(modelName, trialData, ids, nRep, isTrct, aveParas = NULL){
-  # 
+modelRepAve = function(modelName, trialData, ids, nRep, isTrct, paras){
+  ##################################
+  # generate results using model 
+  ##################################
+
+  #
   nSub = length(ids)
   load("expParas.RData")
-  
+
   # get the generative model 
   source(sprintf("subFxs/gnrModels/%s.R", modelName))
   gnrModel = get(modelName)
@@ -27,14 +31,7 @@ modelRep = function(modelName, trialData, ids, nRep, isTrct, aveParas = NULL){
       excluedTrials = which(thisTrialData$trialStartTime > (blockSec - max(delayMaxs)))
       thisTrialData = thisTrialData[!(1 : nrow(thisTrialData)) %in% excluedTrials,]
     }
-    # load individually fitted paramters 
-    if(is.null(aveParas)){
-      fitSummary = read.table(sprintf("../../genData/wtw_exp1/expModelFit/%s/s%s_summary.txt",  modelName, id),sep = ",", row.names = NULL)
-      paras =  fitSummary[1 : nPara,1]
-      print(paras)
-    }else{
-      paras = aveParas
-    }
+
     # simulate nRep times
     for(rIdx in 1 : nRep){
       tempt = gnrModel(paras, thisTrialData$condition, thisTrialData$scheduledWait, normResults)
@@ -76,3 +73,6 @@ modelRep = function(modelName, trialData, ids, nRep, isTrct, aveParas = NULL){
   )
   return(outputs)
 }
+
+
+  
