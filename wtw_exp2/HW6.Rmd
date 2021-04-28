@@ -1,0 +1,116 @@
+---
+title: "HW 6"
+author: "Yutong Li"
+date: "4/14/2021"
+output: html_document
+---
+```{r}
+# This file gives GetLk
+source("Lk.R")
+# This file has some simple functions for normalization
+source("normalization.R")
+```
+
+
+```{r}
+# code from Marc H. HW5.r
+#Ss <- seq(0.1,10,1)
+# k is the order of the Post approximation
+myk <- 2 
+# set up some s values
+# how many?
+nums <- 1000 
+# place to put them
+Ss <- array(0,nums)
+# smallest s value
+mins <- .001
+Ss[1] <- mins
+# This is c as in 1+c in a bunch of papers
+c <- .01
+for(i in 2:nums){
+	Ss[i] <- (1+c) * Ss[i-1]
+}
+
+#original
+f <- c(1,0,0)
+nums <- length(Ss)
+dt <- .01
+times <- seq(0,20,dt) 
+Ft <- array(0, c(nums,3))
+M <- array(0, c(3,3,nums))
+deltaM <- array(0, c(3,3,nums))
+number_of_trials <- 10
+trials <- seq(0,number_of_trials)
+
+
+for (n in trials){
+  #randCon<-runif(1, min=0, max=1)
+  #Ft <- array(0, c(nums,3))
+  for(t in times){
+    f <- c(0,0,0)
+    # if it's A
+   if (t==1     ){    #A is on at the beginning of each trial
+    f <- c(1,0,0)
+   }
+    # if it's B
+    if(t==10){ # B is on 10s after A
+      f <- c(0,1,0)
+    }
+    # if it's C
+    if(t==20){ # C is on 20s after A
+      f <- c(0,0,1)
+    }
+    # update F(s; t)
+    for(sval in Ss){
+      sind <- which(sval==Ss)
+      deltaM[,,sind] <- f %*% t(Ft[sind,])
+      
+      # update Ft for this s
+      Ft[sind,] <- Ft[sind,] * exp(-sval*dt) + f
+   
+    }
+    M = M + deltaM
+  }
+}
+```
+
+
+```{r}
+#code from HW5.r
+# mask to get rid of edge effects.
+Lkmask <- array(1, length(Ss))
+Lkmask[1:(2*myk-1)] <- 0
+Lkmask[length(Ss):(length(Ss) - (2*myk-1))] <- 0
+
+# this should be the Post approximation with k (and edge effects removed)
+MyLk <- diag(Lkmask) %*% GetLk(svals=Ss, power=myk, mults=T) 
+
+#Question: would the LT base on what we have created with A, B and C onsets?
+#Question: when will we introduce M to the \Lk?
+
+# for plotting things with the \Lk
+taustars <- myk/Ss
+
+logtaus <- -log(Ss)
+
+# Notice that the Ss are the same, but \tau varies
+Ft20 <- exp(-Ss * 20) 
+Ft10 <- exp(-Ss * 10) 
+Ft1 <- exp(-Ss * 1) 
+
+# Make some ftildes
+ftilde20 <- MyLk %*% Ft20
+ftilde10 <- MyLk %*% Ft10
+ftilde1 <- MyLk %*% Ft1
+
+plot(taustars,ftilde20, type="l", xlab="taustar", xlim=c(0,600))
+lines(taustars,ftilde10)
+lines(taustars,ftilde1)
+
+plot(logtaus,ftilde20, type="l", xlab="logtaustar", xlim=c(0,50))
+lines(logtaus,ftilde10)
+lines(logtaus,ftilde1)
+
+```
+
+

@@ -78,7 +78,7 @@ simExAnte = function(modelName, modelLabel, paras, delays_ = list()){
     scale_x_continuous(breaks = c(chunkBreaks / 60, 20),
                        labels = c(chunkBreaks / 60, 120),
                        limits = c(0,22)) +
-    xlab("Time (s)") +
+    xlab("Simulation time (s)") +
     ylab("AUC (s)") + theme(legend.position = "none")  + ylim(c(0, 20)) + 
     geom_hline(aes(yintercept = optim, color = condition), linetype = "dashed", data = condData) +
     geom_point(aes(y = asymAUC, color = condition), x = 20, shape = 8, data = condData) +
@@ -113,7 +113,7 @@ simExAnte = function(modelName, modelLabel, paras, delays_ = list()){
       ylab("Relative value of waiting") + xlab("Elapsed time (s)") + myTheme +
       theme(legend.position = "None",
             plot.title = element_text(hjust = 0.5)) +
-      ggtitle(modelLabel)
+      ggtitle(modelLabel) + ylim(-0.5, 12)
   }else if(modelName == "omni"){
     for(condition in conditions){
       delayMax = ifelse(condition == "HP", delayMaxs[1], delayMaxs[2])
@@ -141,7 +141,7 @@ simExAnte = function(modelName, modelLabel, paras, delays_ = list()){
       theme(legend.position = "None", plot.title = element_text(hjust = 0.5)) +
       ylab('Relative value of waiting') + 
       xlab("Elapsed time (s)") +
-      ggtitle(modelLabel)
+      ggtitle(modelLabel) + ylim(-0.5, 12)
   }
  
   

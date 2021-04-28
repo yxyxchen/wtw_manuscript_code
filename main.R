@@ -75,10 +75,10 @@ source("performCheck.R")
 figs_ = performCheck()
 # assemble the figures
 setwd(pwd)
-figAUC = (figs_[[1]][['learn']] | figs_[[2]]['learn'] | figs_[[3]]['learn'] | figs_[[4]]['learn'] | figs_[[5]]['learn'])
-ggsave(file.path("..", "figures", "cmb", "exante_learn_curve.eps"), figAUC, width = 15, height = 3)
-figRV = (figs_[[1]][['rv']] | figs_[[2]]['rv'] | figs_[[3]]['rv']) + plot_annotation(tag_levels = "a")
-ggsave(file.path("..", "figures", "cmb", "exante_rv.eps"), figRV, width = 15, height = 3)
+figAUC = (figs_[[1]][['learn']] | figs_[[2]]['learn'])
+ggsave(file.path("..", "figures", "cmb", "exante_learn_curve.eps"), figAUC, width = 6, height = 3)
+figRV = (figs_[[1]][['rv']] | figs_[[2]]['rv'] | figs_[[3]]['rv']) + ylim(-0.5, 12) + ylab("Expected net return")  + plot_annotation(tag_levels = "a")
+ggsave(file.path("..", "figures", "cmb", "exante_rv.eps"), figRV, width = 12, height = 3)
 figSnippet = (plot_spacer() | figs_[[1]][["Gs_"]][1] | figs_[[1]][["Gs_"]][2] | figs_[[1]][["Gs_"]][3]) / 
   (figs_[[1]][["values_"]][[1]] | figs_[[1]][["values_"]][[2]] | figs_[[1]][["values_"]][[3]] | figs_[[1]][["values_"]][[4]])
 ggsave(file.path("..", "figures", "cmb", "exante_snippet.eps"), figSnippet , width = 12, height = 6)
@@ -92,9 +92,19 @@ source("paraEffect.R")
 figs_ = paraEffect()
 # assemble figures
 setwd(pwd)
-figPostHoc = (figs_[[1]] + theme(legend.position = "None") |
-    figs_[[2]] + theme(legend.position = "None") + theme(legend.position = "None"))
-ggsave(file.path("..", "figures", "cmb", "posthoc_para_effect.eps"), figPostHoc , width = 18, height = 4)
+figPostHoc = (figs_[[1]] + theme(legend.position = "None")) + xlab("Simulation time (min)")
+ggsave(file.path("..", "figures", "cmb", "posthoc_para_effect.eps"), figPostHoc , width = 9, height = 4)
+
+
+#####################################################################################
+##                 Observed vs Model-generated, example participants               ##
+#####################################################################################
+setwd('./wtw_exp1')
+source("exp1_expModelRepInd.R")
+figs_ = expModelRepInd()
+setwd(pwd)
+figRepExample = figs_[['emp']] | figs_[['modelInd']] | figs_[['modelGroup']]
+ggsave(file.path("..", "figures", "cmb", "modelRep_example.eps"), figRepExample, width = 14, height = 4)
 
 
 ##################################################################
@@ -144,8 +154,8 @@ ggsave(file.path("../figures/cmb", sprintf("exp%s_modelCmp6.eps", i)), figCmp6, 
 # print summary stats 
 for(i in 1 : nExp){
   print(sprintf("Exp.%d", i))
-  print(cmpOuts_[[i]]$df4)
-  print(cmpOuts_[[i]]$df6)
+  print(cmpOuts_[[i]]$df4) 
+  # print(cmpOuts_[[i]]$df6)
 }
 
 #################################################################

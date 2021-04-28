@@ -31,7 +31,6 @@ modelRep = function(modelName, trialData, ids, nRep, isTrct, aveParas = NULL){
     if(is.null(aveParas)){
       fitSummary = read.table(sprintf("../../genData/wtw_exp1/expModelFit/%s/s%s_summary.txt",  modelName, id),sep = ",", row.names = NULL)
       paras =  fitSummary[1 : nPara,1]
-      print(paras)
     }else{
       paras = aveParas
     }

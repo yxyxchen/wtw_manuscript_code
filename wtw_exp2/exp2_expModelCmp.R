@@ -41,7 +41,18 @@ expModelCmp = function(){
                       ifelse(hdrData$condition[hdrData$stress == "no_stress"] == "HP", 1, 2))
   write.table(outputTable, "../../genData/wtw_exp2/waic.csv", sep=",",  col.names=FALSE, row.names=FALSE)
   
+  waic_ave_6 = waic_[apply(passCheck_, MARGIN = 1, all),] %>% apply(2, mean)
+  waic_ave_6 = round(waic_ave_6 - waic_ave_6[2], 2)
+  waic_std_6 = waic_[apply(passCheck_, MARGIN = 1, all),] %>% apply(2, function(x) sd(x) / sqrt(length(x)))
   
+  waic_ave_4 = waic_[apply(passCheck_[,1:4], MARGIN = 1, all), 1 : 4] %>% apply(2, mean)
+  waic_ave_4 = round(waic_ave_4 - waic_ave_4[2], 2)
+  waic_std_4 = waic_[apply(passCheck_[,1:4], MARGIN = 1, all), 1 : 4] %>% apply(2, function(x) sd(x) / sqrt(length(x)))
+  
+  print("waic_ave_6")
+  print(waic_ave_6)
+  print("waic_ave_4")
+  print(waic_ave_4)
   
   ############ only plot for RL models ############
   modelColors = c(
