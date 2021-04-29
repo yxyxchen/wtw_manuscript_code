@@ -149,21 +149,25 @@ for(i in 1 : nExp){
 # trial-by-trial figures for example participants are saved separately for each experiment. Those figures are not used in the paper
 # pie charts and WAIC plots, also not used in the paper
 cmpOuts_ = vector("list", length = nExp)
-cmpFigs = vector("list", length = nExp)
-comFigFulls = vector("list", length = nExp)
-for(i in 1 : nExp){
+# cmpFigs = vector("list", length = nExp)
+# comFigFulls = vector("list", length = nExp)
+delta_waic_4 = matrix(NA, 3, 4) 
+delta_waic_6 = matrix(NA, 3, 6)  
+best_fit_4 = matrix(NA, 3, 4) 
+best_fit_6 = matrix(NA, 3, 6) 
+for(i in 1 : 3){
   setwd(file.path(pwd, wds[i])) # set the working directory
   source(sprintf("exp%d_expModelCmp.R", i)) 
   cmpOuts_[[i]] = expModelCmp()
-  cmpFigs[[i]] = cmpOuts_[[i]][['4pie']] / cmpOuts_[[i]][['4waic']]
-  comFigFulls[[i]] = cmpOuts_[[i]][['6pie']] / cmpOuts_[[i]][['6waic']]
+  delta_waic_4[i,] = cmpOuts_[[i]][['deltaWAIC4']]
+  delta_waic_6[i,] = cmpOuts_[[i]][['deltaWAIC6']]
+  best_fit_4[i,] = as.numeric(cmpOuts_[[i]][['bestFit4']]$bestFitNum[1:4])
+  best_fit_6[i,] = as.numeric(cmpOuts_[[i]][['bestFit6']]$bestFitNum[1:6])
+  # cmpFigs[[i]] = cmpOuts_[[i]][['4pie']] / cmpOuts_[[i]][['4waic']]
+  # comFigFulls[[i]] = cmpOuts_[[i]][['6pie']] / cmpOuts_[[i]][['6waic']]
 }
-# print summary stats 
-for(i in 1 : nExp){
-  print(sprintf("Exp.%d", i))
-  print(cmpOuts_[[i]]$df4) 
-  # print(cmpOuts_[[i]]$df6)
-}
+
+
 
 #################################################################
 ##                     Parameter estimates                     ##
