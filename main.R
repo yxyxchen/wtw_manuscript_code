@@ -107,9 +107,9 @@ figRepExample = figs_[['emp']] | figs_[['modelInd']] | figs_[['modelGroup']]
 ggsave(file.path("..", "figures", "cmb", "modelRep_example.eps"), figRepExample, width = 14, height = 4)
 
 
-##################################################################
-##                       model comparison                       ##
-##################################################################
+###############################################################################
+##                       qualitative model comparison                       ##
+##############################################################################
 # plot ovserved and model-generated AUC and sigma_WTW
 figs_ = vector("list", length = nExp )
 for(i in 1 : nExp){
@@ -122,16 +122,32 @@ for(i in 1 : nExp){
   figs = vector("list", length = nExp) # initialize the output 
   
   for(j in 1 : nModel){ 
-    modelName = models[j]
     load(sprintf("../../genData/wtw_exp%d/expModelRep/%s_trct.RData", i, modelName))
     outs = expModelRep(modelName, allData,  MFResults, repOutputs)
     # outs = expModelRep(modelName, allData,  MFResults)
-    figs[[j]] = outs[['rep']]
   }
   figs_[[i]] = figs
 }
-# figures for example participants are saved separately for each experiment
-# pie charts and WAIC plots
+# assemble the figures 
+setwd(pwd)
+for(i in 1 : nExp){
+  figRep = (figs_[[i]][[1]] | figs_[[i]][[2]] | figs_[[i]][[3]] | figs_[[i]][[4]] | figs_[[i]][[5]] | figs_[[i]][[6]])
+  # figLeft = (figs_[[i]][[1]] | figs_[[i]][[2]] | figs_[[i]][[3]] | figs_[[i]][[4]] | figs_[[i]][[5]] | figs_[[i]][[6]])
+  # figRep = (figLeft + cmpFigs[[i]])
+  ggsave(file.path("../figures/cmb", sprintf("exp%s_modelRep.eps", i)), figRep, width = 24, height = 8)
+}
+for(i in 1 : nExp){
+  figRep = (figs_[[i]][[2]] | figs_[[i]][[5]] | figs_[[i]][[6]])
+  # figLeft = (figs_[[i]][[1]] | figs_[[i]][[2]] | figs_[[i]][[3]] | figs_[[i]][[4]] | figs_[[i]][[5]] | figs_[[i]][[6]])
+  # figRep = (figLeft + cmpFigs[[i]])
+  ggsave(file.path("../figures/cmb", sprintf("exp%s_modelRep_simple.eps", i)), figRep, width = 12, height = 8)
+}
+
+###############################################################################
+##                       quantitative model comparison                       ##
+##############################################################################
+# trial-by-trial figures for example participants are saved separately for each experiment. Those figures are not used in the paper
+# pie charts and WAIC plots, also not used in the paper
 cmpOuts_ = vector("list", length = nExp)
 cmpFigs = vector("list", length = nExp)
 comFigFulls = vector("list", length = nExp)
@@ -142,15 +158,6 @@ for(i in 1 : nExp){
   cmpFigs[[i]] = cmpOuts_[[i]][['4pie']] / cmpOuts_[[i]][['4waic']]
   comFigFulls[[i]] = cmpOuts_[[i]][['6pie']] / cmpOuts_[[i]][['6waic']]
 }
-# assemble the figures 
-setwd(pwd)
-for(i in 1 : nExp){
-  figLeft = (figs_[[i]][[1]] | figs_[[i]][[2]] | figs_[[i]][[3]] | figs_[[i]][[4]] | figs_[[i]][[5]] | figs_[[i]][[6]])
-  figRep = (figLeft + cmpFigs[[i]])
-  ggsave(file.path("../figures/cmb", sprintf("exp%s_modelRep.eps", i)), figRep, width = 28, height = 8)
-}
-figCmp6 = (comFigFulls[[1]] | comFigFulls[[2]] | comFigFulls[[3]]) + plot_annotation(tag_levels = 'a')
-ggsave(file.path("../figures/cmb", sprintf("exp%s_modelCmp6.eps", i)), figCmp6, width = 12, height = 8)
 # print summary stats 
 for(i in 1 : nExp){
   print(sprintf("Exp.%d", i))
