@@ -1,7 +1,7 @@
-expModelFit = function(modelName, isFirstFit){
+expModelFit = function(modelName, isFirstFit, batchIdx = NULL, parallel = False){
   # generate output directories
-  dir.create("../../genData/wtw_exp2")
-  dir.create("../../genData/wtw_exp2/expModelFit")
+  dir.create("../../genData/wtw_exp1")
+  dir.create("../../genData/wtw_exp1/expModelFit")
   dir.create("stanWarnings")
   
   # load experiment parameters
@@ -12,23 +12,32 @@ expModelFit = function(modelName, isFirstFit){
   source("subFxs/loadFxs.R")
   source("subFxs/helpFxs.R")
   source('subFxs/modelFitGroup.R')
-  source("exp2_expSchematics.R")
+  source("exp1_expSchematics.R")
   
   # prepare inputs
   allData = loadAllData()
   hdrData = allData$hdrData
-  ids = hdrData$id
   trialData = allData$trialData
-  outputDir = sprintf("../../genData/wtw_exp2/expModelFit/%s", modelName)
-  config = list(
-    nChain = 4,
-    # nIter = 8000, 
-    nIter = 100,
-    adapt_delta = 0.99,
-    max_treedepth = 11,
-    warningFile = sprintf("stanWarnings/exp_%s.txt", modelName)
-  )
-  
+  trialData = trialData[hdrData$stress == "no_stress"]
+  outputDir = sprintf("../../genData/wtw_exp1/expModelFit/%s", modelName)
+
+  if(isFirstFit){
+    config = list(
+      nChain = 4,
+      nIter = 8000,
+      adapt_delta = 0.99,
+      max_treedepth = 11,
+      warningFile = sprintf("stanWarnings/exp_%s.txt", modelName)
+    )
+    # divide data into small batches if batchIdx exists 
+    if(!is.null(batchIdx)){
+      if(batchIdx == 1){
+        trialData = trialData[1 : 30]
+      }else if(batchIdx == 2){
+        trialData = trialData[31 : 60]
+      }
+    }
+  }
   # if it is the first time to fit the model, fit all participants
   # otherwise, check model fitting results and refit those that fail any of the following criteria
   ## no divergent transitions 
@@ -44,14 +53,15 @@ expModelFit = function(modelName, isFirstFit){
     # increase the num of Iterations 
     config = list(
       nChain = 4,
-      nIter = 20000,
+      nIter = 1200,
       adapt_delta = 0.99,
       max_treedepth = 11,
       warningFile = sprintf("stanWarnings/exp_refit_%s.txt", modelName)
     )
   }
-  
+
   # fit the model for all participants
-  modelFitGroup(modelName, trialData, config, outputDir, T)
+  modelFitGroup(modelName, trialData, config, outputDir, parallel = parallel, isTrct = T)
+  
 }
 

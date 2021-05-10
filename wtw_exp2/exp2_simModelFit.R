@@ -1,4 +1,4 @@
-simModelFit = function(encodeModel, decodeModel, isFirstFit){
+simModelFit = function(encodeModel, decodeModel, isFirstFit, batchIdx = NULL, parallel = False){
   # generate output directories
   dir.create("../../genData/wtw_exp2")
   dir.create("../../genData/wtw_exp2/simModelFit")
@@ -21,13 +21,23 @@ simModelFit = function(encodeModel, decodeModel, isFirstFit){
   
   # prepare inputs
   outputDir = sprintf("../../genData/wtw_exp2/simModelFit/%s/%s", encodeModel, decodeModel)
-  config = list(
-    nChain = 4,
-    nIter = 100,
-    adapt_delta = 0.99,
-    max_treedepth = 11,
-    warningFile = sprintf("stanWarnings/sim_%s_%s.txt",encodeModel, decodeModel)
-  )
+  if(isFirstFit){
+    config = list(
+      nChain = 4,
+      nIter = 8000,
+      adapt_delta = 0.99,
+      max_treedepth = 11,
+      warningFile = sprintf("stanWarnings/sim_%s_%s.txt", encodeModel, decodeModel)
+    )
+    # divide data into small batches if batchIdx exists 
+    if(!is.null(batchIdx)){
+      if(batchIdx == 1){
+        trialData = trialData[1 : 21]
+      }else if(batchIdx == 2){
+        trialData = trialData[22 : 42]
+      }
+    }
+  }
   
   # if it is the first time to fit the model, fit all participants
   # otherwise, check model fitting results and refit those that fail any of the following criteria
@@ -52,6 +62,6 @@ simModelFit = function(encodeModel, decodeModel, isFirstFit){
   }
   
   # fit the model for all participants
-  modelFitGroup(decodeModel, trialData, config, outputDir, isTrct = F)
+  modelFitGroup(decodeModel, trialData, config, outputDir, parallel = parallel, isTrct = F)
 }
 

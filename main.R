@@ -84,6 +84,30 @@ figSnippet = (plot_spacer() | figs_[[1]][["Gs_"]][1] | figs_[[1]][["Gs_"]][2] | 
 ggsave(file.path("..", "figures", "cmb", "exante_snippet.eps"), figSnippet , width = 12, height = 6)
 
 
+##############################################
+##                 Model fit                ##
+##############################################
+## Warnings: this model fitting process can take hours. 
+## To save time, you can directly download the outputs from the link below and move to the next step:
+## https://www.dropbox.com/sh/a2yqj3f21fkzj3r/AADly4VA7SMeaBWY5Nkeo83Ga?dl=0
+parallel = T # When run on a local PC, you can use set this variabel to true to turn on parallel computing
+for(i in 1 : nExp){
+  setwd(file.path(pwd, wds[i]))
+  source(sprintf("exp%d_expModelFit.R", i))
+  for(modelName in modelNames){
+    # fit all participants
+    print(sprintf("Model fitting in Exp.%d", i))
+    print(sprintf("Model fitting results saved at ../genData/wtw_exp%d/expModelFit/%s", i, modelName))
+    sprintf("Stan warning messages saved at stanWarnings/exp_%s.txt", modelName)
+    expModelFit(modelName, isFirstFit = T, parallel = parallel)
+    
+    # check whether the model converge and fit again if necessary 
+    print(sprintf("Increase samples to fit participants with disconvergent results in Exp.%d", i))
+    sprintf("Stan warning messages saved at stanWarnings/exp_refit_%s.txt", modelName)
+    expModelFit(modelName, isFirstFit = F, parallel = parallel)
+  }
+}
+
 #################################################################
 ##                 Parameter-effect simulation                 ##
 #################################################################
@@ -122,9 +146,12 @@ for(i in 1 : nExp){
   figs = vector("list", length = nExp) # initialize the output 
   
   for(j in 1 : nModel){ 
-    load(sprintf("../../genData/wtw_exp%d/expModelRep/%s_trct.RData", i, modelName))
-    outs = expModelRep(modelName, allData,  MFResults, repOutputs)
-    # outs = expModelRep(modelName, allData,  MFResults)
+    if(file.exists(sprintf("../../genData/wtw_exp%d/expModelRep/%s_trct.RData", i, modelName))){
+      load(sprintf("../../genData/wtw_exp%d/expModelRep/%s_trct.RData", i, modelName))
+      outs = expModelRep(modelName, allData,  MFResults, repOutputs)
+    }else{
+      outs = expModelRep(modelName, allData,  MFResults)
+    }
   }
   figs_[[i]] = figs
 }
@@ -132,25 +159,17 @@ for(i in 1 : nExp){
 setwd(pwd)
 for(i in 1 : nExp){
   figRep = (figs_[[i]][[1]] | figs_[[i]][[2]] | figs_[[i]][[3]] | figs_[[i]][[4]] | figs_[[i]][[5]] | figs_[[i]][[6]])
-  # figLeft = (figs_[[i]][[1]] | figs_[[i]][[2]] | figs_[[i]][[3]] | figs_[[i]][[4]] | figs_[[i]][[5]] | figs_[[i]][[6]])
-  # figRep = (figLeft + cmpFigs[[i]])
   ggsave(file.path("../figures/cmb", sprintf("exp%s_modelRep.eps", i)), figRep, width = 24, height = 8)
 }
 for(i in 1 : nExp){
   figRep = (figs_[[i]][[2]] | figs_[[i]][[5]] | figs_[[i]][[6]])
-  # figLeft = (figs_[[i]][[1]] | figs_[[i]][[2]] | figs_[[i]][[3]] | figs_[[i]][[4]] | figs_[[i]][[5]] | figs_[[i]][[6]])
-  # figRep = (figLeft + cmpFigs[[i]])
   ggsave(file.path("../figures/cmb", sprintf("exp%s_modelRep_simple.eps", i)), figRep, width = 12, height = 8)
 }
 
 ###############################################################################
 ##                       quantitative model comparison                       ##
 ##############################################################################
-# trial-by-trial figures for example participants are saved separately for each experiment. Those figures are not used in the paper
-# pie charts and WAIC plots, also not used in the paper
 cmpOuts_ = vector("list", length = nExp)
-# cmpFigs = vector("list", length = nExp)
-# comFigFulls = vector("list", length = nExp)
 delta_waic_4 = matrix(NA, 3, 4) 
 delta_waic_6 = matrix(NA, 3, 6)  
 best_fit_4 = matrix(NA, 3, 4) 
@@ -163,10 +182,7 @@ for(i in 1 : 3){
   delta_waic_6[i,] = cmpOuts_[[i]][['deltaWAIC6']]
   best_fit_4[i,] = as.numeric(cmpOuts_[[i]][['bestFit4']]$bestFitNum[1:4])
   best_fit_6[i,] = as.numeric(cmpOuts_[[i]][['bestFit6']]$bestFitNum[1:6])
-  # cmpFigs[[i]] = cmpOuts_[[i]][['4pie']] / cmpOuts_[[i]][['4waic']]
-  # comFigFulls[[i]] = cmpOuts_[[i]][['6pie']] / cmpOuts_[[i]][['6waic']]
 }
-
 
 
 #################################################################
@@ -183,14 +199,42 @@ for(i in 1 : nExp){
 setwd(pwd)
 histPara = (outs_[[1]][["hist"]] / outs_[[2]][['hist']] / outs_[[3]][['hist']]) + plot_layout(heights = c(1, 0.5, 0.5))
 ggsave(file.path("../figures/cmb", "para_hist.eps"), histPara, width = 12, height = 8)
-# figures for correlation analysis are saved separately for each experiments
-# print summary stats
-outs_[[1]]$rhoTest
-outs_[[1]]$numOptim
-outs_[[2]]$rhoTest
-outs_[[2]]$numOptim
-outs_[[3]]$rhoTest
-outs_[[3]]$numOptim
+# figures for correlation analysis (with self-report measures and among parameters) are saved separately for each experiments
+# print results for optimism bias 
+outs_[[1]]$rhoTest # whether rho < 1 in Exp.1
+outs_[[1]]$numOptim # number of participants with optimism bias in Exp.1
+outs_[[2]]$rhoTest # whether rho < 1 in Exp.2
+outs_[[2]]$numOptim # number of participants with optimism bias in Exp.2
+outs_[[3]]$rhoTest # whether rho < 1 in Exp.3
+outs_[[3]]$numOptim # number of participants with optimism bias in Exp.3
+
+
+
+#####################################################
+## simulated data and fit models to simulated data ##
+#####################################################
+
+parallel = F # When run on a local PC, you can use set this variabel to true to turn on parallel computing
+for(i in 1 : nExp){
+  setwd(file.path(pwd, wds[i]))
+  source(sprintf("exp%d_simModelFit.R", i))
+  source(sprintf("exp%d_simulation.R", i))
+  # simulate artificial participants using indvidually fit parameters 
+  simulation()
+  # fit all participants
+  print(sprintf("Model fitting for simulated participants in Exp.%d", i))
+  print(sprintf("Model fitting results saved at ../genData/wtw_exp%d/simModelFit/%s", i, "QL2"))
+  sprintf("Stan warning messages saved at stanWarnings/sim_%s_%s.txt", "QL2", "QL2")
+  simModelFit("QL2", "QL2", isFirstFit = T, parallel = parallel)
+  
+  # check whether the model converge and fit again if necessary 
+  print(sprintf("Increase samples to fit simulated participants with disconvergent results in Exp.%d", i))
+  sprintf("Stan warning messages saved at stanWarnings/sim_refit_%s_%s.txt", "QL2", "QL2")
+  simModelFit("QL2", "QL2", isFirstFit = F, parallel = parallel)
+
+}
+
+
 
 ##################################################################
 ##                      parameter recovery                      ##
@@ -206,7 +250,7 @@ for(i in 1 : nExp){
 setwd(pwd)
 figParaRecovery = outs_[[1]]$fig / outs_[[2]]$fig / outs_[[3]]$fig
 ggsave(file.path("../figures/cmb", "paraRecovery.eps"), figParaRecovery, width = 25, height = 12)
-# print the summary states
+# print the number of included artificial participants for each experiments
 outs_[[1]]$nPass
 outs_[[2]]$nPass
 outs_[[3]]$nPass
