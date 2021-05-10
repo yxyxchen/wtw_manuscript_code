@@ -13,7 +13,7 @@
 # max_treedepth: maximal depth of the trees that stan evaluates during each iteration
 # warningFile : file for saving warnings generated Rstan
 
-modelFitGroup = function(modelName, trialData, config, outputDir, isTrct = T){
+modelFitGroup = function(modelName, trialData, config, outputDir, parallel, isTrct = T){
   # create the output directory 
   dir.create(outputDir)
  
@@ -38,18 +38,6 @@ modelFitGroup = function(modelName, trialData, config, outputDir, isTrct = T){
   rstan_options(auto_write = TRUE) 
   model = stan_model(file = sprintf("stanModels/%s.stan", modelName))
   
-  modelNames = c("QL1", "QL2", "RL1", "RL2", "naive", "omni")
-  for(i in 1 : length(modelNames)){
-    modelName = modelNames[i]
-    model = stan_model(file = sprintf("stanModels/%s.stan", modelName))
-    outputDir = sprintf("../../genData/wtw_exp3/expModelFit/%s", modelName)
-    dir.create(outputDir)
-    paraNames = getParaNames(modelName)
-    outputFile = sprintf("%s/s%s", outputDir, id)
-    modelFitSingle(id, thisTrialData, modelName, paraNames, model, config, outputFile, normResults)
-  }
-
-  
   # determine parameters 
   paraNames = getParaNames(modelName)
   
@@ -60,9 +48,12 @@ modelFitGroup = function(modelName, trialData, config, outputDir, isTrct = T){
   # parallel compuation settings
   nCore = as.numeric(Sys.getenv("NSLOTS")) # settings for SCC
   if(is.na(nCore)) nCore = 1 # settings for SCC
-  # nCore = parallel::detectCores() -1 # settings for the local PC
-  # registerDoMC(nCore) # settings for the local PC
-  
+  if(parallel){
+    nCore = parallel::detectCores() -1 # settings for the local PC
+    registerDoMC(nCore) # settings for the local PC
+  }
+  print(sprintf("Model fitting using %d cores", nCore))
+
   foreach(i = 1 : nSub) %dopar% {
       id = ids[[i]]
       thisTrialData = trialData[[id]]
