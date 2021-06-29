@@ -10,24 +10,24 @@ We also uploaded ../figures to https://www.dropbox.com/sh/o1aawcd38xdwjza/AABk2q
 
 
 
-- 1.Experiment schematics (Fig.1)
+1. Experiment schematics (Fig.1)
 
-- 2.Model-free analysis (Fig.2) 
+2. Model-free analysis (Fig.2) 
 
-- 3.Performance check simulation (Fig.4-6) 
+3. Performance check simulation (Fig.4-6) 
 
-- 4.Parameter effect simulation (Fig.9)
+4. Parameter effect simulation (Fig.9)
 
-- 5.Fit models to empirical data 
+5. Fit models to empirical data 
 
-- 6.Comparing observed vs model-generated results, example participants (Fig.7)
+6. Comparing observed vs model-generated results, example participants (Fig.7)
 
-- 7.Qualitative model comparison (Fig.8, Fig.S3) 
+7. Qualitative model comparison (Fig.8, Fig.S3) 
 
-- 8.Quantitative model comparison (Table.4 and Table.S2)
+8. Quantitative model comparison (Table.4 and Table.S2)
 
-- 9.Parameter histograms and correlations (Fig.S1 and Fig.S5-S7)
+9. Parameter histograms and correlations (Fig.S1 and Fig.S5-S7)
 
-- 10.Simulation and parameter estimation for parameter recovery
+10. Simulation and parameter estimation for parameter recovery
 
-- 11.Plotting for parameter recovery (Fig.S4)
+11. Plotting for parameter recovery (Fig.S4)
