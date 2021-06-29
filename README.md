@@ -1,6 +1,6 @@
 ## An reinforcement learning model of adaptive persistence
 
-*by Yixin Chen, 2021/06/29*
+*by Yixin Chen, 06/29/2021*
 
 Welcome! This repo contains code for our manuscript. 
 
