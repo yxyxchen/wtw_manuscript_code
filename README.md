@@ -4,7 +4,7 @@
 
 Welcome! This repo contains code for our manuscript. 
 
-It consists of the top level script, **main.R**, and folders that contain subfunctions. The script **main.R** generates figures in the order shown below. Generated data and figures will be saved under ../figures/cmb and ../genData respectively. 
+It consists of the top-level script, **main.R**, and folders that contain subfunctions. The script **main.R** generates figures in the order shown below. Generated data and figures will be saved under ../figures/cmb and ../genData respectively. 
 
 Two parameter estimation steps (Step 5 and Step 10) will take hours. In the actual analysis process, we ran them on the cluster. The entire folder, ../genData, has been uploaded to https://www.dropbox.com/sh/o1aawcd38xdwjza/AABk2qWQgCelCXWWtKK0NAMua?dl=0skip. To save time, you can download ../genData, skip the parameter estimation steps, and run other steps normally. 
 
@@ -22,7 +22,7 @@ We also uploaded ../figures to https://www.dropbox.com/sh/o1aawcd38xdwjza/AABk2q
 
 5. Fit models to empirical data 
 
-6. Comparing observed vs model-generated results, example participants (Fig.7)
+6. Comparing observed and model-generated results for example participants (Fig.7)
 
 7. Qualitative model comparison (Fig.8, Fig.S3) 
 
