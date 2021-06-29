@@ -9,7 +9,6 @@ library(lattice)
 library(extrafont)
 library(patchwork)
 extrafont::font_import()
-source("subFxs/plotThemes.R")
 
 
 # settings 
@@ -71,6 +70,7 @@ ggsave(file.path("../figures/cmb","mf_wtw.pdf"), figMFWTW, width = 6, height = 1
 ##                 Performance check simulation                 ##
 ##################################################################
 setwd("./wtw_simulation")
+load("expParas.RData")
 source("performCheck.R")
 figs_ = performCheck()
 # assemble the figures
@@ -84,17 +84,29 @@ figSnippet = (plot_spacer() | figs_[[1]][["Gs_"]][1] | figs_[[1]][["Gs_"]][2] | 
 ggsave(file.path("..", "figures", "cmb", "exante_snippet.eps"), figSnippet , width = 12, height = 6)
 
 
-##############################################
-##                 Model fit                ##
-##############################################
+#################################################################
+##                 Parameter-effect simulation                 ##
+#################################################################
+setwd("./wtw_simulation")
+source("paraEffect.R")
+figs_ = paraEffect()
+# assemble figures
+setwd(pwd)
+figPostHoc = (figs_[[1]] + theme(legend.position = "None")) + xlab("Simulation time (min)")
+ggsave(file.path("..", "figures", "cmb", "posthoc_para_effect.eps"), figPostHoc , width = 9, height = 4)
+
+
+###################################################################
+##                 Fit models to empirical data               #####
+###################################################################
 ## Warnings: this model fitting process can take hours. 
 ## To save time, you can directly download the outputs from the link below and move to the next step:
 ## https://www.dropbox.com/sh/a2yqj3f21fkzj3r/AADly4VA7SMeaBWY5Nkeo83Ga?dl=0
-parallel = T # When run on a local PC, you can use set this variabel to true to turn on parallel computing
+parallel = F # When run on a local PC, you can use set this variabel to true to turn on parallel computing
 for(i in 1 : nExp){
   setwd(file.path(pwd, wds[i]))
   source(sprintf("exp%d_expModelFit.R", i))
-  for(modelName in modelNames){
+  for(modelName in models){
     # fit all participants
     print(sprintf("Model fitting in Exp.%d", i))
     print(sprintf("Model fitting results saved at ../genData/wtw_exp%d/expModelFit/%s", i, modelName))
@@ -107,18 +119,6 @@ for(i in 1 : nExp){
     expModelFit(modelName, isFirstFit = F, parallel = parallel)
   }
 }
-
-#################################################################
-##                 Parameter-effect simulation                 ##
-#################################################################
-setwd("./wtw_simulation")
-source("paraEffect.R")
-figs_ = paraEffect()
-# assemble figures
-setwd(pwd)
-figPostHoc = (figs_[[1]] + theme(legend.position = "None")) + xlab("Simulation time (min)")
-ggsave(file.path("..", "figures", "cmb", "posthoc_para_effect.eps"), figPostHoc , width = 9, height = 4)
-
 
 #####################################################################################
 ##                 Observed vs Model-generated, example participants               ##
@@ -146,12 +146,14 @@ for(i in 1 : nExp){
   figs = vector("list", length = nExp) # initialize the output 
   
   for(j in 1 : nModel){ 
+    modelName = models[j]
     if(file.exists(sprintf("../../genData/wtw_exp%d/expModelRep/%s_trct.RData", i, modelName))){
       load(sprintf("../../genData/wtw_exp%d/expModelRep/%s_trct.RData", i, modelName))
       outs = expModelRep(modelName, allData,  MFResults, repOutputs)
     }else{
       outs = expModelRep(modelName, allData,  MFResults)
     }
+    figs[[j]] = outs$rep
   }
   figs_[[i]] = figs
 }
@@ -185,9 +187,9 @@ for(i in 1 : 3){
 }
 
 
-#################################################################
-##                     Parameter estimates                     ##
-#################################################################
+###################################################################################
+##                     Parameter histograms and correlations                     ##
+###################################################################################
 outs_ = vector("list", length = nExp )
 for(i in 1 : nExp){
   setwd(file.path(pwd, wds[i]))
@@ -210,9 +212,9 @@ outs_[[3]]$numOptim # number of participants with optimism bias in Exp.3
 
 
 
-#####################################################
-## simulated data and fit models to simulated data ##
-#####################################################
+#################################################################
+## parameter recovery, simulation and parameter estimation     ##
+#################################################################
 
 parallel = F # When run on a local PC, you can use set this variabel to true to turn on parallel computing
 for(i in 1 : nExp){
@@ -234,11 +236,9 @@ for(i in 1 : nExp){
 
 }
 
-
-
-##################################################################
-##                      parameter recovery                      ##
-##################################################################
+#########################################################
+##            parameter recovery, plotting            ##
+########################################################
 outs_ = vector("list", length = nExp )
 for(i in 1 : nExp){
   setwd(file.path(pwd, wds[i])) # set the working directory

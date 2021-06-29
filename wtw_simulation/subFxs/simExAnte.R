@@ -1,6 +1,6 @@
 simExAnte = function(modelName, modelLabel, paras, delays_ = list()){
   set.seed(123)
-  
+  load("expParas.RData")
   # default settings 
   smallReward = 0 
   iti = 2

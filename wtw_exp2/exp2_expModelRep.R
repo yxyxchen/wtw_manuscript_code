@@ -2,9 +2,9 @@ expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs =
   set.seed(123)
   
   # create output directories
-  dir.create("../../figures/wtw_exp2")
-  dir.create("../../figures/wtw_exp2/expModelRep/")
-  dir.create(sprintf("../../figures/wtw_exp2/expModelRep/%s",modelName))
+  # dir.create("../../figures/wtw_exp2")
+  # dir.create("../../figures/wtw_exp2/expModelRep/")
+  # dir.create(sprintf("../../figures/wtw_exp2/expModelRep/%s",modelName))
   dir.create("../../genData/wtw_exp2/expModelRep")
   source("exp2_expSchematics.R")
   
@@ -94,49 +94,50 @@ expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs =
     theme(legend.position = "none") 
   rep = aucFig / cipFig 
   
-  
+  ##################### Example Participant ##############
   # prepare the data
-  repTrialData = repOutputs$repTrialData
-  repNo = repOutputs$repNo
-  sIdx = 31
-  thisTrialData = trialData[[ids[sIdx]]]
-  thisTrialData  = thisTrialData %>% filter(trialStartTime <=  blockSec - max(delayMaxs) )
-  thisTrialData = block2session(thisTrialData)
-  thisRepTrialData = repTrialData[[repNo[1, sIdx]]]
-  thisRepTrialData = data.frame(thisRepTrialData[1:6])
-  blockBoundary = min(which(thisTrialData$blockNum == 2)) # the trial boundary between two conditions
-  firstBlockMid = blockBoundary / 2
-  secondBlockMid = nrow(thisTrialData) - (nrow(thisTrialData) - blockBoundary) / 2
-  firstCondition = unique(thisTrialData$condition[thisTrialData$blockNum == 1])
-  secondCondition = unique(thisTrialData$condition[thisTrialData$blockNum == 2])
-                          
-                          
-                          
-  # model generated 
-  modelFig = trialPlots(thisRepTrialData) +  
-    ggtitle("Model-generated") +
-    theme(plot.title = element_text(hjust = 0.5),
-          legend.position = "none") + 
-    geom_vline(xintercept = min(which(thisTrialData$blockNum == 2)) - 0.5, linetype = "dashed", color = "#999999") +
-    myTheme +
-    annotate("text", x = firstBlockMid, y = 35, label = firstCondition, size = 6) + 
-    annotate("text", x = secondBlockMid , y = 35, label = secondCondition, size = 6)
-  
-  # observed
-  empFig = trialPlots(thisTrialData) + ggtitle("Observed") +
-    theme(plot.title = element_text(hjust = 0.5),
-          legend.position = "none") + 
-    geom_vline(xintercept = blockBoundary - 0.5, linetype = "dashed", color = "#999999") +
-    myTheme +
-    annotate("text", x = firstBlockMid, y = 35, label = firstCondition, size = 6) + 
-    annotate("text", x = secondBlockMid , y = 35, label = secondCondition, size = 6)
-
-  example = modelFig / empFig +  plot_annotation(title = sprintf("%s", modelName),
-                                       theme = theme(plot.title = element_text(hjust = 0.5, size = 20)))
-  ggsave(sprintf("../../figures/wtw_exp2/expModelRep/%s/example.eps", modelName), example, width = 6, height = 8) 
+  # repTrialData = repOutputs$repTrialData
+  # repNo = repOutputs$repNo
+  # sIdx = 31
+  # thisTrialData = trialData[[ids[sIdx]]]
+  # thisTrialData  = thisTrialData %>% filter(trialStartTime <=  blockSec - max(delayMaxs) )
+  # thisTrialData = block2session(thisTrialData)
+  # thisRepTrialData = repTrialData[[repNo[1, sIdx]]]
+  # thisRepTrialData = data.frame(thisRepTrialData[1:6])
+  # blockBoundary = min(which(thisTrialData$blockNum == 2)) # the trial boundary between two conditions
+  # firstBlockMid = blockBoundary / 2
+  # secondBlockMid = nrow(thisTrialData) - (nrow(thisTrialData) - blockBoundary) / 2
+  # firstCondition = unique(thisTrialData$condition[thisTrialData$blockNum == 1])
+  # secondCondition = unique(thisTrialData$condition[thisTrialData$blockNum == 2])
+  #                         
+  #                         
+  #                         
+  # # model generated 
+  # modelFig = trialPlots(thisRepTrialData) +  
+  #   ggtitle("Model-generated") +
+  #   theme(plot.title = element_text(hjust = 0.5),
+  #         legend.position = "none") + 
+  #   geom_vline(xintercept = min(which(thisTrialData$blockNum == 2)) - 0.5, linetype = "dashed", color = "#999999") +
+  #   myTheme +
+  #   annotate("text", x = firstBlockMid, y = 35, label = firstCondition, size = 6) + 
+  #   annotate("text", x = secondBlockMid , y = 35, label = secondCondition, size = 6)
+  # 
+  # # observed
+  # empFig = trialPlots(thisTrialData) + ggtitle("Observed") +
+  #   theme(plot.title = element_text(hjust = 0.5),
+  #         legend.position = "none") + 
+  #   geom_vline(xintercept = blockBoundary - 0.5, linetype = "dashed", color = "#999999") +
+  #   myTheme +
+  #   annotate("text", x = firstBlockMid, y = 35, label = firstCondition, size = 6) + 
+  #   annotate("text", x = secondBlockMid , y = 35, label = secondCondition, size = 6)
+  # 
+  # example = modelFig / empFig +  plot_annotation(title = sprintf("%s", modelName),
+  #                                      theme = theme(plot.title = element_text(hjust = 0.5, size = 20)))
+  # ggsave(sprintf("../../figures/wtw_exp2/expModelRep/%s/example.eps", modelName), example, width = 6, height = 8) 
   
   ################# return figure outputs ###############
-  outputs = list('rep' = rep, 'example' = example)
+  # outputs = list('rep' = rep, 'example' = example)
+  outputs = list('rep' = rep)
   return(outputs)
 
 }

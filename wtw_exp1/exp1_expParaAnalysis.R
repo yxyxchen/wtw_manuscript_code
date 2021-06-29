@@ -25,7 +25,7 @@ expParaAnalysis = function(){
   nPara = length(paraNames)
   
   # output directories
-  figDir = file.path("..", "..", "figures", "wtw_exp1", "expParaAnalysis")
+  figDir = file.path("..", "..", "figures", "cmb")
   dir.create(figDir)
   
   # load expPara
@@ -80,11 +80,11 @@ expParaAnalysis = function(){
   # chart.Correlation(plotData[plotData$condition == "HP",1:5], histogram=TRUE, pch=19, method = "kendall") 
   # chart.Correlation(plotData[plotData$condition == "LP",1:5], histogram=TRUE, pch=19, method = "kendall") 
   # chart.Correlation(plotData[,1:5], histogram=F, pch=19, method = "kendall")
-  pdf("../../figures/wtw_exp1/expParaAnalysis/HP_corr.pdf", width = 7.5, height = 7.5) 
+  pdf("../../figures/cmb/exp1_HP_corr.pdf", width = 7.5, height = 7.5) 
   pairs(plotData[plotData$condition == "HP",1:5], gap=0, lower.panel = my.reg, upper.panel = my.panel.cor, main= "Exp.1 HP") 
   dev.off()
 
-  pdf("../../figures/wtw_exp1/expParaAnalysis/LP_corr.pdf", width = 7.5, height = 7.5) 
+  pdf("../../figures/cmb/exp1_LP_corr.pdf", width = 7.5, height = 7.5) 
   pairs(plotData[plotData$condition == "LP",1:5], gap=0, lower.panel = my.reg, upper.panel = my.panel.cor, main= "Exp.1 LP") 
   dev.off()
   
@@ -113,11 +113,11 @@ expParaAnalysis = function(){
   # chart.Correlation(expPara[passCheck, c(paraNames, traits)], method = "kendall")
 
   
-  pdf("../../figures/wtw_exp1/expParaAnalysis/HP_trait_corr.pdf", width = 13.5, height = 13.5) 
+  pdf("../../figures/cmb/HP_trait_corr.pdf", width = 13.5, height = 13.5) 
   pairs(expPara[expPara$condition == "HP" & passCheck, c(paraNames, traits)], gap=0, lower.panel = my.reg, upper.panel = my.panel.cor, main= "Exp.1 HP", nCmp = length(traits)) 
   dev.off()
   
-  pdf("../../figures/wtw_exp1/expParaAnalysis/LP_trait_corr.pdf", width = 13.5, height = 13.5) 
+  pdf("../../figures/cmb/LP_trait_corr.pdf", width = 13.5, height = 13.5) 
   pairs(expPara[expPara$condition == "LP", c(paraNames, traits)], gap=0, lower.panel = my.reg, upper.panel = my.panel.cor, main= "Exp.1 LP", nCmp = length(traits)) 
   dev.off()
   
@@ -192,13 +192,13 @@ expParaAnalysis = function(){
   #################################################################
   ##                  Correlations among traits                  ##
   #################################################################
-  pdf(file.path(figDir, "trait.pdf"), width = 8, height = 8)
+  pdf(file.path(figDir, "exp1_trait.pdf"), width = 8, height = 8)
   pairs(personality[,traits], gap=0, lower.panel = my.reg, upper.panel = my.panel.cor,
         main= "Self-report measurement") 
   dev.off()
   ####### combine figTraitAUC and figTriatSigma #######
   figTraitPerform = figTraitAUC & figTraitSigma 
-  ggsave(file.path(figDir, "trait_perform.pdf"),  figTraitPerform, width = 24, height = 8)
+  ggsave(file.path(figDir, "exp1_trait_perform.pdf"),  figTraitPerform, width = 24, height = 8)
   
   ############### return outputs #############
   outputs = list(

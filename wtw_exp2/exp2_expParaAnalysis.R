@@ -15,8 +15,6 @@ expParaAnalysis = function(){
   paraNames = getParaNames(modelName)
   nPara = length(paraNames)
   
-  # output directories
-  dir.create("../../figures/wtw_exp2/expParaAnalysis")
   
   # load expPara
   paraNames = getParaNames(modelName)
@@ -67,7 +65,7 @@ expParaAnalysis = function(){
   
   # chart.Correlation(expPara[passCheck,1:5], histogram=TRUE, pch=19, method = "kendall")
   
-  pdf("../../figures/wtw_exp2/expParaAnalysis/corr.pdf", width = 7.5, height = 7.5) 
+  pdf("../../figures/cmb/exp2_corr.pdf", width = 7.5, height = 7.5) 
   pairs(plotData[passCheck,1:5], gap=0, lower.panel = my.reg, upper.panel = my.panel.cor, main= "Exp.2") 
   dev.off()
   

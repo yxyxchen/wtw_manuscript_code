@@ -14,11 +14,7 @@ expParaAnalysis = function(){
   modelName = "QL2"
   paraNames = getParaNames(modelName)
   nPara = length(paraNames)
-  
-  # output directories
-  dir.create("../../figures/wtw_exp3/expParaAnalysis")
-  saveDir = sprintf("../../figures/wtw_exp3/expParaAnalysis/%s", modelName)
-  dir.create(saveDir)
+
   
   # load expPara
   paraNames = getParaNames(modelName)
@@ -64,7 +60,7 @@ expParaAnalysis = function(){
   plotData = expPara %>% filter(passCheck ) %>% select(c(paraNames)) 
   
   # chart.Correlation(expPara[passCheck,1:5], histogram=TRUE, pch=19, method = "spearman")
-  pdf("../../figures/wtw_exp3/expParaAnalysis/corr.pdf", width = 7.5, height = 7.5) 
+  pdf("../../figures/cmb/exp3_corr.pdf", width = 7.5, height = 7.5) 
   pairs(plotData[passCheck,1:5], gap=0, lower.panel = my.reg, upper.panel = my.panel.cor, main= "Exp.3") 
   dev.off()
   

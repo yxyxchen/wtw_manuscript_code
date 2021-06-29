@@ -24,7 +24,7 @@ MFPlot = function(){
   ##################################################################
   ##           plot WTW timecourses in two environments           ##
   ##################################################################
-  MFResults = MFAnalysis(isTrct = T)
+  MFResults = MFAnalysis(isTrct = F)
   sumStats = MFResults[['sumStats']]
   timeWTW_ = MFResults[['timeWTW_']]
   nSub = nrow(sumStats)
@@ -53,7 +53,9 @@ MFPlot = function(){
   plotData$max[plotData$time %in% (1:3 * blockSec - 1)] = NA
   
   # plot 
-  figWTW = plotData %>% ggplot(aes(time, mu, color = condition))  +
+  figWTW = plotData %>% ggplot(aes(time, mu, color = condition)) + 
+    geom_rect(data = greyData, aes(xmin = xmin, xmax = xmax), ymin = 0, ymax = 20,
+              fill = "#d9d9d9", inherit.aes = F) +
     geom_ribbon(aes(ymin=min, ymax=max, fill = condition, color = NA), alpha = 0.5) +
     geom_line(aes(color = condition), size = 1) +
     xlab("Task time (min)") + ylab("Willingness to wait (s)") + 
@@ -62,11 +64,10 @@ MFPlot = function(){
     scale_x_continuous(breaks = 0:3 * 420, labels = 0:3 * 7) + 
     theme(legend.position = "none") +
     scale_fill_manual(values = conditionColors) +
-    scale_color_manual(values = conditionColors) +
-    geom_hline(aes(yintercept = optimWaitThresholds$HP), color = "red", size = 2, linetype = "dashed") +
-    geom_hline(aes(yintercept = optimWaitThresholds$LP), color = "red", size = 2, linetype = "dashed")
+    scale_color_manual(values = conditionColors)
+    # geom_hline(aes(yintercept = optimWaitThresholds$HP), color = "red", size = 2, linetype = "dashed") +
+    # geom_hline(aes(yintercept = optimWaitThresholds$LP), color = "red", size = 2, linetype = "dashed")
   
-  ggsave("tmp/fig_WTW.pdf", width = 4, height = 4)
   ###################################################################
   ##              compare AUC in the two environments              ##
   ###################################################################

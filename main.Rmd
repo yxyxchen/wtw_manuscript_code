@@ -1,0 +1,63 @@
+---
+title: "main"
+author: "Yin_Chen"
+date: "6/29/2021"
+output: html_document
+---
+
+```{r setup}
+# libraries
+knitr::opts_chunk$set(echo = TRUE)
+library("tidyverse")
+library(gridExtra)
+library(grid)
+library(ggplot2)
+library(lattice)
+library(extrafont)
+library(patchwork)
+extrafont::font_import()
+
+# experiment settings 
+exps = c("exp1", "exp2", "exp3")
+nExp = length(exps)
+pwd = getwd()
+wds = c("wtw_exp1", "wtw_exp2", "wtw_exp3")
+models = c("QL1", "QL2", "RL1", "RL2", "naive", "omni")
+nModel = length(models)
+iti = 2 # inter-trial interval in seconds 
+smallReward = 0 # initial token value
+
+# create the output directories
+dir.create("../figures")
+dir.create("../genData")
+dir.create("../figures/cmb")
+```
+
+
+## Experiment Schematics ##
+```{r,echo=FALSE,results='hide',fig.keep='all'}
+figs_ = vector("list", length = nExp )
+for(i in 1 : nExp){
+  setwd(file.path(pwd, wds[i]))
+  source(sprintf("exp%d_expSchematics.R", i))
+  outs = expSchematics(smallReward, iti, T)
+  figs_[[i]] = outs$figs
+}
+# assemble the figures
+setwd(pwd)
+expCmb = (figs_[[1]][['pdf']] | figs_[[2]][['pdf']] | figs_[[3]][['pdf']]) /
+  (figs_[[1]][['rt']] | figs_[[2]][['rt']] | figs_[[3]][['rt']]) +
+  plot_annotation(tag_levels = 'a')
+ggsave(file.path("../figures/cmb", "exp.eps"), expCmb, width = 12, height = 6)
+expCmb
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

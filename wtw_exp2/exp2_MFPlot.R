@@ -52,7 +52,7 @@ MFPlot = function(){
     geom_ribbon(aes(ymin=min, ymax=max), alpha = 0.5, color = NA) +
     geom_line(size = 0.5) +
     xlab("Task time (min)") + ylab("WTW (s)") + 
-    scale_y_continuous(breaks = c(0, 10, 20), limits = c(0, 20)) +
+    scale_y_continuous(breaks = c(0, 8, 16), limits = c(0, 17)) +
     myTheme + scale_x_continuous(breaks = c(0, 600, 1200), labels = c(0, 600, 1200) / 60 ) +
     theme(plot.title = element_text(face = "bold", hjust = 0.5, color = themeColor)) +
     scale_color_manual(values = conditionColors) + scale_fill_manual(values = conditionColors) +
@@ -79,7 +79,9 @@ MFPlot = function(){
     annotate("text", x = 8, y = 3, label = sprintf('p = %0.3f*', wTest$p.value), size = 6) +
     xlab("LP AUC (s)") + ylab("HP AUC (s)") + 
     myTheme + xlim(c(-1,17)) + ylim(c(-1,17)) +
-    theme(plot.title = element_text(face = "bold", hjust = 0.5, color = themeColor))
+    theme(plot.title = element_text(face = "bold", hjust = 0.5, color = themeColor)) +
+    scale_x_continuous(breaks = c(0, 4, 8, 12, 16), limits = c(0, 16))
+  
   
   ################################################################
   ##              compare sigma_wtw in the two environments              ##
@@ -136,7 +138,8 @@ MFPlot = function(){
     scale_linetype_manual(values = c("solid", "dotted")) +
     scale_alpha_manual(values = c(0.8, 1))+
     xlab("Elapsed time (s)") + ylab("Survival rate") + myTheme +
-    theme(legend.position = "none") 
+    theme(legend.position = "none") +
+    scale_x_continuous(breaks = c(0, 4, 8, 12, 16), limits = c(0, 16))
   
   ############# return the output ###############
   outputs = list(

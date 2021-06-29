@@ -2,9 +2,9 @@
 expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs = NULL){
   set.seed(123)
   # create output directories
-  dir.create("../../figures/wtw_exp1")
-  dir.create("../../figures/wtw_exp1/expModelRep/")
-  dir.create(sprintf("../../figures/wtw_exp1/expModelRep/%s",modelName))
+  # dir.create("../../figures/wtw_exp1")
+  # dir.create("../../figures/wtw_exp1/expModelRep/")
+  # dir.create(sprintf("../../figures/wtw_exp1/expModelRep/%s",modelName))
   
   # load experiment parameters
   load('expParas.RData')
@@ -107,29 +107,30 @@ expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs =
   ##################################################################
   
   # model generated 
-  repTrialData = repOutputs$repTrialData
-  repNo = repOutputs$repNo
-  sIdx = 1
-  thisRepTrialData = repTrialData[[repNo[1, sIdx]]]
-  thisRepTrialData = data.frame(thisRepTrialData[1:6])
-  modelFig = trialPlots(thisRepTrialData) +  
-    ggtitle("Model-generated") +
-    theme(plot.title = element_text(hjust = 0.5),
-          legend.position = "none")
-  
-  # observed
-  thisTrialData = trialData[[ids[sIdx]]]
-  thisTrialData  = thisTrialData %>% filter(trialStartTime <=  blockSec - max(delayMaxs))
-  thisTrialData = block2session(thisTrialData)
-  empFig = trialPlots(thisTrialData) + ggtitle("Observed") +
-    theme(plot.title = element_text(hjust = 0.5),
-          legend.position = "none")
-  example = modelFig / empFig +  plot_annotation(title = sprintf("%s", modelName),
-                                       theme = theme(plot.title = element_text(hjust = 0.5, size = 20)))
-  ggsave(sprintf("../../figures/wtw_exp1/expModelRep/%s/example.eps", modelName), example, width = 6, height = 8)
-  
+  # repTrialData = repOutputs$repTrialData
+  # repNo = repOutputs$repNo
+  # sIdx = 1
+  # thisRepTrialData = repTrialData[[repNo[1, sIdx]]]
+  # thisRepTrialData = data.frame(thisRepTrialData[1:6])
+  # modelFig = trialPlots(thisRepTrialData) +  
+  #   ggtitle("Model-generated") +
+  #   theme(plot.title = element_text(hjust = 0.5),
+  #         legend.position = "none")
+  # 
+  # # observed
+  # thisTrialData = trialData[[ids[sIdx]]]
+  # thisTrialData  = thisTrialData %>% filter(trialStartTime <=  blockSec - max(delayMaxs))
+  # thisTrialData = block2session(thisTrialData)
+  # empFig = trialPlots(thisTrialData) + ggtitle("Observed") +
+  #   theme(plot.title = element_text(hjust = 0.5),
+  #         legend.position = "none")
+  # example = modelFig / empFig +  plot_annotation(title = sprintf("%s", modelName),
+  #                                      theme = theme(plot.title = element_text(hjust = 0.5, size = 20)))
+  # ggsave(sprintf("../../figures/wtw_exp1/expModelRep/%s/example.eps", modelName), example, width = 6, height = 8)
+  # 
   
   ################# return figure outputs ###############
+  # outputs = list("rep" = rep, "example" = example)
   outputs = list("rep" = rep, "example" = example)
   return(outputs)
   
