@@ -1,4 +1,4 @@
-## An reinforcement learning model of adaptive persistence
+## A reinforcement learning model of adaptive persistence
 
 *by Yixin Chen, 06/29/2021*
 
