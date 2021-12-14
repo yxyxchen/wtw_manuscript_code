@@ -167,33 +167,35 @@ simExAnte = function(modelName, modelLabel, paras, delays_ = list()){
     ## plot value functions
     for(i in 1 : 4){
       if(i > 1){
-        rewardColor = ifelse(exampleRs[i-1] == 10, "pink", "cyan")
         figQwaits_[[i]] = data.frame(
           time = -2 : min(delayMaxs),
           type = c(0, rep(1, min(delayMaxs) + 2)),
           value = c(exampleV[i], NA, as.vector(exampleQwaits[,i]))
-        ) %>% ggplot(aes(time, value, color = factor(type))) + geom_point(size = 4) +
-          myTheme + ylab(sprintf('Value in Trial %d', i)) + xlab("t") +
-          ylim(c(0, 12)) + scale_x_continuous(breaks = c(-2, seq(0, min(delayMaxs), by = 5)), limits = c(-3, 21)) +
-          geom_vline(xintercept = exampleTs[i-1], color =  rewardColor, linetype = "dashed") +
-          scale_color_manual(values = c("#636363", "black")) +
-          theme(legend.position =  "None")
+        ) %>% ggplot(aes(time, value, color = factor(type))) + 
+          geom_rect(xmin = -3, xmax = exampleTs[i-1], ymin = 4, ymax = 8, fill ='#fee0d2', color = NA) + 
+          geom_point(size = 4) +
+          myTheme + ylab('Action value') + xlab("t") +
+          ylim(c(4, 8)) + scale_x_continuous(breaks = c(-2, seq(0, min(delayMaxs), by = 5)), limits = c(-3, 21)) +
+          geom_vline(xintercept = exampleTs[i-1], color =  '#fc9272', linetype = "dashed", size = 1) +
+          scale_color_manual(values = c("#d7191c", "#2c7bb6")) +
+          theme(legend.position =  "None",
+                panel.grid.major.y = element_line(color = "grey", size = 0.5,linetype = 2))
       }else{
         figQwaits_[[i]] = data.frame(
           time = -2 : min(delayMaxs),
           type = c(0, rep(1, min(delayMaxs) + 2)),
           Qwait = c(exampleV[i], NA, as.vector(exampleQwaits[,i]))
         ) %>% ggplot(aes(time, Qwait, color = factor(type))) + geom_point(size = 4) +
-          myTheme + ylab(sprintf('Value in Trial %d', i))  + xlab("t") +
-          ylim(c(0, 12)) + scale_x_continuous(breaks = c(-2, seq(0, min(delayMaxs), by = 5)), limits = c(-3, 21)) +
-          scale_color_manual(values = c("#636363", "black")) +
-          theme(legend.position =  "None")
+          myTheme + ylab('Action value')  + xlab("t") +
+          ylim(c(4, 8)) + scale_x_continuous(breaks = c(-2, seq(0, min(delayMaxs), by = 5)), limits = c(-3, 21)) +
+          scale_color_manual(values = c("#d7191c", "#2c7bb6")) +
+          theme(legend.position =  "None",  panel.grid.major.y = element_line(color = "grey",
+                                                                               size = 0.5,linetype = 2))
       }
     }
     
     ## plot Gs
     for(i in 1 : 4){
-      rewardColor = ifelse(exampleRs[i] == 10, "pink", "cyan")
       G = exampleSim$Gs_[,i]
       G[G == 0] = NA
       exampleT = round(exampleTs[i], 1)
@@ -203,18 +205,34 @@ simExAnte = function(modelName, modelLabel, paras, delays_ = list()){
         G = c(G[1] * paras[3] ^ 2, NA,  G),
         type = c(0, rep(1, min(delayMaxs) + 2))
       ) %>% ggplot(aes(time, G, color = factor(type))) + geom_point(size = 4) +
-        myTheme  + ylab(sprintf('Feedback in Trial %d', i)) + xlab("t") +
+        myTheme  + ylab('Feedback signal') + xlab("t") +
         scale_x_continuous(limits = c(-3, 21), breaks = c(-2, seq(0, min(delayMaxs), by = 5))) +
         ylim(0, 15) +
-        geom_vline(xintercept = exampleTs[i], color =  rewardColor, linetype = "dashed", inherit.axis = F) +
-        scale_color_manual(values = c("#636363", "black")) + theme(legend.position = "None") + 
-        ggtitle(bquote(Omega^.(i)~"="~.(exampleT)~","~Lambda^.(i)~"="~.(exampleRs[i]))) + # add a title as a place holder, later change in illustrator 
-          theme(plot.title = element_text(hjust = 0.5), legend.position = "None") 
+        geom_vline(xintercept = exampleTs[i], color =  '#fc9272', linetype = "dashed", inherit.axis = F, size = 1) +
+        scale_color_manual(values = c("#d7191c", "#2c7bb6")) + theme(legend.position = "None") +
+          theme(plot.title = element_text(hjust = 0.5), legend.position = "None")
     }
   }
   
+  ## plot priors 
+  if(modelName == 'QL1'){
+    V = mean(unlist(optimRewardRates)) / (1 - 0.85) # state value for t = 0
+    tWaits = seq(0, 20, by = stepSec) # decision points 
+    tMax = max(tWaits) #  time point for the last decision point
+    Qwaits_prior_equal_1 = -0.1 * (tWaits) + 1 + V 
+    Qwaits_prior_equal_2 = -0.1 * (tWaits) + 1.5 + V 
+    
+    figPrior = data.frame(
+      time = c(-2, tWaits, tWaits),
+      type = c(0, rep(1, length(tWaits)),rep(2, length(tWaits)) ),
+      action_value = c(V, Qwaits_prior_equal_1, Qwaits_prior_equal_2)
+    ) %>% ggplot(aes(time, action_value, color = factor(type))) + geom_point(size = 10) +
+      myTheme + ylab('Initial action value')  + xlab("t") +
+      ylim(c(4.5, 8)) + scale_x_continuous(breaks = c(-2, seq(0, min(delayMaxs), by = 5)), limits = c(-3, 21)) +
+      scale_color_manual(values = c("#d7191c", "#2c7bb6", "#9ecae1")) +
+      theme(legend.position =  "None")
+  }
   ############ return outputs ###########
-  
   outputs = list(
     "learn" = figAUC
   )
@@ -225,7 +243,8 @@ simExAnte = function(modelName, modelLabel, paras, delays_ = list()){
   
   if(modelName == "QL1"){
     outputs[['values_']]  = figQwaits_
-    outputs[['Gs_']] = figGs_  
+    outputs[['Gs_']] = figGs_
+    outputs[['prior']] = figPrior
   }
 
   return(outputs)

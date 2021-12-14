@@ -49,13 +49,13 @@ MFPlot = function(){
     ggplot(aes(time, mu, color = condition, fill = condition))  +
     geom_rect(data = greyData, aes(xmin = xmin, xmax = xmax), ymin = 0, ymax = 20,
               fill = "#d9d9d9", inherit.aes = F) + 
-    geom_ribbon(aes(ymin=min, ymax=max), alpha = 0.5, color = NA) +
+    geom_ribbon(aes(ymin=min, ymax=max),  color = NA) +
     geom_line(size = 0.5) +
     xlab("Task time (min)") + ylab("WTW (s)") + 
     scale_y_continuous(breaks = c(0, 8, 16), limits = c(0, 17)) +
     myTheme + scale_x_continuous(breaks = c(0, 600, 1200), labels = c(0, 600, 1200) / 60 ) +
     theme(plot.title = element_text(face = "bold", hjust = 0.5, color = themeColor)) +
-    scale_color_manual(values = conditionColors) + scale_fill_manual(values = conditionColors) +
+    scale_color_manual(values = conditionColors) + scale_fill_manual(values = c("#7fbf7b", "#af8dc3")) +
     theme(legend.position = "none")
   
   ################################################################
@@ -128,12 +128,13 @@ MFPlot = function(){
   figCurve = plotData %>%
     group_by(condition, time) %>%
     dplyr::summarise(mu = mean(survCurve, na.rm = F), se = sd(survCurve, na.rm = F) / sqrt(sum(!is.na(survCurve))),min = mu- se, max = mu + se) %>%
-    ggplot(aes(time, mu, color = condition, fill = condition)) + geom_line() +
-    geom_ribbon(aes(time, ymin = min, ymax = max), alpha = 0.5, color = NA) +
+    ggplot(aes(time, mu, color = condition, fill = condition)) +
+    geom_ribbon(aes(time, ymin = min, ymax = max), color = NA) +
+    geom_line() + 
     geom_line(data = optim, aes(t, surv, color = condition, linetype = condition, alpha = condition), size = 1.2) +
     geom_line(data = data.frame(t = kmGrid[kmGrid > 2],surv = 1),
               aes(t, surv), color = conditionColors[1], size = 1.2, inherit.aes = F, alpha = 0.8) + 
-    scale_fill_manual(values = conditionColors) +
+    scale_fill_manual(values = c("#7fbf7b", "#af8dc3")) +
     scale_color_manual(values = conditionColors) +
     scale_linetype_manual(values = c("solid", "dotted")) +
     scale_alpha_manual(values = c(0.8, 1))+

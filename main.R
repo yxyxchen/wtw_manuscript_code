@@ -37,10 +37,8 @@ for(i in 1 : nExp){
 }
 # assemble the figures
 setwd(pwd)
-expCmb = (figs_[[1]][['pdf']] | figs_[[2]][['pdf']] | figs_[[3]][['pdf']]) /
-  (figs_[[1]][['rt']] | figs_[[2]][['rt']] | figs_[[3]][['rt']]) +
-  plot_annotation(tag_levels = 'a')
-ggsave(file.path("../figures/cmb", "exp.eps"), expCmb, width = 12, height = 6)
+expCmb = (figs_[[1]][['pdf']] | figs_[[1]][['rt']]) / (figs_[[2]][['pdf']] | figs_[[2]][['rt']]) /  (figs_[[3]][['pdf']] | figs_[[3]][['rt']]) 
+ggsave(file.path("../figures/cmb", "exp.eps"), expCmb, width = 9, height = 9)
 
 
 #################################################################
@@ -56,15 +54,10 @@ for(i in 1 : nExp){
 }
 # assemble the figures
 setwd(pwd)
-figMFCurve = (figs_[[1]][['curve']] / figs_[[2]][['curve']]  / figs_[[3]][['curve']]) + plot_annotation(tag_levels = 'a')
-ggsave(file.path("../figures/cmb","mf_curve.pdf"), figMFCurve, width = 4, height = 12)
-figMFAUC =  (figs_[[1]][['auc']] / figs_[[2]][['auc']]  / figs_[[3]][['auc']]) + plot_annotation(tag_levels = 'a')
-ggsave(file.path("../figures/cmb","mf_auc.eps"), figMFAUC, width = 4, height = 12)
-figMFsigma =  (figs_[[1]][['sigma']] / figs_[[2]][['sigma']]  / figs_[[3]][['sigma']]) + plot_annotation(tag_levels = 'a')
-ggsave(file.path("../figures/cmb","mf_sigma.eps"), figMFsigma, width = 4, height = 12)
-figMFWTW =  (figs_[[1]][['wtw']] / figs_[[2]][['wtw']]  / figs_[[3]][['wtw']]) + plot_annotation(tag_levels = 'a')
-ggsave(file.path("../figures/cmb","mf_wtw.pdf"), figMFWTW, width = 6, height = 12)
-
+figMF12 = (figs_[[1]][['curve']] | figs_[[1]][['auc']] | figs_[[1]][['sigma']] | figs_[[1]][['wtw']]) / (figs_[[2]][['curve']] | figs_[[2]][['auc']] | figs_[[2]][['sigma']] | figs_[[2]][['wtw']]) + plot_annotation(tag_levels = "a")
+ggsave(file.path("../figures/cmb","mf12.eps"), figMF12 , width = 16, height = 8)
+figMF3 = (figs_[[3]][['curve']] | figs_[[3]][['auc']] | figs_[[3]][['sigma']] | figs_[[3]][['wtw']]) + plot_annotation(tag_levels = "a")
+ggsave(file.path("../figures/cmb","mf3.eps"), figMF3 , width = 16, height = 8)
 
 ##################################################################
 ##                 Performance check simulation                 ##
@@ -82,7 +75,8 @@ ggsave(file.path("..", "figures", "cmb", "exante_rv.eps"), figRV, width = 12, he
 figSnippet = (plot_spacer() | figs_[[1]][["Gs_"]][1] | figs_[[1]][["Gs_"]][2] | figs_[[1]][["Gs_"]][3]) / 
   (figs_[[1]][["values_"]][[1]] | figs_[[1]][["values_"]][[2]] | figs_[[1]][["values_"]][[3]] | figs_[[1]][["values_"]][[4]])
 ggsave(file.path("..", "figures", "cmb", "exante_snippet.eps"), figSnippet , width = 12, height = 6)
-
+figPrior = figs_[[1]][["prior"]]
+ggsave(file.path("..", "figures", "cmb", "prior.eps"), figPrior, width = 5, height = 5)
 
 #################################################################
 ##                 Parameter-effect simulation                 ##
