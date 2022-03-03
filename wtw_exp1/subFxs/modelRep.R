@@ -44,18 +44,42 @@ modelRep = function(modelName, trialData, ids, nRep, isTrct, aveParas = NULL){
   muWTWRep_ = matrix(NA, nrow = nRep , ncol = nSub)
   stdWTWRep_ = matrix(NA, nrow = nRep, ncol = nSub)
   timeWTW_ =  matrix(NA, nrow = length(tGrid), ncol = nSub)
+  trialWTW_ = list()
+  sub_auc_ = matrix(NA, nrow  = nSub, ncol = 6)
   for(sIdx in 1 : nSub){
     id = ids[sIdx]
-    timeWTW = matrix(NA, nrow = length(tGrid), ncol = nRep)
+    thisTrialData = trialData[[id]]
+    this_sub_auc_ = matrix(NA, nrow  = nRep, ncol = 6)
+    if(isTrct){
+      excluedTrials = which(thisTrialData$trialStartTime > (blockSec - max(delayMaxs)))
+      thisTrialData = thisTrialData[!(1 : nrow(thisTrialData)) %in% excluedTrials,]
+    }
+    thisTrialData = block2session(thisTrialData)
+    nTrial =  length(thisTrialData$scheduledWait)
+    # timeWTW = matrix(NA, nrow = length(tGrid), ncol = nRep)
+    trialWTW =  matrix(NA, nrow = nTrial, ncol = nRep)
     for(rIdx in 1 : nRep){
       thisRepTrialData = repTrialData[[repNo[rIdx, sIdx]]]
+      thisRepTrialData$Qwaits_ = NULL
+      thisRepTrialData = data.frame(thisRepTrialData)
       kmscResults = kmsc(thisRepTrialData, min(delayMaxs), F, kmGrid)
       muWTWRep_[rIdx,sIdx] = kmscResults$auc
       stdWTWRep_[rIdx, sIdx] = kmscResults$stdWTW
       wtwResults = wtwTS(thisRepTrialData, tGrid, min(delayMaxs), F)
-      timeWTW[,rIdx] = wtwResults$timeWTW
+      # timeWTW[,rIdx] = wtwResults$timeWTW
+      trialWTW[, rIdx] = wtwResults$trialWTW
+      for(k in 1 : 3){
+        # first half block
+        sub_kmsc_res = kmsc(thisRepTrialData[thisTrialData$sellTime < k * 7 * 60 - 210 & thisTrialData$sellTime >= k * 7 * 60 - 420,], min(delayMaxs), F, kmGrid)
+        this_sub_auc_[rIdx, k * 2 - 1] = sub_kmsc_res$auc
+        sub_kmsc_res = kmsc(thisRepTrialData[thisTrialData$sellTime >= k * 7 * 60 - 210 & thisTrialData$sellTime < k * 7 * 60,], min(delayMaxs), F, kmGrid)
+        this_sub_auc_[rIdx, k * 2]  = sub_kmsc_res$auc
+      }
     }
-    timeWTW_[,sIdx] = apply(timeWTW, 1, mean)
+
+    trialWTW_[[id]] =  apply(trialWTW, 1, mean)
+    timeWTW_[,sIdx] =  resample(trialWTW_[[id]], thisTrialData$sellTime, tGrid)
+    sub_auc_[sIdx, ] = apply(this_sub_auc_, FUN = mean, MARGIN = 2)
   }
   
   ## summarise WTW across simulations for replicated data 
@@ -70,8 +94,10 @@ modelRep = function(modelName, trialData, ids, nRep, isTrct, aveParas = NULL){
     stdWTWRep_mu = stdWTWRep_mu,
     stdWTWRep_std = stdWTWRep_std,
     timeWTW_ = timeWTW_,
+    trialWTW_ = trialWTW_,
     repTrialData = repTrialData,
-    repNo = repNo
+    repNo = repNo,
+    sub_auc_ = sub_auc_
   )
   return(outputs)
 }

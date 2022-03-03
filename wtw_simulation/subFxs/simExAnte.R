@@ -59,6 +59,8 @@ simExAnte = function(modelName, modelLabel, paras, delays_ = list()){
       LPSim_[[i]] = simModel(paras$LP, "LP", duration, normResults) 
     }
   }
+  
+  # 
   # average the results across simulations
   aveRes = averageRes(HPSim_, LPSim_)
   
@@ -96,6 +98,8 @@ simExAnte = function(modelName, modelLabel, paras, delays_ = list()){
       t = c(1 : nHPStep - 1, 1 : nLPStep - 1),
       condition = c(rep("HP", nHPStep), rep("LP", nLPStep))
     ) %>%  filter(condition == "LP" | (condition == "HP" & t < 19.9))
+    # I also want to plot pSurvice
+    
     figRV = data.frame(
       rvWait = c(as.vector(aveRes$HPRvQwaits$mu), as.vector(aveRes$LPRvQwaits$mu)),
       t = c(rep(1 : nHPStep - 1, nBreaks), rep(1 : nLPStep - 1, nBreaks)),
@@ -113,7 +117,7 @@ simExAnte = function(modelName, modelLabel, paras, delays_ = list()){
       ylab("Relative value of waiting") + xlab("Elapsed time (s)") + myTheme +
       theme(legend.position = "None",
             plot.title = element_text(hjust = 0.5)) +
-      ggtitle(modelLabel) + ylim(-0.5, 12)
+      ggtitle(modelLabel) + ylim(-2, 12) 
   }else if(modelName == "omni"){
     for(condition in conditions){
       delayMax = ifelse(condition == "HP", delayMaxs[1], delayMaxs[2])
@@ -140,8 +144,7 @@ simExAnte = function(modelName, modelLabel, paras, delays_ = list()){
       scale_color_manual(values = conditionColors) + myTheme +
       theme(legend.position = "None", plot.title = element_text(hjust = 0.5)) +
       ylab('Relative value of waiting') + 
-      xlab("Elapsed time (s)") +
-      ggtitle(modelLabel) + ylim(-0.5, 12)
+      xlab("Elapsed time (s)") + ggtitle(modelLabel) + ylim(-2, 12)
   }
  
   

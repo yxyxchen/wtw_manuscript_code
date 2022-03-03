@@ -1,6 +1,6 @@
 expParaAnalysis = function(){
   load("expParas.RData")
-  library("ggplot2"); library("Hmisc"); library("coin")
+  library("ggplot2")
   library("dplyr"); library("tidyr")
   source("subFxs/plotThemes.R")
   source("subFxs/loadFxs.R") # load blockData and expPara
@@ -8,7 +8,7 @@ expParaAnalysis = function(){
   source("subFxs/analysisFxs.R") # plotCorrelation and getCorrelation
   source('MFAnalysis.R')
   library(latex2exp)
-  library("PerformanceAnalytics")
+  # library("PerformanceAnalytics")
   
   # model Name
   modelName = "QL2"
@@ -26,32 +26,27 @@ expParaAnalysis = function(){
   
   # plot hist 
   plotData = expPara %>% filter(passCheck) %>% select(c(paraNames))
-  lims = list(
-    c(0, 0.15),
-    c(0, 5.1),
-    c(0, 15),
-    c(0.65, 1.05),
-    c(0, 8)
+  tmp = plotData %>% gather(key = 'paraname', value = 'value')
+  scales_x <- list(
+    'alpha' = scale_x_continuous(limits =  c(-0.05, 0.35), breaks = c(0,  0.3), labels = c(0,  0.3)),
+    "nu" =  scale_x_continuous(limits =  c(-0.5, 5.5), breaks = c(0, 5), labels = c(0, 5)),
+    "tau" =  scale_x_continuous(limits =  c(-0.5, 22.5), breaks = c(0.1, 22), labels = c(0.1, 22)),
+    "gamma" = scale_x_continuous(limits =  c(0.65, 1.05), breaks = c(0.7, 1), labels = c(0.7, 1)),
+    "eta" = scale_x_continuous(limits =  c(-0.5, 7), breaks = c(0, 6.5), labels = c(0, 6.5))
   )
-  # bin_nums = c(10, 15, )
-  outPs = list()
-  for(i in 1 : nPara){
-    paraName = paraNames[i]
-    thisTitle = parse(text = paraName)
-    thisPlotData = data.frame(
-      value =  plotData[,paraName]
-    )
-    outPs[[i]] = thisPlotData %>% ggplot(aes(value)) +
-      geom_histogram(bins = 15, color = "black", fill = "grey") + myTheme +
-      ggtitle(thisTitle) +
-      theme(legend.position = "None",
-            plot.title = element_text(hjust = 0.5)) +
-      xlab("") + scale_y_continuous(breaks = c(0, 18), limits = c(0, 20)) +
-      xlim(lims[[i]]) + ylab("")
-  }
+  tmp$paraname = factor(tmp$paraname, levels = paraNames)
+  priors = data.frame(
+    paraname = paraNames,
+    lower = c(0, 0, 0.1, 0.7, 0),
+    upper = c(0.3, 5, 22, 1, 6.5)
+  )
   
-  library(patchwork)
-  figHist = (outPs[[1]] | outPs[[2]] | outPs[[3]] | outPs[[4]] | outPs[[5]]) 
+  library(scales)
+  library(facetscales)
+  hist = ggplot(tmp) + geom_histogram(aes(x=value),  bins = 20) +
+    facet_grid_sc(cols = vars(paraname), scales = list(x = scales_x), labeller = label_parsed) + theme(legend.position = "none") + myTheme +
+    geom_segment(data = priors, aes(x = lower, xend = upper, y = -0.5, yend = -0.5, color = "red")) + 
+    xlab("") + ylab("Count")
   
   ################## plot correlations ####################
   plotData = expPara %>% filter(passCheck ) %>% select(c(paraNames)) %>%
@@ -66,12 +61,12 @@ expParaAnalysis = function(){
   
   
   ########## ptimism bias ########
-  rhoTest = wilcox.test(expPara$rho[passCheck] - 1)
-  numOptim = sum(expPara$rho[passCheck] < 1)
+  nuTest = wilcox.test(expPara$nu[passCheck] - 1)
+  numOptim = sum(expPara$nu[passCheck] < 1)
   ######## return outputs ##########
   outputs = list(
-    "rhoTest" = rhoTest,
-    "hist" = figHist,
+    "nuTest" = nuTest,
+    "hist" = hist,
     "numOptim" = numOptim
   )
   

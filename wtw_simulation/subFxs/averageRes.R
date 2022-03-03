@@ -23,11 +23,11 @@ averageRes = function(HPSim_, LPSim_){
       HPSim = HPSim_[[i]]
       LPSim = LPSim_[[i]]
       for(j in 1 : nBreak){
-        HPRvQwaits_[ , j, i] = HPSim$Qwaits_[1 : nHPStep, which.min(abs(HPSim$sellTime - chunkBreaks[j]))]
-        LPRvQwaits_[ , j, i] = LPSim$Qwaits_[1 : nLPStep, which.min(abs(LPSim$sellTime - chunkBreaks[j]))]
+        HPRvQwaits_[ , j, i] = HPSim$Qwaits_[1 : nHPStep, which.min(abs(HPSim$sellTime - chunkBreaks[j]))] - HPSim$V_[which.min(abs(HPSim$sellTime - chunkBreaks[j]))]
+        LPRvQwaits_[ , j, i] = LPSim$Qwaits_[1 : nLPStep, which.min(abs(LPSim$sellTime - chunkBreaks[j]))] - LPSim$V_[which.min(abs(LPSim$sellTime - chunkBreaks[j]))]
       }
-      asymHPRvQwaits_[,i] = HPSim$Qwaits_[ , ncol(HPSim$Qwaits_)]
-      asymLPRvQwaits_[,i] = LPSim$Qwaits_[ , ncol(LPSim$Qwaits_)]
+      asymHPRvQwaits_[,i] = HPSim$Qwaits_[ , ncol(HPSim$Qwaits_)] - HPSim$V_[ncol(HPSim$Qwaits_)]
+      asymLPRvQwaits_[,i] = LPSim$Qwaits_[ , ncol(LPSim$Qwaits_)] - LPSim$V_[ncol(LPSim$Qwaits_)]
     }
     ## average across simulations
     HPRvQwaits = list(

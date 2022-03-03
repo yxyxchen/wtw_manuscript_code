@@ -1,6 +1,6 @@
 expParaAnalysis = function(){
   load("expParas.RData")
-  library("ggplot2"); library("Hmisc"); library("coin")
+  library("ggplot2"); 
   library("dplyr"); library("tidyr")
   source("subFxs/plotThemes.R")
   source("subFxs/loadFxs.R") # load blockData and expPara
@@ -8,7 +8,8 @@ expParaAnalysis = function(){
   source("subFxs/analysisFxs.R") # plotCorrelation and getCorrelation
   source('MFAnalysis.R')
   library(latex2exp)
-  library("corrplot")
+  # library("corrplot")
+  library(ggbeeswarm)
   
   
   # load exp data
@@ -41,38 +42,37 @@ expParaAnalysis = function(){
   ##                 plot parameter distribution                 ##
   #################################################################
   expPara$condition = condition
-  plotData = expPara %>% filter(passCheck) %>% select(c(paraNames, "condition"))
-  lims = list(
-    c(0, 0.15),
-    c(0, 5.1),
-    c(0, 15),
-    c(0.65, 1.05),
-    c(0, 8)
-  )
-  # bin_nums = c(10, 15, )
-  outPs = list()
-  for(i in 1 : nPara){
-    paraName = paraNames[i]
-    thisTitle = parse(text = paraName)
-    thisPlotData = data.frame(
-      value =  plotData[,paraName],
-      condition = plotData$condition
-    )
-    outPs[[i]] = thisPlotData %>% ggplot(aes(value, fill = condition)) +
-      geom_histogram(bins = 10, color = "black") +
-      facet_grid(condition ~.)  +
-      scale_fill_manual(values = conditionColors) + myTheme +
-      ggtitle(thisTitle) +
-      theme(legend.position = "None",
-            plot.title = element_text(hjust = 0.5),
-            strip.background = element_blank(),
-            strip.text.y = element_blank()) +
-      xlab("") + scale_y_continuous(breaks = c(0, 12), limits = c(0, 13)) +
-      xlim(lims[[i]]) + ylab("")
-  }
+  plotData = expPara %>% filter(passCheck) %>% select(c(paraNames, "condition")) 
   
-  library(patchwork)
-  hist = (outPs[[1]] | outPs[[2]] | outPs[[3]] | outPs[[4]] | outPs[[5]]) 
+  tmp = gather(plotData, key = 'paraname', value = 'value', -"condition")
+  tmp$paraname = factor(tmp$paraname, levels = paraNames)
+  scales_x <- list(
+    'alpha' = scale_x_continuous(limits =  c(-0.05, 0.35), breaks = c(0,  0.3), labels = c(0,  0.3)),
+    "nu" =  scale_x_continuous(limits =  c(-0.5, 5.5), breaks = c(0, 5), labels = c(0, 5)),
+    "tau" =  scale_x_continuous(limits =  c(-0.5, 22.5), breaks = c(0.1, 22), labels = c(0.1, 22)),
+    "gamma" = scale_x_continuous(limits =  c(0.65, 1.05), breaks = c(0.7, 1), labels = c(0.7, 1)),
+    "eta" = scale_x_continuous(limits =  c(-0.5, 7), breaks = c(0, 6.5), labels = c(0, 6.5))
+  )
+  priors = data.frame(
+      paraname = paraNames,
+      lower = c(0, 0, 0.1, 0.7, 0),
+      upper = c(0.3, 5, 22, 1, 6.5)
+    )
+
+
+  library(scales)
+  library(facetscales)
+  # hist = ggplot(tmp) + geom_histogram(aes(x=value, fill = condition),  bins = 20) +
+  #   facet_grid_sc(cols = vars(paraname), rows = vars(condition), scales = list(x = scales_x), labeller = label_parsed) +
+  #   scale_fill_manual(values = conditionColors) + theme(legend.position = "none") + myTheme +
+  #   geom_segment(data = priors, aes(x = lower, xend = upper, y = -0.5, yend = -0.5, color = "red")) + 
+  #   xlab("") + ylab("Count") 
+  
+  hist = ggplot(tmp) + geom_histogram(aes(x=value),  bins = 20) +
+    facet_grid_sc(cols = vars(paraname), scales = list(x = scales_x), labeller = label_parsed) +
+    scale_fill_manual(values = conditionColors) + theme(legend.position = "none") + myTheme +
+    geom_segment(data = priors, aes(x = lower, xend = upper, y = -0.5, yend = -0.5, color = "red")) + 
+    xlab("") + ylab("Count")    
   
   #################################################################
   ##                correlations among parameters                ##
@@ -91,10 +91,10 @@ expParaAnalysis = function(){
   #################################################################
   ##                        optimism bias                        ##
   #################################################################
-  rhoHPTest = wilcox.test(expPara$rho[passCheck & condition == "HP"] - 1)
-  rhoLPTest = wilcox.test(expPara$rho[passCheck & condition == "LP"] - 1)
-  rhoTest = wilcox.test(expPara$rho[passCheck] - 1)
-  numOptim = sum(expPara$rho[passCheck] < 1)
+  nuHPTest = wilcox.test(expPara$nu[passCheck & condition == "HP"] - 1)
+  nuLPTest = wilcox.test(expPara$nu[passCheck & condition == "LP"] - 1)
+  nuTest = wilcox.test(expPara$nu[passCheck] - 1)
+  numOptim = sum(expPara$nu[passCheck] < 1)
   
   ##################################################################
   ##             correlations with personality traits             ##
@@ -203,9 +203,9 @@ expParaAnalysis = function(){
   ############### return outputs #############
   outputs = list(
     "hist" = hist,
-    "rhoHPTest" = rhoHPTest,
-    "rhoLPTest" = rhoLPTest,
-    "rhoTest" = rhoTest,
+    "nuHPTest" = nuHPTest,
+    "nuLPTest" = nuLPTest,
+    "nuTest" = nuTest,
     "numOptim" = numOptim
   )
   return(outputs)

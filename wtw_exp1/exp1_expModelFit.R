@@ -62,6 +62,10 @@ expModelFit = function(modelName, isFirstFit, batchIdx = NULL, parallel = False)
 
   # fit the model for all participants
   modelFitGroup(modelName, trialData, config, outputDir, parallel = parallel, isTrct = T)
-  
+}
+
+if (sys.nframe() == 0){
+  args = commandArgs(trailingOnly = T)
+  expModelFit(args[1], as.logical(args[2]), as.numeric(args[3]))
 }
 

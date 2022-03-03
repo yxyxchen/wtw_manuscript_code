@@ -37,11 +37,16 @@ MFPlot = function(){
   plotData = plotData %>%
     group_by(condition, time) %>%
     dplyr::summarise(mu = mean(wtw, na.rm = F), se = sd(wtw, na.rm = F) / sqrt(sum(!is.na(wtw))),
+                     ss = sum( (wtw - mean(wtw) )^2 ),
                      min = mu - se, max = mu + se) %>% ungroup()
   ## reset at the block onset
   plotData$mu[plotData$time %in% (1:3 * blockSec - 1)] = NA
   plotData$min[plotData$time %in% (1:3 * blockSec - 1)] = NA
   plotData$max[plotData$time %in% (1:3 * blockSec - 1)] = NA
+  
+  # plot sum of squares
+  plotData %>% ggplot(aes(time, ss, color = condition)) +
+    geom_line(aes(color = condition), size = 1) 
   
   # plot 
   figWTW = plotData %>% ggplot(aes(time, mu, color = condition)) + 
@@ -83,6 +88,28 @@ MFPlot = function(){
     theme(legend.position = "none") + xlab("")
   
 
+  ################################################################
+  ##              plot delta AUC in the two environments              ##
+  ################################################################
+  deltaWTW = MFResults$sub_auc_[,6] - MFResults$sub_auc_[,1]
+  figDelta = 
+  data.frame(
+    deltaWTW = deltaWTW,
+    condition = sumStats$condition
+    ) %>% ggplot(aes(condition, deltaWTW)) +
+    geom_dotplot(binaxis='y', stackdir='center', aes(fill = condition))  + 
+    ylab(TeX('$AUC_{end} - AUC_{start}$')) +
+    xlab(" ") + 
+    scale_fill_manual(values = conditionColors) +
+    myTheme  + 
+    theme(plot.title = element_text(face = "bold", hjust = 0.5),
+          legend.position =  "none")
+  
+  wilcox.test(deltaWTW[sumStats$condition == "HP"])
+  wilcox.test(deltaWTW[sumStats$condition == "LP"])
+  cor.test(deltaWTW[sumStats$condition == "HP"], sumStats$muWTW[sumStats$condition == "HP"], method=c( "spearman"))
+  cor.test(deltaWTW[sumStats$condition == "LP"], sumStats$muWTW[sumStats$condition == "LP"], method=c( "spearman"))
+  
   ###################################################################
   ##              compare sigma_wtw in the two environments        ##
   ###################################################################
@@ -147,7 +174,8 @@ MFPlot = function(){
     "wtw" = figWTW,
     "auc" = figAUC,
     "sigma" = figSigma,
-    "curve" = figCurve
+    "delta" = figDelta,
+    "curve" = figCurve,
   )
   return(outputs)
 }

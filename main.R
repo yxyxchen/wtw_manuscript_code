@@ -8,7 +8,7 @@ library(ggplot2)
 library(lattice)
 library(extrafont)
 library(patchwork)
-extrafont::font_import()
+# extrafont::font_import()
 
 
 # settings 
@@ -70,7 +70,7 @@ figs_ = performCheck()
 setwd(pwd)
 figAUC = (figs_[[1]][['learn']] | figs_[[2]]['learn'])
 ggsave(file.path("..", "figures", "cmb", "exante_learn_curve.eps"), figAUC, width = 6, height = 3)
-figRV = (figs_[[1]][['rv']] | figs_[[2]]['rv'] | figs_[[3]]['rv']) + ylim(-0.5, 12) + ylab("Expected net return")  + plot_annotation(tag_levels = "a")
+figRV = (figs_[[1]][['rv']] | figs_[[2]]['rv'] | figs_[[3]]['rv']) + ylim(-2, 12) + ylab("Expected net return")  + plot_annotation(tag_levels = "a")
 ggsave(file.path("..", "figures", "cmb", "exante_rv.eps"), figRV, width = 12, height = 3)
 figSnippet = (plot_spacer() | figs_[[1]][["Gs_"]][1] | figs_[[1]][["Gs_"]][2] | figs_[[1]][["Gs_"]][3]) / 
   (figs_[[1]][["values_"]][[1]] | figs_[[1]][["values_"]][[2]] | figs_[[1]][["values_"]][[3]] | figs_[[1]][["values_"]][[4]])
@@ -130,6 +130,7 @@ ggsave(file.path("..", "figures", "cmb", "modelRep_example.eps"), figRepExample,
 ##############################################################################
 # plot ovserved and model-generated AUC and sigma_WTW
 figs_ = vector("list", length = nExp )
+# sqerr_df_ = vector("list", length = nExp)
 for(i in 1 : nExp){
   setwd(file.path(pwd, wds[i])) # set the working directory
   source(sprintf("exp%d_expModelRep.R", i)) 
@@ -138,19 +139,9 @@ for(i in 1 : nExp){
   allData = loadAllData() # load all the data 
   MFResults = MFAnalysis(isTrct = T)
   figs = vector("list", length = nExp) # initialize the output 
-  
-  for(j in 1 : nModel){ 
-    modelName = models[j]
-    if(file.exists(sprintf("../../genData/wtw_exp%d/expModelRep/%s_trct.RData", i, modelName))){
-      load(sprintf("../../genData/wtw_exp%d/expModelRep/%s_trct.RData", i, modelName))
-      outs = expModelRep(modelName, allData,  MFResults, repOutputs)
-    }else{
-      outs = expModelRep(modelName, allData,  MFResults)
-    }
-    figs[[j]] = outs$rep
-  }
   figs_[[i]] = figs
 }
+
 # assemble the figures 
 setwd(pwd)
 for(i in 1 : nExp){
@@ -166,16 +157,18 @@ for(i in 1 : nExp){
 ##                       quantitative model comparison                       ##
 ##############################################################################
 cmpOuts_ = vector("list", length = nExp)
-delta_waic_4 = matrix(NA, 3, 4) 
-delta_waic_6 = matrix(NA, 3, 6)  
+waic_ave = matrix(NA, 3, 6) 
+waic_se = matrix(NA, 3, 6)  
 best_fit_4 = matrix(NA, 3, 4) 
 best_fit_6 = matrix(NA, 3, 6) 
 for(i in 1 : 3){
   setwd(file.path(pwd, wds[i])) # set the working directory
   source(sprintf("exp%d_expModelCmp.R", i)) 
   cmpOuts_[[i]] = expModelCmp()
-  delta_waic_4[i,] = cmpOuts_[[i]][['deltaWAIC4']]
-  delta_waic_6[i,] = cmpOuts_[[i]][['deltaWAIC6']]
+  full_waic_aves = full_waic_ %>% apply(2, mean)
+  full_waic_ses = full_waic_ %>% apply(2, function(x) sd(x) / sqrt(length(x)))
+  waic_ave[i,] = cmpOuts_[[i]][['full_waic_aves']]
+  waic_se[i,] = cmpOuts_[[i]][['full_waic_ses']]
   best_fit_4[i,] = as.numeric(cmpOuts_[[i]][['bestFit4']]$bestFitNum[1:4])
   best_fit_6[i,] = as.numeric(cmpOuts_[[i]][['bestFit6']]$bestFitNum[1:6])
 }
@@ -193,23 +186,20 @@ for(i in 1 : nExp){
 }
 # assemble figures
 setwd(pwd)
-histPara = (outs_[[1]][["hist"]] / outs_[[2]][['hist']] / outs_[[3]][['hist']]) + plot_layout(heights = c(1, 0.5, 0.5))
-ggsave(file.path("../figures/cmb", "para_hist.eps"), histPara, width = 12, height = 8)
+histPara = (outs_[[1]][["hist"]] / outs_[[2]][['hist']] / outs_[[3]][['hist']]) + plot_layout(heights = c(0.5, 0.5, 0.5))
+ggsave(file.path("../figures/cmb", "para_hist.eps"), histPara, width = 6, height = 6)
 # figures for correlation analysis (with self-report measures and among parameters) are saved separately for each experiments
 # print results for optimism bias 
-outs_[[1]]$rhoTest # whether rho < 1 in Exp.1
+outs_[[1]]$nuTest # whether nu < 1 in Exp.1
 outs_[[1]]$numOptim # number of participants with optimism bias in Exp.1
-outs_[[2]]$rhoTest # whether rho < 1 in Exp.2
+outs_[[2]]$nuTest # whether nu < 1 in Exp.2
 outs_[[2]]$numOptim # number of participants with optimism bias in Exp.2
-outs_[[3]]$rhoTest # whether rho < 1 in Exp.3
+outs_[[3]]$nuTest # whether nu < 1 in Exp.3
 outs_[[3]]$numOptim # number of participants with optimism bias in Exp.3
-
-
 
 #################################################################
 ## parameter recovery, simulation and parameter estimation     ##
 #################################################################
-
 parallel = F # When run on a local PC, you can use set this variabel to true to turn on parallel computing
 for(i in 1 : nExp){
   setwd(file.path(pwd, wds[i]))

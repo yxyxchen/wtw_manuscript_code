@@ -61,11 +61,23 @@ expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs =
     repOutputs =  modelRep(trialData, ids, nRep, T, modelName)
     save(repOutputs, file = sprintf("../../genData/wtw_exp2/expModelRep/%s_trct.RData", modelName))
   }
-  plotData = data.frame(mu =  repOutputs$muWTWRep_mu, std = repOutputs$stdWTWRep_mu,
+  plotData = data.frame(id = sumStats$ID, mu =  repOutputs$muWTWRep_mu, std = repOutputs$stdWTWRep_mu,
                         empMu = muWTWEmp, empStd = stdWTWEmp,
                         id = sumStats$ID,
                         passCheck = rep(passCheck, each = 2),
                         condition = sumStats$condition) %>% filter(passCheck)
+  
+  ##########################
+  ##      calc RSME      ##
+  ##########################
+  mu_sqerr = (plotData$empMu - plotData$mu)^2
+  std_sqerr = (plotData$empStd - plotData$std)^2
+  sqerr_df = data.frame(
+    id = plotData$id, 
+    condition = plotData$condition,
+    mu_sqerr = mu_sqerr,
+    std_sqerr = std_sqerr)
+  
    ################### observed stats vs model generated stats ####################
    ## plot to compare average willingess to wait
   aucFig = plotData %>%
@@ -137,7 +149,7 @@ expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs =
   
   ################# return figure outputs ###############
   # outputs = list('rep' = rep, 'example' = example)
-  outputs = list('rep' = rep)
+  outputs = list('rep' = rep, "sqerr_df" = sqerr_df)
   return(outputs)
 
 }

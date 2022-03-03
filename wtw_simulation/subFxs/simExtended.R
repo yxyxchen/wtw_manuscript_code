@@ -45,14 +45,14 @@ simExtended = function(smallReward.mag, smallReward.prob, iti, normResults){
   nCut = 5
   paraSampleHPs = data.frame(
     alpha = seq(0.01, 0.05, length.out = nCut),
-    rho = seq(0.03, 3, length.out = nCut),
+    nu = seq(0.03, 3, length.out = nCut),
     tau = exp(seq(log(0.5), log(8), length.out = nCut)),
     gamma = seq(0.75, 0.95, length.out = nCut),
     prior = seq(0, 1, length.out = nCut)
   )
   paraSampleLPs = data.frame(
     alpha = seq(0.01, 0.05, length.out = nCut),
-    rho = seq(0.03, 3, length.out = nCut),
+    nu = seq(0.03, 3, length.out = nCut),
     tau = exp(seq(log(0.5), log(8), length.out = nCut)),
     gamma = seq(0.75, 0.95, length.out = nCut),
     prior = seq(2, 6, length.out = nCut)

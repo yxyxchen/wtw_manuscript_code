@@ -33,7 +33,7 @@ RL2 = function(paras, condition, duration, normResults, delays = c()){
   optimWaitThresholds = normResults$optimWaitThresholds
   
   # learning parameters
-  alpha = paras[1]; rho = paras[2]; tau = paras[3];  prior = paras[4]; beta = paras[5];
+  alpha = paras[1]; nu = paras[2]; tau = paras[3];  prior = paras[4]; beta = paras[5];
   
   # num of trials
   nTrialMax = ceiling(duration / iti)
@@ -109,7 +109,7 @@ RL2 = function(paras, condition, duration, normResults, delays = c()){
     if(trialEarnings > 0){
       learnRate = alpha
     }else{
-      learnRate = alpha * rho
+      learnRate = alpha * nu
     }
     
     # calculate expected returns for t >= 2

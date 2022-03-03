@@ -59,11 +59,22 @@ expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs =
     save(repOutputs, file = sprintf("../../genData/wtw_exp3/expModelRep/%s_trct.RData", modelName))
   }
 
-  plotData = data.frame(mu =  repOutputs$muWTWRep_mu, std = repOutputs$stdWTWRep_mu,
+  plotData = data.frame(id = blockStats$id, mu =  repOutputs$muWTWRep_mu, std = repOutputs$stdWTWRep_mu,
                         empMu = muWTWEmp, empStd = stdWTWEmp,
                         passCheck = rep(passCheck, each = 2), 
                         condition = blockStats$condition) %>% filter(passCheck)
-
+  
+  ##########################
+  ##      calc RSME      ##
+  ##########################
+  mu_sqerr = (plotData$empMu - plotData$mu)^2
+  std_sqerr = (plotData$empStd - plotData$std)^2
+  sqerr_df = data.frame(
+    id = plotData$id, 
+    condition = plotData$condition,
+    mu_sqerr = mu_sqerr,
+    std_sqerr = std_sqerr)
+  
   #################################################################
   ##      compare observed and replicated AUC and sigma_wtw      ##
   #################################################################
@@ -138,7 +149,7 @@ expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs =
   
   ################# return figure outputs ###############
   # outputs = list("rep" = rep, "example" = example)
-  outputs = list("rep" = rep)
+  outputs = list("rep" = rep, "sqerr_df" = sqerr_df)
   return(outputs)
 }
 

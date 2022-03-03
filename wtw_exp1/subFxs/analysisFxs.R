@@ -119,6 +119,15 @@ wtwTS <- function(thisTrialData, tGrid, wtwCeiling, plotWTW = F) {
   return(outputs)
 }
 
+# resample pair-wise sequences, using interpolate methods
+# my_interpolate = function(ys, xs, Xs){
+#   for(i in 1 : length(Xs)){
+#     # find the index of cloest x value on the right
+#     # if closest_right_x_idx exists 
+#     
+#   }
+# }
+
 # resample pair-wise sequences
 # inputs:
 # ys: y in the original sequence

@@ -33,8 +33,8 @@ paraRecovery = function(){
   plotData$passCheck = rep(passCheck, nPara)
   addData = simPara[,1:nPara] %>% gather(key = "para", value = "recovered")
   plotData$recovered = addData$recovered
-  paraLabels = c("$\\alpha$", "$\\rho$", "$\\tau$", "$\\gamma$", "$\\eta$")
-  paraHats = c("$\\hat{\\alpha}$", "$\\hat{\\rho}$", "$\\hat{\\tau}$", "$\\hat{\\gamma}$", "$\\hat{\\eta}$")
+  paraLabels = c("$\\alpha$", "$\\nv$", "$\\tau$", "$\\gamma$", "$\\eta$")
+  paraHats = c("$\\hat{\\alpha}$", "$\\hat{\\nv}$", "$\\hat{\\tau}$", "$\\hat{\\gamma}$", "$\\hat{\\eta}$")
   figs = vector(mode = "list", length = nPara) # initialize the outputs 
   rankTaus = vector(length = nPara)
   ps = rankTaus = vector(length = nPara)

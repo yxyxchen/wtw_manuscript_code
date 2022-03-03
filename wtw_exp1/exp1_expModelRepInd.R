@@ -47,6 +47,7 @@ expModelRepInd = function(){
   cut =1260
   selectedIds = c("11","20", "79")
   outputs_ = list()
+  sellTimes_ = list()
   i = 1
   for (id in selectedIds) {
     thisTrialData = trialData[[id]] 
@@ -58,7 +59,9 @@ expModelRepInd = function(){
       thisTrialData = thisTrialData[thisTrialData$sellTime < cut,]
       # p = trialPlots(thisTrialData) + ylim(c(0, 40))
       outputs = wtwTS(thisTrialData, tGrid[1:cut], 20, plotWTW = F) 
-      outputs_[[i]] = outputs$timeWTW
+      # outputs_[[i]] = outputs$timeWTW
+      outputs_[[i]] = outputs$trialWTW
+      sellTimes_[[i]] = thisTrialData$sellTime
       i = i + 1
     }
   }
@@ -66,38 +69,87 @@ expModelRepInd = function(){
   ############### plot empirical results of three example participants #######
   figEmp = data.frame(
     wtw = unlist(outputs_),
-    time = rep(tGrid[1:cut], 3),
-    sub = rep(selectedIds, each = cut)
-  ) %>% ggplot(aes(time, wtw,  color = sub)) + geom_line(size = 2) +
-    scale_color_manual(values = c("#1f78b4", "#a6cee3", "#ff7f00")) + 
+    time = unlist(sellTimes_),
+    sub = rep(selectedIds, sapply(sellTimes_, length))
+  ) %>% ggplot(aes(time, wtw,  color = sub)) + geom_line(size = 1) + geom_point() +
+    scale_color_manual(values = c("#1f78b4", "#a6cee3", "#ff7f00")) +
     myTheme + scale_x_continuous(breaks = c(0, 420, 840, 1260), labels = c(0, 420, 840, 1260)/60) +
     xlab("Task time (min)") + ylab("Willingness to wait (s)") +
-    theme(legend.position = "None") + 
+    theme(legend.position = "None") +
     geom_hline(aes(yintercept = 2.2), color = conditionColors[2], size = 1, linetype = "dashed") +
     ggtitle("Observed") + theme(plot.title = element_text(hjust = 0.5))
   
+  # figEmp = data.frame(
+  #   wtw = unlist(outputs_),
+  #   time = rep(tGrid[1:cut], 3),
+  #   sub = rep(selectedIds, each = cut)
+  # ) %>% ggplot(aes(time, wtw,  color = sub)) + geom_line(size = 2) +
+  #   scale_color_manual(values = c("#1f78b4", "#a6cee3", "#ff7f00")) + 
+  #   myTheme + scale_x_continuous(breaks = c(0, 420, 840, 1260), labels = c(0, 420, 840, 1260)/60) +
+  #   xlab("Task time (min)") + ylab("Willingness to wait (s)") +
+  #   theme(legend.position = "None") + 
+  #   geom_hline(aes(yintercept = 2.2), color = conditionColors[2], size = 1, linetype = "dashed") +
+  #   ggtitle("Observed") + theme(plot.title = element_text(hjust = 0.5))
+  
   
   ############### replicate results using individual parameters#######
+  ################# plot on trial level #######
   set.seed(123)
   source("subFxs/modelRep.R")
   source('subFxs/helpFxs.R')
   source('exp1_expSchematics.R')
-  repOutputs = modelRep("QL2", trialData, ids, nRep = 10, F)
+  repOutputs = modelRep("QL2", trialData[c("11","20", "79")], c("11","20", "79"), nRep = 10, T)
   timeWTW_ = repOutputs$timeWTW_
+  trialWTW_ = repOutputs$trialWTW_
   figModelInd = data.frame(
-    time = rep(tGrid, length(selectedIds)),
-    wtw = as.vector(timeWTW_[,which(ids %in% selectedIds)]),
-    id = rep(selectedIds, each = length(tGrid))
-  ) %>% ggplot(aes(time, wtw, color = id)) + geom_line(size = 2) +
+    time =  unlist(sellTimes_),
+    wtw = unlist(trialWTW_),
+    id = rep(selectedIds, sapply(sellTimes_, length))
+  ) %>% ggplot(aes(time, wtw, color = id)) + geom_line(size = 1) + geom_point() +
     myTheme + scale_color_manual(values = c("#1f78b4", "#a6cee3", "#ff7f00")) +
-    xlab("Simulation time (min)") + 
+    xlab("Task time (min)") + 
     scale_x_continuous(breaks = c(0, 420, 840, 1260), labels = c(0, 420, 840, 1260)/60) +
     ylab("Willingness to wait (s)") +
     theme(legend.position = "None") +
     geom_hline(aes(yintercept = 2.2), color = conditionColors[2], size = 1, linetype = "dashed") +
     ggtitle("Model-generated\nwith individually-fitted parameters") +
     theme(plot.title = element_text(hjust = 0.5))
+  ggsave(file.path("../figures/cmb","exp1_ind_rep.eps"), width = 4, height = 4)  
   
+  # obs =  data.frame(
+  #   wtw = unlist(outputs_),
+  #   time = unlist(sellTimes_),
+  #   id = rep(selectedIds, sapply(sellTimes_, length))
+  # )
+  # obs[['type']] = "obs"
+  # rep = data.frame(
+  #   time =  unlist(sellTimes_),
+  #   wtw = unlist(trialWTW_),
+  #   id = rep(selectedIds, sapply(sellTimes_, length)))
+  # rep[['type']] = "rep"
+  # plotdf = rbind(obs, rep)
+  # plotdf %>% 
+  #   ggplot(aes(time, wtw, color = type)) +
+  #   geom_line() + myTheme +
+  #   geom_point() + facet_grid(id~.)
+      
+    
+  
+  
+  ######## plot with time #######
+  # data.frame(
+  #   time =  rep(tGrid, length(selectedIds)),
+  #   wtw = as.vector(timeWTW_),
+  #   id = rep(selectedIds, each = length(tGrid))
+  # ) %>% ggplot(aes(time, wtw, color = id)) + geom_line(size = 1) +
+  #   myTheme + scale_color_manual(values = c("#1f78b4", "#a6cee3", "#ff7f00")) +
+  #   xlab("Task time (min)") + 
+  #   scale_x_continuous(breaks = c(0, 420, 840, 1260), labels = c(0, 420, 840, 1260)/60) +
+  #   ylab("Willingness to wait (s)") +
+  #   theme(legend.position = "None") +
+  #   geom_hline(aes(yintercept = 2.2), color = conditionColors[2], size = 1, linetype = "dashed") +
+  #   ggtitle("Model-generated\nwith individually-fitted parameters") +
+  #   theme(plot.title = element_text(hjust = 0.5))
   
   ############### print parameters ##############
   paraNames = getParaNames("QL2")

@@ -35,14 +35,20 @@ performCheck = function(){
     list("HP" = c(0.75), "LP" = c(0.75)), # naive p = 0.75
     list("HP" = c(1), "LP" = c(1)) # naive p = 0.75
   )
-  
-  modelName = modelName_[1]
-  modelLabel = modelLabel_[1]
-  paras = paras_[[1]]
+  # paras_ = list(
+  #   list("HP" = c(0.2, 15, 0.9, 6), "LP" = c(0.2, 15, 0.9, 6)), # "QL2"
+  #   list("HP" = c(0.05, 5, 10, 0.04), "LP" = c(0.05, 5, 10, 0.04)), # "RL2"
+  #   list("HP" = c(5), "LP" = c(5)), # omni
+  #   list("HP" = c(0.75), "LP" = c(0.75)), # naive p = 0.75
+  #   list("HP" = c(1), "LP" = c(1)) # naive p = 0.75
+  # )
   
   # simulate and plot 
   figs_ = vector(mode = "list", length = length(modelName_))
   for(i in 1 : length(modelName_)){
+    modelName = modelName_[i]
+    modelLabel = modelLabel_[i]
+    paras = paras_[[i]]
     outs = simExAnte(modelName_[i], modelLabel_[i], paras_[[i]], delays_)
     figs_[[i]] = outs
   }

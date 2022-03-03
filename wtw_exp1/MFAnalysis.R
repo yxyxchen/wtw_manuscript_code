@@ -54,6 +54,7 @@ MFAnalysis = function(isTrct){
   # initialize output variables 
   nExcl = numeric(length = nSub)
   muWTW = numeric(length = nSub) 
+  sub_auc_ = matrix(NA, nrow  = nSub, ncol = nBlock * 2)
   stdWTW = numeric(length = nSub) 
   totalEarnings =  numeric(length = nSub) 
   timeWTW_ = vector(mode = "list", length = nSub) 
@@ -76,6 +77,16 @@ MFAnalysis = function(isTrct){
     }
     # calcualte totalEarnings
     totalEarnings[sIdx] =  sum(thisTrialData$trialEarnings)
+
+    # divide data into sub blocks and calculate AUCs 
+    for(k in 1 : nBlock){
+      blockdata = thisTrialData[thisTrialData$blockNum == k,]
+      # first half block
+      sub_kmsc_res = kmsc(blockdata[blockdata$sellTime < 210,], min(delayMaxs), F, kmGrid)
+      sub_auc_[sIdx, k * 2 - 1] = sub_kmsc_res$auc
+      sub_kmsc_res = kmsc(blockdata[blockdata$sellTime >= 210,], min(delayMaxs), F, kmGrid)
+      sub_auc_[sIdx, k * 2]  = sub_kmsc_res$auc
+    }
     
     # intergrate data of 3 blocks
     thisTrialData = block2session(thisTrialData) 
@@ -155,7 +166,8 @@ MFAnalysis = function(isTrct){
     blockStats = blockStats,
     survCurve_ = survCurve_,
     trialWTW_ = trialWTW_,
-    timeWTW_ = timeWTW_ 
+    timeWTW_ = timeWTW_,
+    sub_auc_ = sub_auc_
   )
   return(outputs)
 }

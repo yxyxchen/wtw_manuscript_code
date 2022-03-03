@@ -41,11 +41,9 @@ expModelCmp = function(){
   write.table(outputTable, "../../genData/wtw_exp3/waic.csv", sep=",",  col.names=FALSE, row.names=FALSE)
  
   # calculate delta waic (using QL2 as the baseline)
-  waic_ave_6 = waic_[apply(passCheck_, MARGIN = 1, all),] %>% apply(2, mean)
-  delta_waic_ave_6 = round(waic_ave_6 - waic_ave_6[2], 2)
-  
-  waic_ave_4 = waic_[apply(passCheck_[,1:4], MARGIN = 1, all), 1 : 4] %>% apply(2, mean)
-  delta_waic_ave_4 = round(waic_ave_4 - waic_ave_4[2], 2)
+  full_waic_ = waic_[apply(passCheck_, MARGIN = 1, all),] 
+  full_waic_aves = round(full_waic_ %>% apply(2, mean), 2)
+  full_waic_ses = round(full_waic_ %>% apply(2, function(x) sd(x) / sqrt(length(x))), 2)
   
   ############ only plot for RL models ############
   modelColors = c(
@@ -149,8 +147,8 @@ expModelCmp = function(){
     "6waic" = fig6WAIC,
     "bestFit4" = bestFitDf4,
     "bestFit6" = bestFitDf6,
-    "deltaWAIC4" = delta_waic_ave_4,
-    "deltaWAIC6" = delta_waic_ave_6
+    "full_waic_aves" = full_waic_aves,
+    "full_waic_ses" = full_waic_ses
   )
   
   return(outputs)

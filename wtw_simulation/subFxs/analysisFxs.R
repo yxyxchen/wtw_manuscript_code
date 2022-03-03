@@ -197,12 +197,12 @@ plotCorrelation = function(data, dotColor = "black",isRank){
                                               data[data$cond == conditions[i], "y"],
                                               method = "spearman"))
   # corTestsPerm = lapply(1:2, function(i) spearman_test(data[data$cond == conditions[i], "x"] ~ data[data$cond == conditions[i], "y"]))
-  rhos = sapply(1:2, function(i) round(as.numeric(corTests[[i]]$estimate), 3))
+  nus = sapply(1:2, function(i) round(as.numeric(corTests[[i]]$estimate), 3))
   ps = sapply(1:2, function(i) round(corTests[[i]]$p.value, 3))
   # ps = sapply(1:2, function(i) round(as.numeric(pvalue(corTestsPerm[[i]])), 3))
   
   textColors = ifelse(ps < 0.05, "red", "blue")
-  textData = data.frame(label = paste(rhos, "(p =", ps, ")"),
+  textData = data.frame(label = paste(nus, "(p =", ps, ")"),
                         cond= c("HP", "LP"), color = textColors)
   # prepare rank 
   if(isRank){
@@ -227,7 +227,7 @@ getCorrelation = function(data){
   colnames(data) = c("x", "y", "cond")
   
   # calculate correlations
-  # since we can't get rho from the later
+  # since we can't get nu from the later
   corTests = lapply(1:2, function(i) cor.test(data[data$cond == conditions[i], "x"],
                                               data[data$cond == conditions[i], "y"],
                                               method = "kendall") 
@@ -235,10 +235,10 @@ getCorrelation = function(data){
   # supposedly, kendall can deal with data with a lot of ties
   # corTestsPerm = lapply(1:2, function(i) spearman_test(data[data$cond == conditions[i], "x"] ~
   #                                                    data[data$cond == conditions[i], "y"]))
-  rhos = sapply(1:2, function(i) as.numeric(corTests[[i]]$estimate))
+  nus = sapply(1:2, function(i) as.numeric(corTests[[i]]$estimate))
   ps = sapply(1:2, function(i) round(corTests[[i]]$p.value, 3))
   # ps = sapply(1:2, function(i) round(pvalue(corTestsPerm [[i]]), 3))
-  return(list(rhos = rhos, ps = ps))
+  return(list(nus = nus, ps = ps))
 }
 
 getPartCorrelation = function(data){
@@ -248,7 +248,7 @@ getPartCorrelation = function(data){
   colnames(data) = c("x", "y", "z", "cond")
   
   # calculate correlations
-  # since we can't get rho from the later
+  # since we can't get nu from the later
   corTests = lapply(1:2, function(i) pcor.test(data[data$cond == conditions[i], "x"],
                                                data[data$cond == conditions[i], "y"],
                                                data[data$cond == conditions[i], "z"],
@@ -257,10 +257,10 @@ getPartCorrelation = function(data){
   # supposedly, kendall can deal with data with a lot of ties
   # corTestsPerm = lapply(1:2, function(i) spearman_test(data[data$cond == conditions[i], "x"] ~
   #                                                    data[data$cond == conditions[i], "y"]))
-  rhos = sapply(1:2, function(i) as.numeric(corTests[[i]]$estimate))
+  nus = sapply(1:2, function(i) as.numeric(corTests[[i]]$estimate))
   ps = sapply(1:2, function(i) round(corTests[[i]]$p.value, 3))
   # ps = sapply(1:2, function(i) round(pvalue(corTestsPerm [[i]]), 3))
-  return(list(rhos = rhos, ps = ps))
+  return(list(nus = nus, ps = ps))
 }
 
 # integrate stacked data from several blocks 
