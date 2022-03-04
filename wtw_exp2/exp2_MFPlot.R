@@ -63,16 +63,16 @@ MFPlot = function(){
   ################################################################
   MFResults = MFAnalysis(isTrct = T)
   sumStats = MFResults[['sumStats']]
-  sumStats %>% group_by(condition) %>% summarise(median = median(muWTW),
-                                                 IQR(muWTW))
-  wTest = wilcox.test( sumStats[sumStats$condition == "HP", "muWTW"],
-                       sumStats[sumStats$condition == "LP", "muWTW"],paired = T)
+  sumStats %>% group_by(condition) %>% summarise(median = median(auc),
+                                                 IQR(auc))
+  wTest = wilcox.test( sumStats[sumStats$condition == "HP", "auc"],
+                       sumStats[sumStats$condition == "LP", "auc"],paired = T)
   
   ################################################################
   ##              plot AUC in the two environments              ##
   ################################################################
-  figAUC = data.frame(muWTWHP = sumStats$muWTW[sumStats$condition == 'HP'],
-             muWTWLP = sumStats$muWTW[sumStats$condition == 'LP']) %>%
+  figAUC = data.frame(muWTWHP = sumStats$auc[sumStats$condition == 'HP'],
+             muWTWLP = sumStats$auc[sumStats$condition == 'LP']) %>%
     ggplot(aes(muWTWLP, muWTWHP)) +
     geom_point(size = 5, shape = 21, stroke =1) +
     geom_abline(slope = 1, intercept = 0) + 
@@ -105,6 +105,29 @@ MFPlot = function(){
     myTheme + xlim(c(-1,6)) + ylim(c(-1,6)) +
     annotate("text", x = 5, y = 1, label = sprintf('p = %0.3f*', wTest$p.value))
   
+  ################################################################
+  ##              plot delta AUC in the two environments        ##
+  ################################################################
+  LP_end_vs_start = MFResults$sub_auc_[,2] - MFResults$sub_auc_[,1] 
+  HP_end_vs_start = MFResults$sub_auc_[,4] - MFResults$sub_auc_[,3] 
+  HP_vs_LP = MFResults$sumStats[sumStats$condition == "HP", "auc"] - MFResults$sumStats[sumStats$condition == "LP", "auc"] 
+  figDelta = 
+    data.frame(
+      deltaWTW = c(LP_end_vs_start, HP_end_vs_start, HP_vs_LP),
+      contrast = rep(c("LP", "HP", "HP-LP"), each = nrow(sumStats) / nBlock)
+    ) %>% ggplot(aes(contrast, deltaWTW)) +
+    geom_dotplot(binaxis='y', stackdir='center', aes(fill = contrast))  + 
+    ylab(TeX('$AUC_{end} - AUC_{start}$')) +
+    xlab(" ") + 
+    scale_fill_manual(values = conditionColors) +
+    myTheme  + 
+    theme(plot.title = element_text(face = "bold", hjust = 0.5),
+          legend.position =  "none")
+  
+  wilcox.test(deltaWTW[sumStats$condition == "HP"])
+  wilcox.test(deltaWTW[sumStats$condition == "LP"])
+  cor.test(deltaWTW[sumStats$condition == "HP"], sumStats$auc[sumStats$condition == "HP"], method=c( "spearman"))
+  cor.test(deltaWTW[sumStats$condition == "LP"], sumStats$auc[sumStats$condition == "LP"], method=c( "spearman"))
   
   ###################################################
   ##              plot survival curves            ##

@@ -49,8 +49,8 @@ expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs =
     MFResults = MFAnalysis(isTrct = T)
   }
   sumStats = MFResults[['sumStats']]
-  muWTWEmp = sumStats$muWTW
-  stdWTWEmp = sumStats$stdWTW
+  # muWTWEmp = sumStats$auc
+  # stdWTWEmp = sumStats$stdWTW
   ## WTW from empirical data 
   muWTWRep_ = matrix(NA, nrow = nRep , ncol = nSub)
   stdWTWRep_ = matrix(NA, nrow = nRep, ncol = nSub)
@@ -61,27 +61,16 @@ expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs =
     repOutputs =  modelRep(trialData, ids, nRep, T, modelName)
     save(repOutputs, file = sprintf("../../genData/wtw_exp2/expModelRep/%s_trct.RData", modelName))
   }
-  plotData = data.frame(id = sumStats$ID, mu =  repOutputs$muWTWRep_mu, std = repOutputs$stdWTWRep_mu,
-                        empMu = muWTWEmp, empStd = stdWTWEmp,
-                        id = sumStats$ID,
+  plotData = data.frame(id = sumStats$ID, auc =  repOutputs$auc, std = repOutputs$stdWTW,
+                        emp_auc = sumStats$auc, emp_std = sumStats$stdWTW,
                         passCheck = rep(passCheck, each = 2),
                         condition = sumStats$condition) %>% filter(passCheck)
   
-  ##########################
-  ##      calc RSME      ##
-  ##########################
-  mu_sqerr = (plotData$empMu - plotData$mu)^2
-  std_sqerr = (plotData$empStd - plotData$std)^2
-  sqerr_df = data.frame(
-    id = plotData$id, 
-    condition = plotData$condition,
-    mu_sqerr = mu_sqerr,
-    std_sqerr = std_sqerr)
   
-   ################### observed stats vs model generated stats ####################
-   ## plot to compare average willingess to wait
+  ################### observed stats vs model generated stats ####################
+  ## plot to compare average willingess to wait
   aucFig = plotData %>%
-    ggplot(aes(empMu, mu)) + 
+    ggplot(aes(emp_auc, auc)) + 
     geom_point(size = 4, aes(color = condition), stroke = 1, shape = 21) + 
     geom_abline(slope = 1, intercept = 0)  + 
     ylab("Model-generated AUC (s)") + xlab("Observed AUC (s)") +
@@ -93,63 +82,56 @@ expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs =
     ggtitle(sprintf("%s, N = %d", modelName, sum(passCheck)))
   
   ## plot to compare std willingess to wait
-  cipFig = plotData %>%
-    ggplot(aes(empStd, std, shape = condition)) + 
+  stdFig = plotData %>%
+    ggplot(aes(emp_std, std, shape = condition)) + 
     geom_point(size = 4, aes(color = condition), stroke = 1, shape = 21)  + 
     geom_abline(slope = 1, intercept = 0) +
     ylab(expression(bold(paste("Model-generated ", sigma["WTW"], " (s"^2,")")))) +
     xlab(expression(bold(paste("Observed ", sigma["WTW"], " (s"^2,")")))) +
     myTheme + theme(plot.title = element_text(face = "bold", hjust = 0.5)) + 
-    scale_x_continuous(breaks = c(0, 7), limits = c(0, 7)) + 
-    scale_y_continuous(breaks = c(0, 7), limits = c(0, 7)) +
+    scale_x_continuous(breaks = c(0, 7.5), limits = c(0, 7)) + 
+    scale_y_continuous(breaks = c(0, 7.5), limits = c(0, 7)) +
     scale_color_manual(values = conditionColors) +
     theme(legend.position = "none") 
-  rep = aucFig / cipFig 
   
-  ##################### Example Participant ##############
-  # prepare the data
-  # repTrialData = repOutputs$repTrialData
-  # repNo = repOutputs$repNo
-  # sIdx = 31
-  # thisTrialData = trialData[[ids[sIdx]]]
-  # thisTrialData  = thisTrialData %>% filter(trialStartTime <=  blockSec - max(delayMaxs) )
-  # thisTrialData = block2session(thisTrialData)
-  # thisRepTrialData = repTrialData[[repNo[1, sIdx]]]
-  # thisRepTrialData = data.frame(thisRepTrialData[1:6])
-  # blockBoundary = min(which(thisTrialData$blockNum == 2)) # the trial boundary between two conditions
-  # firstBlockMid = blockBoundary / 2
-  # secondBlockMid = nrow(thisTrialData) - (nrow(thisTrialData) - blockBoundary) / 2
-  # firstCondition = unique(thisTrialData$condition[thisTrialData$blockNum == 1])
-  # secondCondition = unique(thisTrialData$condition[thisTrialData$blockNum == 2])
-  #                         
-  #                         
-  #                         
-  # # model generated 
-  # modelFig = trialPlots(thisRepTrialData) +  
-  #   ggtitle("Model-generated") +
-  #   theme(plot.title = element_text(hjust = 0.5),
-  #         legend.position = "none") + 
-  #   geom_vline(xintercept = min(which(thisTrialData$blockNum == 2)) - 0.5, linetype = "dashed", color = "#999999") +
-  #   myTheme +
-  #   annotate("text", x = firstBlockMid, y = 35, label = firstCondition, size = 6) + 
-  #   annotate("text", x = secondBlockMid , y = 35, label = secondCondition, size = 6)
-  # 
-  # # observed
-  # empFig = trialPlots(thisTrialData) + ggtitle("Observed") +
-  #   theme(plot.title = element_text(hjust = 0.5),
-  #         legend.position = "none") + 
-  #   geom_vline(xintercept = blockBoundary - 0.5, linetype = "dashed", color = "#999999") +
-  #   myTheme +
-  #   annotate("text", x = firstBlockMid, y = 35, label = firstCondition, size = 6) + 
-  #   annotate("text", x = secondBlockMid , y = 35, label = secondCondition, size = 6)
-  # 
-  # example = modelFig / empFig +  plot_annotation(title = sprintf("%s", modelName),
-  #                                      theme = theme(plot.title = element_text(hjust = 0.5, size = 20)))
-  # ggsave(sprintf("../../figures/wtw_exp2/expModelRep/%s/example.eps", modelName), example, width = 6, height = 8) 
+  ## plot to compare delta auc 
+ delta_df = data.frame(
+    id = sumStats$ID, delta =  repOutputs$delta, 
+    emp_delta = sumStats[sumStats$condition == "HP", "auc"] - sumStats[sumStats$condition == "LP", "auc"],
+    passCheck = passCheck
+  ) 
+ delta_df %>%
+    ggplot(aes(emp_delta, delta)) + 
+    geom_point(size = 4, stroke = 1, shape = 21)  + 
+    geom_abline(slope = 1, intercept = 0) + 
+    ylab(expression(bold(paste("Model-generated ", AUC[HP] - AUC_[LP])))) +
+    xlab(expression(bold(paste("Observed", AUC[HP] - AUC_[LP]))))  +
+    myTheme + theme(plot.title = element_text(face = "bold", hjust = 0.5)) 
   
-  ################# return figure outputs ###############
-  # outputs = list('rep' = rep, 'example' = example)
-  outputs = list('rep' = rep, "sqerr_df" = sqerr_df)
+ ## check another 
+ delta_df = data.frame(
+   id = sumStats$ID, delta =  repOutputs$sub_auc_[,4] - repOutputs$sub_auc_[,3], 
+   emp_delta = sub_auc_[,4] - sub_auc_[,3],
+   passCheck = passCheck
+ ) 
+ delta_df %>%
+   ggplot(aes(emp_delta, delta)) + 
+   geom_point(size = 4, stroke = 1, shape = 21)  + 
+   geom_abline(slope = 1, intercept = 0) + 
+   ylab(expression(bold(paste("Model-generated ", AUC[HP] - AUC[LP])))) +
+   xlab(expression(bold(paste("Observed", AUC[HP] - AUC[LP]))))  +
+   myTheme + theme(plot.title = element_text(face = "bold", hjust = 0.5)) 
+ 
+  # combine figures 
+  rep = aucFig / deltaFig / stdFig 
+  
+  ################### calc variance explained ####################
+  summary(lm(plotData$auc[plotData$condition == "HP" & plotData$passCheck] ~ plotData$emp_auc[plotData$condition == "HP" & plotData$passCheck]))$r.squared
+  summary(lm(plotData$std[plotData$condition == "HP" & plotData$passCheck] ~ plotData$emp_std[plotData$condition == "HP" & plotData$passCheck]))$r.squared
+  summary(lm(delta_df$delta[passCheck] ~ delta_df$emp_delta[passCheck]))$r.squared
+  summary(lm(delta_df$delta[passCheck] ~ delta_df$emp_delta[passCheck]))$r.squared
+  
+  outputs = list('rep' = rep)
   return(outputs)
 
 }

@@ -8,7 +8,7 @@
   # ID : [84x1 ID]
   # condition : [84x1 fac]
   # nExcl : [84x1 int] # total number of excluded trials 
-  # muWTWs : [84x1 num] # average willingness to wait (WTW), measured by area under the Kaplan-Meier survival curve
+  # aucs : [84x1 num] # average willingness to wait (WTW), measured by area under the Kaplan-Meier survival curve
   # stdWTWs : [84x1 num] # standard deviation of WTW, measured in Kaplan-Meier survival analysis
   # totalEarnings_s :  [84x1 num] 
 # }
@@ -39,9 +39,10 @@ MFAnalysis = function(isTrct){
   
   # initialize output variables 
   nExcls = numeric(length = nSub * nBlock)
-  muWTWs = numeric(length = nSub * nBlock) 
+  aucs = numeric(length = nSub * nBlock) 
   stdWTWs = numeric(length = nSub * nBlock) 
   totalEarnings_s =  numeric(length = nSub * nBlock) 
+  sub_auc_ = matrix(NA, nrow  = nSub, ncol = nBlock * 2)
   timeWTW_ = vector(mode = "list", length = nSub * nBlock) 
   trialWTW_ = vector(mode = "list", length = nSub * nBlock) 
   survCurve_ = vector(mode = "list", length = nSub * nBlock) 
@@ -66,6 +67,13 @@ MFAnalysis = function(isTrct){
         nExcls[noidx] = 0
       }
       
+      # first half block
+      sub_kmsc_res = kmsc(thisTrialData[thisTrialData$sellTime < 300,], min(delayMaxs), F, kmGrid)
+      sub_auc_[sIdx, bkIdx * 2 - 1] = sub_kmsc_res$auc
+      sub_kmsc_res = kmsc(thisTrialData[thisTrialData$sellTime >= 300,], min(delayMaxs), F, kmGrid)
+      sub_auc_[sIdx, bkIdx * 2]  = sub_kmsc_res$auc
+
+      
       # calcualte totalEarnings
       totalEarnings_s[noidx] =  sum(thisTrialData$trialEarnings)
       
@@ -73,7 +81,7 @@ MFAnalysis = function(isTrct){
       kmscResults = kmsc(thisTrialData, min(delayMaxs), F, kmGrid)
       
       # 
-      muWTWs[noidx] = kmscResults[['auc']]
+      aucs[noidx] = kmscResults[['auc']]
       survCurve_[[noidx]] = kmscResults$kmOnGrid
       stdWTWs[[noidx]] = kmscResults$stdWTW
       
@@ -90,14 +98,15 @@ MFAnalysis = function(isTrct){
     condition = rep(c('LP', 'HP'), nSub),
     nExcl = nExcls,
     totalEarnings = totalEarnings_s,
-    muWTW = muWTWs,
+    auc = aucs,
     stdWTW = stdWTWs
   )
   outputs = list(
     sumStats = sumStats,
     survCurve_ = survCurve_,
     trialWTW_ = trialWTW_,
-    timeWTW_ = timeWTW_ 
+    timeWTW_ = timeWTW_,
+    sub_auc_ = sub_auc_
   )
   return(outputs)
 }

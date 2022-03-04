@@ -74,7 +74,111 @@ expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs =
                         passCheck = passCheck, 
                         condition = sumStats$condition) %>% filter(passCheck)
   
-
+  ## cacl variance explained by time #
+  repTimeWTW_ = repOutputs$timeWTW_
+  df = list()
+  for(condition in c("HP", "LP")){
+    ss_ = apply(timeWTW_[sumStats$condition == condition & passCheck,], FUN = function(x) sum((x - mean(x))^2), MARGIN = 2)
+    RL_r2_ = vector(length = length(tGrid))
+    baseline_r2_ = vector(length = length(tGrid))
+    # auc = sumStats$muWTW[sumStats$condition == condition & passCheck]
+    baseline = apply(timeWTW_[sumStats$condition == condition & passCheck,], FUN = mean, MARGIN = 1)
+    for(tIdx in 1 : length(tGrid)){
+      y = timeWTW_[sumStats$condition == condition & passCheck, tIdx]
+      x =  repTimeWTW_[tIdx,sumStats$condition == condition & passCheck]
+      RL_r2_[tIdx] = summary(lm(y ~ x))$r.squared
+      baseline_r2_[tIdx] = summary(lm(y ~ baseline))$r.squared
+    }
+    thisdf = data.frame(
+      ss = rep(ss_, 2),
+      r2 = c(RL_r2_, baseline_r2_),
+      predictor = rep(c("RL-replicated WTW", "auc"), each = length(tGrid)), 
+      time = rep(tGrid, 2),
+      condition = rep(condition, length(tGrid) * 2)
+    )
+    df[[condition]] = thisdf
+  }
+  plotdf = rbind(df[['HP']], df[['LP']])
+  
+  plotdf %>% ggplot(aes(time, r2, color = predictor)) + geom_line() + 
+    facet_grid(~condition) + 
+    myTheme +
+    xlab("Task time (s)") + 
+    ylab("Variance explained")
+  
+  ## Yeah I might as well plot at the p_predicted 
+  HP_rep_time_WTW = apply(repTimeWTW_[,sumStats$condition == "LP" & passCheck], mean, MARGIN = 1)
+  HP_time_WTW = apply(timeWTW_[sumStats$condition == "LP" & passCheck,], mean, MARGIN = 2)
+  data.frame(
+    wtw = c(HP_time_WTW, HP_rep_time_WTW),
+    time = rep(tGrid, 2),
+    type = rep(c("Observed", "Replicated"), each = length(tGrid))
+  ) %>% ggplot(aes(time, wtw, color = type)) + geom_line()
+  
+  HP_rep_time_WTW = apply(repTimeWTW_[,sumStats$condition == "HP" & passCheck], mean, MARGIN = 1)
+  HP_time_WTW = apply(timeWTW_[sumStats$condition == "HP" & passCheck,], mean, MARGIN = 2)
+  data.frame(
+    wtw = c(HP_time_WTW, HP_rep_time_WTW),
+    time = rep(tGrid, 2),
+    type = rep(c("Observed", "Replicated"), each = length(tGrid))
+  ) %>% ggplot(aes(time, wtw, color = type)) + geom_line()
+  
+  ## calc variance explained by time #, taking off the baseline 
+  df = list()
+  for(condition in c("HP", "LP")){
+    # ss_ = apply(timeWTW_[sumStats$condition == condition & passCheck,], FUN = function(x) sum((x - mean(x))^2), MARGIN = 2)
+    RL_r2_ = vector(length = length(tGrid))
+    baseline_r2_ = vector(length = length(tGrid))
+    # auc = sumStats$muWTW[sumStats$condition == condition & passCheck]
+    baseline = apply(timeWTW_[sumStats$condition == condition & passCheck,], FUN = mean, MARGIN = 1)
+    rep_baseline = apply(repTimeWTW_[,sumStats$condition == condition & passCheck], FUN = mean, MARGIN = 2)
+    for(tIdx in 1 : length(tGrid)){
+      y = timeWTW_[sumStats$condition == condition & passCheck, tIdx] - baseline
+      x =  repTimeWTW_[tIdx,sumStats$condition == condition & passCheck] - baseline
+      RL_r2_[tIdx] = summary(lm(y ~ x))$r.squared
+      baseline_r2_[tIdx] = summary(lm(y ~ baseline))$r.squared
+    }
+    thisdf = data.frame(
+      ss = rep(ss_, 2),
+      r2 = c(RL_r2_, baseline_r2_),
+      predictor = rep(c("RL-replicated WTW", "baseline"), each = length(tGrid)), 
+      time = rep(tGrid, 2),
+      condition = rep(condition, length(tGrid) * 2)
+    )
+    df[[condition]] = thisdf
+  }
+  plotdf = rbind(df[['HP']], df[['LP']])
+  plotdf %>% ggplot(aes(time, r2, color = predictor)) + geom_line() + 
+    facet_grid(~condition) + 
+    myTheme +
+    xlab("Task time (s)") + 
+    ylab("Variance explained")
+  
+  ########
+  # I need to plot local WTW first 
+  rep_local_wtw_ = cbind(repOutputs$timeWTW_[1, ], repOutputs$sub_auc_)
+  # rep_local_wtw_ =  repOutputs$sub_auc_
+  emp_local_wtw_ = cbind(timeWTW_[,1],  MFResults$sub_auc_)
+  # emp_local_wtw_ = cbind(timeWTW_[i,1 ], MFResults$sub_auc_)
+  
+  data.frame(
+    local_wtw = as.vector(emp_local_wtw_),
+    time = rep(c(0, seq(1.75, 21, by = 3.5)), each = 60),
+    condition = rep(sumStats$condition, 7)
+  ) %>% group_by(condition, time) %>%
+    summarise(mu = mean(local_wtw), se = sd(local_wtw) / sqrt(length(local_wtw))) %>%
+    mutate(min = mu - se, max = mu + se) %>%
+    ggplot(aes(time, mu, color = condition)) +
+    geom_point() + 
+    geom_errorbar(aes(x = time, y = mu, ymin = min, ymax = max))
+  
+  rep_local_wtw_diff_ = matrix(NA, nrow = 60, ncol =6)
+  emp_local_wtw_diff_ = matrix(NA, nrow = 60, ncol =6)
+  for(i in 1 : 60){
+    rep_local_wtw_diff_[i,] = diff(rep_local_wtw_[i,])
+    emp_local_wtw_diff_[i,] =  diff(emp_local_wtw_[i,])
+  }
+  
   # adaptation levels 
   deltaFig = data.frame(
     emp  = emp_local_wtw_[, 7] - emp_local_wtw_[, 2],

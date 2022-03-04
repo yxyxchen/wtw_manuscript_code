@@ -54,7 +54,8 @@ for(i in 1 : nExp){
 }
 # assemble the figures
 setwd(pwd)
-figMF12 = (figs_[[1]][['curve']] | figs_[[1]][['auc']] | figs_[[1]][['sigma']] | figs_[[1]][['wtw']]) / (figs_[[2]][['curve']] | figs_[[2]][['auc']] | figs_[[2]][['sigma']] | figs_[[2]][['wtw']]) + plot_annotation(tag_levels = "a")
+figMF12 = (figs_[[1]][['curve']] | figs_[[1]][['wtw']] | figs_[[1]][['auc']] | figs_[[1]][['sigma']] | figs_[[1]][['delta']]) / \
+(figs_[[2]][['curve']] | figs_[[2]][['wtw']] | figs_[[2]][['auc']] | figs_[[2]][['sigma']] | figs_[[2]][['delta']]) / + plot_annotation(tag_levels = "a")
 ggsave(file.path("../figures/cmb","mf12.eps"), figMF12 , width = 16, height = 8)
 figMF3 = (figs_[[3]][['curve']] | figs_[[3]][['auc']] | figs_[[3]][['sigma']] | figs_[[3]][['wtw']]) + plot_annotation(tag_levels = "a")
 ggsave(file.path("../figures/cmb","mf3.eps"), figMF3 , width = 16, height = 8)
