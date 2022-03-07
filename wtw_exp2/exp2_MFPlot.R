@@ -110,13 +110,13 @@ MFPlot = function(){
   ################################################################
   LP_end_vs_start = MFResults$sub_auc_[,2] - MFResults$sub_auc_[,1] 
   HP_end_vs_start = MFResults$sub_auc_[,4] - MFResults$sub_auc_[,3] 
-  HP_vs_LP = MFResults$sumStats[sumStats$condition == "HP", "auc"] - MFResults$sumStats[sumStats$condition == "LP", "auc"] 
+  # HP_vs_LP = MFResults$sumStats[sumStats$condition == "HP", "auc"] - MFResults$sumStats[sumStats$condition == "LP", "auc"] 
   figDelta = 
     data.frame(
-      deltaWTW = c(LP_end_vs_start, HP_end_vs_start, HP_vs_LP),
-      contrast = rep(c("LP", "HP", "HP-LP"), each = nrow(sumStats) / nBlock)
-    ) %>% ggplot(aes(contrast, deltaWTW)) +
-    geom_dotplot(binaxis='y', stackdir='center', aes(fill = contrast))  + 
+      deltaWTW = c(LP_end_vs_start, HP_end_vs_start),
+      condition = rep(c("LP", "HP"), each = nrow(sumStats) / nBlock)
+    ) %>% ggplot(aes(condition, deltaWTW)) +
+    geom_dotplot(binaxis='y', stackdir='center', aes(fill = condition))  + 
     ylab(TeX('$AUC_{end} - AUC_{start}$')) +
     xlab(" ") + 
     scale_fill_manual(values = conditionColors) +
@@ -124,10 +124,10 @@ MFPlot = function(){
     theme(plot.title = element_text(face = "bold", hjust = 0.5),
           legend.position =  "none")
   
-  wilcox.test(deltaWTW[sumStats$condition == "HP"])
-  wilcox.test(deltaWTW[sumStats$condition == "LP"])
-  cor.test(deltaWTW[sumStats$condition == "HP"], sumStats$auc[sumStats$condition == "HP"], method=c( "spearman"))
-  cor.test(deltaWTW[sumStats$condition == "LP"], sumStats$auc[sumStats$condition == "LP"], method=c( "spearman"))
+  # wilcox.test(deltaWTW[sumStats$condition == "HP"])
+  # wilcox.test(deltaWTW[sumStats$condition == "LP"])
+  # cor.test(deltaWTW[sumStats$condition == "HP"], sumStats$auc[sumStats$condition == "HP"], method=c( "spearman"))
+  # cor.test(deltaWTW[sumStats$condition == "LP"], sumStats$auc[sumStats$condition == "LP"], method=c( "spearman"))
   
   ###################################################
   ##              plot survival curves            ##

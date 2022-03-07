@@ -139,10 +139,20 @@ for(i in 1 : nExp){
   source("MFAnalysis.R")
   allData = loadAllData() # load all the data 
   MFResults = MFAnalysis(isTrct = T)
-  figs = vector("list", length = nExp) # initialize the output 
+  figs = vector("list", length = nModel) # initialize the output 
+  for(j in 1 : nModel){
+    model = models[j]
+    thisFig = expModelRep(model, allData, MFResults)
+    figs[[j]] = thisFig
+  }
   figs_[[i]] = figs
 }
 
+# assemble the figures 
+i = 2
+(figs_[[i]][[1]]$figWTW | figs_[[i]][[2]]$ | figs_[[i]][[3]] | figs_[[i]][[4]] | figs_[[i]][[5]] | figs_[[i]][[6]])
+
+figs_[[i]][[j]]$figWTW
 # assemble the figures 
 setwd(pwd)
 for(i in 1 : nExp){
