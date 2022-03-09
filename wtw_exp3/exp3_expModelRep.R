@@ -50,7 +50,7 @@ expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs =
   }
   blockStats = MFResults[['blockStats']]
   blockStats = blockStats[blockStats$blockNum <= 2, ]
-  muWTWEmp = blockStats$muWTW
+  aucEmp = blockStats$auc
   stdWTWEmp = blockStats$stdWTW
   
   # replicated data 
@@ -59,8 +59,8 @@ expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs =
     save(repOutputs, file = sprintf("../../genData/wtw_exp3/expModelRep/%s_trct.RData", modelName))
   }
 
-  plotData = data.frame(id = blockStats$id, mu =  repOutputs$muWTWRep_mu, std = repOutputs$stdWTWRep_mu,
-                        empMu = muWTWEmp, empStd = stdWTWEmp,
+  plotData = data.frame(id = blockStats$id, mu =  repOutputs$aucRep_mu, std = repOutputs$stdWTWRep_mu,
+                        empMu = aucEmp, empStd = stdWTWEmp,
                         passCheck = rep(passCheck, each = 2), 
                         condition = blockStats$condition) %>% filter(passCheck)
   

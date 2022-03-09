@@ -61,7 +61,7 @@ modelRep = function(trialData, ids, nRep, isTrct, modelName){
   }
   
   # analysis
-  muWTWRep_ = matrix(NA, nrow = nRep , ncol = nSub * nBlock)
+  aucRep_ = matrix(NA, nrow = nRep , ncol = nSub * nBlock)
   stdWTWRep_ = matrix(NA, nrow = nRep, ncol = nSub * nBlock)
   # timeWTW_ =  matrix(NA, nrow = length(tGrid), ncol = nSub * nBlock) # block duration is not constant
   noIdx = 1
@@ -74,7 +74,7 @@ modelRep = function(trialData, ids, nRep, isTrct, modelName){
         thisRepTrialData = do.call(cbind.data.frame, thisRepTrialData[c(names(thisRepTrialData)[1:6], "blockNum")])
         thisRepTrialData = thisRepTrialData[thisRepTrialData$blockNum == bkIdx,]
         kmscResults = kmsc(thisRepTrialData, min(delayMaxs), F, kmGrid)
-        muWTWRep_[rIdx, noIdx] = kmscResults$auc
+        aucRep_[rIdx, noIdx] = kmscResults$auc
         stdWTWRep_[rIdx, noIdx] = kmscResults$stdWTW
         # wtwResults = wtwTS(thisRepTrialData, tGrid, min(delayMaxs), F)
         # thisTimeWTW_[, rIdx] = wtwResults$timeWTW
@@ -85,14 +85,14 @@ modelRep = function(trialData, ids, nRep, isTrct, modelName){
   }
   # wtw timecourse
   ## summarise WTW across simulations for replicated data 
-  muWTWRep_mu = apply(muWTWRep_, MARGIN = 2, mean) # mean of average willingness to wait
-  muWTWRep_std = apply(muWTWRep_, MARGIN = 2, sd) # std of average willingess to wait
+  aucRep_mu = apply(aucRep_, MARGIN = 2, mean) # mean of average willingness to wait
+  aucRep_std = apply(aucRep_, MARGIN = 2, sd) # std of average willingess to wait
   stdWTWRep_mu = apply(stdWTWRep_, MARGIN = 2, mean) # mean of std willingness to wait
   stdWTWRep_std = apply(stdWTWRep_, MARGIN = 2, sd) # std of std willingess to wait
   
   outputs = list(
-    muWTWRep_mu = muWTWRep_mu,
-    muWTWRep_std = muWTWRep_std,
+    aucRep_mu = aucRep_mu,
+    aucRep_std = aucRep_std,
     stdWTWRep_mu = stdWTWRep_mu,
     stdWTWRep_std = stdWTWRep_std,
     # "timeWTW_" = timeWTW_,

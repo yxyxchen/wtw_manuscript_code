@@ -44,10 +44,10 @@ MFPlot = function(){
     group_by(time, cbal, condition) %>% 
     dplyr::summarise(mu = mean(wtw, na.rm = F), se = sd(wtw, na.rm = F) / sqrt(sum(!is.na(wtw))),
                      min = mu- se, max = mu + se) %>% ungroup()
-  figWTW = newPlotData %>%
+    figWTW = newPlotData %>%
     mutate(block = ifelse(newPlotData$time < blockMin * 2, "Block1-2", "Block3-4")) %>%
-    ggplot(aes(time, mu, fill = condition, color = condition)) + 
-    geom_rect(data = greyData, aes(xmin = xmin, xmax = xmax, ymin = 0, ymax = 20), inherit.aes = F, fill = "#d9d9d9") +
+    ggplot(aes(time, mu, fill = condition, color = condition)) +
+      geom_rect(data = greyData, aes(xmin = xmin, xmax = xmax, ymin = 0, ymax = 20), inherit.aes = F, fill = "#d9d9d9") +
     geom_ribbon(aes(ymin=min, ymax=max), color = NA) +
     geom_line(size = 1) +
     xlab("Task time (min)") + ylab("WTW (s)") + 
@@ -56,8 +56,8 @@ MFPlot = function(){
     scale_fill_manual(values = c("#7fbf7b", "#af8dc3")) + 
     scale_color_manual(values = conditionColors) +
     theme(legend.position =  "none")
-  
-  
+
+    
   
   ###################################################################
   ##              compare AUC in the two environments             ##
@@ -68,27 +68,25 @@ MFPlot = function(){
   blockStats$block = ifelse(blockStats$blockNum <= 2, "Block1-2", "Block3-4")
   survCurve_ = MFResults$survCurve_
   blockStats %>% group_by(condition, block) %>%
-    summarise(median(muWTW), IQR(muWTW), median(stdWTW), IQR(stdWTW))
+    summarise(median(auc), IQR(auc), median(stdWTW), IQR(stdWTW))
   
-  wilcox.test( blockStats[blockStats$condition == "HP" & blockStats$block == "Block1-2", "muWTW"],
-               blockStats[blockStats$condition == "LP" & blockStats$block == "Block1-2", "muWTW"], paired = T)
+  wilcox.test( blockStats[blockStats$condition == "HP" & blockStats$block == "Block1-2", "auc"],
+               blockStats[blockStats$condition == "LP" & blockStats$block == "Block1-2", "auc"], paired = T)
   
-  wilcox.test( blockStats[blockStats$condition == "HP" & blockStats$block == "Block3-4", "muWTW"],
-               blockStats[blockStats$condition == "LP" & blockStats$block == "Block3-4", "muWTW"], paired = T)  
+  wilcox.test( blockStats[blockStats$condition == "HP" & blockStats$block == "Block3-4", "auc"],
+               blockStats[blockStats$condition == "LP" & blockStats$block == "Block3-4", "auc"], paired = T)  
   ###################################################################
   ##              plot AUC in the two environments             ##
   ###################################################################
-  figAUC = data.frame(muWTWHP = blockStats$muWTW[blockStats$condition == 'HP'],
-                      muWTWLP = blockStats$muWTW[blockStats$condition == 'LP'],
+  figAUC = data.frame(aucHP = blockStats$auc[blockStats$condition == 'HP'],
+                      aucLP = blockStats$auc[blockStats$condition == 'LP'],
                       cbal = blockStats$cbal[blockStats$condition == "HP"],
                       block = ifelse(blockStats$blockNum <= 2, "Block1-2", "Block3-4")) %>%
-    ggplot(aes(muWTWLP, muWTWHP)) + facet_grid(block~.) +
+    ggplot(aes(aucLP, aucHP)) + facet_grid(block~.) +
     geom_point(size = 5, shape = 21, stroke =1) +
-    geom_abline(slope = 1, intercept = 0)  +
-    xlab("LP muAUC / (s)") + ylab("HP muAUC / (s)") + 
-    myTheme + xlim(c(-1,31)) + ylim(c(-1,31)) + 
-    xlab("LP AUC (s)") + ylab("HP AUC (s)") 
-  
+    geom_abline(slope = 1, intercept = 0) + 
+    myTheme + xlim(c(-1,31)) + ylim(c(-1,31)) +
+    ggtitle("AUC") + xlab("LP (s)") + ylab("HP (s)") 
   ###################################################################
   ##              compare sigma_wtw in the two environments             ##
   ###################################################################
@@ -114,15 +112,35 @@ MFPlot = function(){
   
   figSigma = data.frame(stdWTWHP = blockStats$stdWTW[blockStats$condition == 'HP'],
                         stdWTWLP = blockStats$stdWTW[blockStats$condition == 'LP'],
-                        cbal = blockStats$cbal[blockStats$condition == "HP"],
+                        cbal = ifelse(blockStats$cbal[blockStats$condition == "HP"] == 1, "HP First", "LP First"),
                         block = ifelse(blockStats$blockNum <= 2, "Block1-2", "Block3-4")) %>%
-    ggplot(aes(stdWTWLP, stdWTWHP)) + facet_grid(block~.) + 
+    filter(block == "Block1-2") %>%
+    ggplot(aes(stdWTWLP, stdWTWHP)) + facet_grid(cbal~.) + 
     geom_point(size = 5, shape = 21, stroke =1) +
-    geom_abline(slope = 1, intercept = 0)  +
-    xlab(expression(bold(paste("LP ", sigma["WTW"], " (s"^2,")")))) +
-    ylab(expression(bold(paste("HP ", sigma["WTW"], " (s"^2,")")))) + 
-    myTheme + xlim(c(-1,16)) + ylim(c(-1,16))
+    geom_abline(slope = 1, intercept = 0) +
+    myTheme + xlim(c(-1,16)) + ylim(c(-1,16)) + 
+    ggtitle(expression(bold(sigma["WTW"]))) + xlab("LP (s)") + ylab("HP (s)") 
+    
 
+  ###################################################################
+  ##              plot adaptation in the two environments             ##
+  ###################################################################
+  delta_df = data.frame(
+    delta =  as.vector(t(MFResults$sub_auc_[, c(8, 6, 4, 2)] - MFResults$sub_auc_[, c(7, 5, 3, 1)])),
+    condition = blockStats$condition,
+    block = blockStats$block,
+    id = blockStats$id
+  ) %>% spread(key = "condition", value = "delta") %>% 
+    ggplot(aes(LP, HP)) + facet_grid(~block) + geom_point()
+    
+  data.frame(
+    early_auc =  as.vector(t(MFResults$sub_auc_[,c(1, 3, 5, 7)])),
+    late_auc =  as.vector(t(MFResults$sub_auc_[,c(2, 4, 6, 8)])),
+    condition = blockStats$condition,
+    block = blockStats$block
+  ) %>% ggplot(aes(early_auc, late_auc)) + facet_grid(block ~ condition) +
+    geom_point()
+  
   ###################################################################
   ##              plot  survival curves            ##
   ###################################################################
@@ -130,7 +148,8 @@ MFPlot = function(){
   plotData = data.frame(survCurve = unlist(survCurve_),
                         time = rep(kmGrid, nSub * nCondition * 2),
                         condition = rep(blockStats$condition, each = length(kmGrid)),
-                        blockNum = rep(blockStats$blockNum, each = length(kmGrid))) %>%
+                        blockNum = rep(blockStats$blockNum, each = length(kmGrid)),
+                        cbal = rep(blockStats$cbal, each = length(kmGrid))) %>%
     mutate(block = ifelse(blockNum <= 2, "Block1-2", "Block3-4")) 
   # optimal strategy
   optim = data.frame(
@@ -146,10 +165,29 @@ MFPlot = function(){
   #optim = rbind(optim, optim)
   #optim$block = rep(c("Block1-2", "Block3-4"), each = nrow(optim) / 2)
 
-  figCurve = plotData %>% group_by(condition, time, block) %>%
+  # figCurve = plotData %>% group_by(condition, time, block) %>%
+  #   dplyr::summarise(mu = mean(survCurve, na.rm = F), se = sd(survCurve, na.rm = F) / sqrt(sum(!is.na(survCurve))),
+  #                    min = mu- se, max = mu + se) %>%
+  #   ggplot(aes(time, mu, color = condition, fill = condition)) + facet_grid(block~.) + 
+  #   geom_ribbon(aes(time, ymin = min, ymax = max), color = NA)  +
+  #   geom_line() +
+  #   geom_line(data = optim, aes(t, surv, color = condition, linetype = condition, alpha = condition), size = 1.2) +
+  #   geom_line(data = data.frame(t = kmGrid[kmGrid > 2],surv = 1),
+  #             aes(t, surv), color = conditionColors[1], size = 1.2, inherit.aes = F, alpha = 0.8) + 
+  #   scale_fill_manual(values = c("#7fbf7b", "#af8dc3")) +
+  #   scale_color_manual(values = conditionColors) +
+  #   scale_linetype_manual(values = c("solid", "dotted")) +
+  #   scale_alpha_manual(values = c(0.8, 1))+
+  #   xlab("Elapsed time (s)") + ylab("Survival rate") + myTheme +
+  #   theme(legend.position = "none")
+  
+  figCurve = plotData %>% filter(block == "Block1-2") %>% 
+    mutate(cbal = ifelse(cbal == 1, "HPLP", "LPHP")) %>%
+    group_by(condition, time, cbal) %>%
     dplyr::summarise(mu = mean(survCurve, na.rm = F), se = sd(survCurve, na.rm = F) / sqrt(sum(!is.na(survCurve))),
                      min = mu- se, max = mu + se) %>%
-    ggplot(aes(time, mu, color = condition, fill = condition)) + facet_grid(block~.) + 
+    ggplot(aes(time, mu, color = condition, fill = condition)) + 
+    facet_grid(cbal~.) + 
     geom_ribbon(aes(time, ymin = min, ymax = max), color = NA)  +
     geom_line() +
     geom_line(data = optim, aes(t, surv, color = condition, linetype = condition, alpha = condition), size = 1.2) +

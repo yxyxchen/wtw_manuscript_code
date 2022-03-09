@@ -8,7 +8,7 @@
   # id : [160x1 id]
   # condition : [160x1 fac]
   # nExcl : [160x1 int] # total number of excluded trials 
-  # muWTWs : [160x1 num] # average willingness to wait (WTW), measured by area under the Kaplan-Meier survival curve
+  # aucs : [160x1 num] # average willingness to wait (WTW), measured by area under the Kaplan-Meier survival curve
   # stdWTWs : [160x1 num] # standard deviation of WTW, measured in Kaplan-Meier survival analysis
   # totalEarnings_s :  [160x1 num] 
 # }
@@ -42,13 +42,14 @@ MFAnalysis = function(isTrct){
 ################### block stats ############################
   # initialize output variables 
   nExcls = numeric(length = nSub * nBlock)
-  muWTWs = numeric(length = nSub * nBlock) 
+  aucs = numeric(length = nSub * nBlock) 
   stdWTWs = numeric(length = nSub * nBlock) 
   totalEarnings_s =  numeric(length = nSub * nBlock) 
   conditions = numeric(length = nSub * nBlock) 
   timeWTW_ = vector(mode = "list", length = nSub * nBlock) 
   trialWTW_ = vector(mode = "list", length = nSub * nBlock) 
   survCurve_ = vector(mode = "list", length = nSub * nBlock) 
+  sub_auc_ = matrix(NA, nrow  = nSub, ncol = nBlock * 2)
   
   # loop over inidviduals
   for (sIdx in 1 : nSub) {
@@ -81,7 +82,7 @@ MFAnalysis = function(isTrct){
       kmscResults = kmsc(thisTrialData, min(delayMaxs), F, kmGrid)
       
       # 
-      muWTWs[noIdx] = kmscResults[['auc']]
+      aucs[noIdx] = kmscResults[['auc']]
       stdWTWs[[noIdx]] = kmscResults$stdWTW
       survCurve_[[noIdx]] = kmscResults$kmOnGrid
       
@@ -89,6 +90,13 @@ MFAnalysis = function(isTrct){
       wtwtsResults = wtwTS(thisTrialData, tGrid, min(delayMaxs), F)
       timeWTW_[[noIdx]] = wtwtsResults$timeWTW
       trialWTW_[[noIdx]] = wtwtsResults$trialWTW
+      
+      # calc sub_auc
+      # first half block
+      sub_kmsc_res = kmsc(thisTrialData[thisTrialData$sellTime < 300,], min(delayMaxs), F, kmGrid)
+      sub_auc_[sIdx, bkIdx * 2 - 1] = sub_kmsc_res$auc
+      sub_kmsc_res = kmsc(thisTrialData[thisTrialData$sellTime >= 300,], min(delayMaxs), F, kmGrid)
+      sub_auc_[sIdx, bkIdx * 2]  = sub_kmsc_res$auc
     }
       
   }
@@ -100,14 +108,15 @@ MFAnalysis = function(isTrct){
     cbal = rep(hdrData$cbal, each = nBlock),
     nExcl = nExcls,
     totalEarnings = totalEarnings_s,
-    muWTW = muWTWs,
+    auc = aucs,
     stdWTW = stdWTWs
   )
   outputs = list(
     blockStats = blockStats,
     survCurve_ = survCurve_,
     trialWTW_ = trialWTW_,
-    timeWTW_ = timeWTW_ 
+    timeWTW_ = timeWTW_ ,
+    sub_auc_ = sub_auc_
   )
   return(outputs)
 }
