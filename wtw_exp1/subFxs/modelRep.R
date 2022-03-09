@@ -41,8 +41,9 @@ modelRep = function(modelName, trialData, ids, nRep, isTrct, aveParas = NULL){
     }
   }
   # initialize 
-  muWTWRep_ = matrix(NA, nrow = nRep , ncol = nSub)
-  stdWTWRep_ = matrix(NA, nrow = nRep, ncol = nSub)
+  aucs = vector(length = nSub)
+  stdWTWs = vector(length = nSub)
+  sub_auc_ = matrix(NA, nrow  = nSub, ncol = 6)
   timeWTW_ =  matrix(NA, nrow = length(tGrid), ncol = nSub)
   trialWTW_ = list()
   sub_auc_ = matrix(NA, nrow  = nSub, ncol = 6)
@@ -56,48 +57,45 @@ modelRep = function(modelName, trialData, ids, nRep, isTrct, aveParas = NULL){
     }
     thisTrialData = block2session(thisTrialData)
     nTrial =  length(thisTrialData$scheduledWait)
-    # timeWTW = matrix(NA, nrow = length(tGrid), ncol = nRep)
-    trialWTW =  matrix(NA, nrow = nTrial, ncol = nRep)
+    # initialize outputs for this participant
+    auc_reps = vector(length = nRep)
+    stdWTW_reps = vector(length = nRep)
+    sub_auc_reps = matrix(NA, nrow = nRep, ncol = 6)
+    trialWTW_reps = matrix(NA, nrow = nTrial, ncol = nRep)
     for(rIdx in 1 : nRep){
       thisRepTrialData = repTrialData[[repNo[rIdx, sIdx]]]
       thisRepTrialData$Qwaits_ = NULL
       thisRepTrialData = data.frame(thisRepTrialData)
       kmscResults = kmsc(thisRepTrialData, min(delayMaxs), F, kmGrid)
-      muWTWRep_[rIdx,sIdx] = kmscResults$auc
-      stdWTWRep_[rIdx, sIdx] = kmscResults$stdWTW
+      auc_reps[rIdx] = kmscResults$auc
+      stdWTW_reps[rIdx] = kmscResults$stdWTW
       wtwResults = wtwTS(thisRepTrialData, tGrid, min(delayMaxs), F)
-      # timeWTW[,rIdx] = wtwResults$timeWTW
-      trialWTW[, rIdx] = wtwResults$trialWTW
+      trialWTW_reps[, rIdx] = wtwResults$trialWTW
       for(k in 1 : 3){
         # first half block
         sub_kmsc_res = kmsc(thisRepTrialData[thisTrialData$sellTime < k * 7 * 60 - 210 & thisTrialData$sellTime >= k * 7 * 60 - 420,], min(delayMaxs), F, kmGrid)
-        this_sub_auc_[rIdx, k * 2 - 1] = sub_kmsc_res$auc
+        sub_auc_reps[rIdx, k * 2 - 1] = sub_kmsc_res$auc
         sub_kmsc_res = kmsc(thisRepTrialData[thisTrialData$sellTime >= k * 7 * 60 - 210 & thisTrialData$sellTime < k * 7 * 60,], min(delayMaxs), F, kmGrid)
-        this_sub_auc_[rIdx, k * 2]  = sub_kmsc_res$auc
+        sub_auc_reps[rIdx, k * 2]  = sub_kmsc_res$auc
       }
     }
-
-    trialWTW_[[id]] =  apply(trialWTW, 1, mean)
+    aucs[sIdx] = mean(auc_reps)
+    stdWTWs[sIdx] = mean(stdWTW_reps)
+    sub_auc_[sIdx,] = apply(sub_auc_reps, MARGIN = 2, FUN = mean)
+    trialWTW_[[id]] =  apply(trialWTW_reps, 1, mean)
     timeWTW_[,sIdx] =  resample(trialWTW_[[id]], thisTrialData$sellTime, tGrid)
-    sub_auc_[sIdx, ] = apply(this_sub_auc_, FUN = mean, MARGIN = 2)
   }
   
-  ## summarise WTW across simulations for replicated data 
-  muWTWRep_mu = apply(muWTWRep_, MARGIN = 2, mean) # mean of average willingness to wait
-  muWTWRep_std = apply(muWTWRep_, MARGIN = 2, sd) # std of average willingess to wait
-  stdWTWRep_mu = apply(stdWTWRep_, MARGIN = 2, mean) # mean of std willingness to wait
-  stdWTWRep_std = apply(stdWTWRep_, MARGIN = 2, sd) # std of std willingess to wait
   
   outputs = list(
-    muWTWRep_mu = muWTWRep_mu,
-    muWTWRep_std = muWTWRep_std,
-    stdWTWRep_mu = stdWTWRep_mu,
-    stdWTWRep_std = stdWTWRep_std,
-    timeWTW_ = timeWTW_,
+    auc = aucs,
+    stdWTW = stdWTWs,
+    sub_auc_ = sub_auc_,
+    timeWTW_ =  timeWTW_,
     trialWTW_ = trialWTW_,
     repTrialData = repTrialData,
-    repNo = repNo,
-    sub_auc_ = sub_auc_
+    'repNo' = repNo
   )
+
   return(outputs)
 }

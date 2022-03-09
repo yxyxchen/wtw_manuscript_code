@@ -50,17 +50,12 @@ expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs =
     MFResults = MFAnalysis(isTrct = T)
   }
   sumStats = MFResults[['sumStats']]
-  # muWTWEmp = sumStats$auc
-  # stdWTWEmp = sumStats$stdWTW
-  ## WTW from empirical data 
-  muWTWRep_ = matrix(NA, nrow = nRep , ncol = nSub)
-  stdWTWRep_ = matrix(NA, nrow = nRep, ncol = nSub)
-  timeWTW_ =  matrix(NA, nrow = length(tGrid), ncol = nSub)
   
   ## AUCs and CIPs from simulated data 
   if(is.null(repOutputs)){
-    repOutputs =  modelRep(trialData, ids, nRep, T, modelName)
-    save(repOutputs, file = sprintf("../../genData/wtw_exp2/expModelRep/%s_trct.RData", modelName))
+    # repOutputs =  modelRep(trialData, ids, nRep, T, modelName)
+    # save(repOutputs, file = sprintf("../../genData/wtw_exp2/expModelRep/%s_trct.RData", modelName))
+    load(file = sprintf("../../genData/wtw_exp2/expModelRep/%s_trct.RData", modelName))
   }
 
   ################ observed WTW vs model generated WTW ############
@@ -75,7 +70,7 @@ expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs =
   ) %>% filter(passCheck) %>%
     gather(key = "type", value = "wtw", -c(condition, passCheck, time)) %>%
     group_by(condition, time, type) %>% 
-    summarise(mu = mean(wtw),
+    summarise(mu = median(wtw),
               se = sd(wtw) / sqrt(length(wtw))) %>%
     mutate(ymin = mu - se,
           ymax = mu + se) 
@@ -104,12 +99,12 @@ expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs =
     ggplot(aes(emp_auc, auc)) + 
     geom_point(size = 4, aes(color = condition), stroke = 1, shape = 21) + 
     geom_abline(slope = 1, intercept = 0)  + 
-    ylab("Model-generated AUC (s)") + xlab("Observed AUC (s)") +
+    ylab("Model-generated (s)") + xlab("Observed (s)")  + 
     myTheme + theme(plot.title = element_text(face = "bold", hjust = 0.5)) +
     scale_x_continuous(breaks = c(0, 16), limits = c(-1, 17)) + 
     scale_y_continuous(breaks = c(0, 16), limits = c(-1, 17)) +
     scale_color_manual(values = conditionColors) +
-    theme(legend.position = "none") + 
+    theme(legend.position = "none")  + 
     ggtitle(sprintf("%s, N = %d", modelName, sum(passCheck)))
   
   ## plot to compare std willingess to wait
@@ -117,8 +112,8 @@ expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs =
     ggplot(aes(emp_std, std, shape = condition)) + 
     geom_point(size = 4, aes(color = condition), stroke = 1, shape = 21)  + 
     geom_abline(slope = 1, intercept = 0) +
-    ylab(expression(bold(paste("Model-generated ", sigma["WTW"], " (s"^2,")")))) +
-    xlab(expression(bold(paste("Observed ", sigma["WTW"], " (s"^2,")")))) +
+    ylab(expression(bold(paste("Model-generated ","(s"^2,")")))) +
+    xlab(expression(bold(paste("Observed ", "(s"^2,")")))) +
     myTheme + theme(plot.title = element_text(face = "bold", hjust = 0.5)) + 
     scale_x_continuous(breaks = c(0, 7.5), limits = c(0, 7)) + 
     scale_y_continuous(breaks = c(0, 7.5), limits = c(0, 7)) +
@@ -138,17 +133,16 @@ expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs =
     ggplot(aes(emp_delta, delta, color = condition)) + 
     geom_point(size = 4, stroke = 1, shape = 21)  + 
     geom_abline(slope = 1, intercept = 0) + 
-    ylab(expression(bold(paste("Model-generated ", AUC[end] - AUC[start])))) +
-    xlab(expression(bold(paste("Observed ", AUC[end] - AUC[start]))))  +
+    ylab("Model-generated (s)") +
+    xlab("Observed (s)")  +
     myTheme + theme(plot.title = element_text(face = "bold", hjust = 0.5)) +
     coord_fixed() + xlim(c(-8, 8)) + 
     ylim(c(-8, 8)) + scale_color_manual(values = conditionColors) +
-    theme(legend.position = "none") + 
-    ggtitle(sprintf("%s, N = %d", modelName, sum(passCheck)))
+    theme(legend.position = "none")
 
  
   # combine figures 
-  figStats = aucFig / deltaFig / stdFig 
+  figStats = (aucFig / deltaFig / stdFig)
   
   ################### calc variance explained ####################
   # summary(lm(plotData$auc[plotData$condition == "HP" & plotData$passCheck] ~ plotData$emp_auc[plotData$condition == "HP" & plotData$passCheck]))$r.squared
@@ -156,7 +150,7 @@ expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs =
   # summary(lm(delta_df$delta[passCheck] ~ delta_df$emp_delta[passCheck]))$r.squared
   # summary(lm(delta_df$delta[passCheck] ~ delta_df$emp_delta[passCheck]))$r.squared
   
-  outputs = list('figWTW' = figWTW, 'figStats' = figStats, "repTimeWTW_": repTimeWTW_)
+  outputs = list('figWTW' = figWTW, 'figStats' = figStats, "rep_wtw_df" = plotdf)
   return(outputs)
 
 }

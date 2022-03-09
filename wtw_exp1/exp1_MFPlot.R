@@ -44,9 +44,9 @@ MFPlot = function(){
   plotData$min[plotData$time %in% (1:3 * blockSec - 1)] = NA
   plotData$max[plotData$time %in% (1:3 * blockSec - 1)] = NA
   
-  # plot sum of squares
-  plotData %>% ggplot(aes(time, ss, color = condition)) +
-    geom_line(aes(color = condition), size = 1) 
+  greyData = data.frame(
+    xmin = 1:nBlock * blockSec - max(delayMaxs), xmax = 1:nBlock * blockSec
+  )
   
   # plot 
   figWTW = plotData %>% ggplot(aes(time, mu, color = condition)) + 
@@ -54,7 +54,7 @@ MFPlot = function(){
               fill = "#d9d9d9", inherit.aes = F) +
     geom_ribbon(aes(ymin=min, ymax=max, fill = condition, color = NA)) +
     geom_line(aes(color = condition), size = 1) +
-    xlab("Task time (min)") + ylab("Willingness to wait (s)") + 
+    xlab("Task time (min)") + ylab("WTW (s)") + 
     myTheme + ylim(0, 20)  +
     theme(plot.title = element_text(face = "bold", hjust = 0.5, color = themeColor)) +
     scale_x_continuous(breaks = 0:3 * 420, labels = 0:3 * 7) + 
@@ -69,14 +69,14 @@ MFPlot = function(){
   ###################################################################
   MFResults = MFAnalysis(isTrct = T)
   sumStats = MFResults[['sumStats']]
-  sumStats %>% group_by(condition) %>% summarise(median(muWTW),IQR(muWTW))
-  wilcox.test(sumStats$muWTW[sumStats$condition == "HP"],
-              sumStats$muWTW[sumStats$condition == "LP"])
+  sumStats %>% group_by(condition) %>% summarise(median(auc),IQR(auc))
+  wilcox.test(sumStats$auc[sumStats$condition == "HP"],
+              sumStats$auc[sumStats$condition == "LP"])
   
   ################################################################
   ##              plot AUC in the two environments              ##
   ################################################################
-  figAUC = sumStats %>% ggplot(aes(condition, muWTW))  +
+  figAUC = sumStats %>% ggplot(aes(condition, auc))  +
     geom_dotplot(binaxis='y', stackdir='center', aes(fill = condition)) + 
     stat_compare_means(comparisons = list(c("HP", "LP")),
                        aes(label = ..p.signif..), label.x = 1.5, symnum.args= symnum.args,
@@ -98,17 +98,21 @@ MFPlot = function(){
     condition = sumStats$condition
     ) %>% ggplot(aes(condition, deltaWTW)) +
     geom_dotplot(binaxis='y', stackdir='center', aes(fill = condition))  + 
-    ylab(TeX('$AUC_{end} - AUC_{start}$')) +
+    stat_compare_means(comparisons = list(c("HP", "LP")),
+                       aes(label = ..p.signif..), label.x = 1.5, symnum.args= symnum.args,
+                       bracket.size = 1, size = 6, label.y = 9) +
+    ylab(expression(bold(paste(AUC[end] - AUC[start], " (s)")))) +
     xlab(" ") + 
+    ylim(c(-10, 12)) +
     scale_fill_manual(values = conditionColors) +
     myTheme  + 
     theme(plot.title = element_text(face = "bold", hjust = 0.5),
-          legend.position =  "none")
+          legend.position =  "none") 
   
   wilcox.test(deltaWTW[sumStats$condition == "HP"])
   wilcox.test(deltaWTW[sumStats$condition == "LP"])
-  cor.test(deltaWTW[sumStats$condition == "HP"], sumStats$muWTW[sumStats$condition == "HP"], method=c( "spearman"))
-  cor.test(deltaWTW[sumStats$condition == "LP"], sumStats$muWTW[sumStats$condition == "LP"], method=c( "spearman"))
+  cor.test(deltaWTW[sumStats$condition == "HP"], sumStats$auc[sumStats$condition == "HP"], method=c( "spearman"))
+  cor.test(deltaWTW[sumStats$condition == "LP"], sumStats$auc[sumStats$condition == "LP"], method=c( "spearman"))
   
   ###################################################################
   ##              compare sigma_wtw in the two environments        ##
@@ -175,7 +179,7 @@ MFPlot = function(){
     "auc" = figAUC,
     "sigma" = figSigma,
     "delta" = figDelta,
-    "curve" = figCurve,
+    "curve" = figCurve
   )
   return(outputs)
 }

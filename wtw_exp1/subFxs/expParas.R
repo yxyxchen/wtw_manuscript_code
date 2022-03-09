@@ -13,7 +13,7 @@ pareto[['mu']] = 0
 pareto[['sigma']] = 1.5
 
 # analyses parameters
-tGrid = seq(0, blockSec * nBlock - 1, by = 1) # time grid for wtw time courses, open interval 
+tGrid = seq(0, blockSec * nBlock - 1, by = 2) # time grid for wtw time courses, open interval 
 kmGrid = seq(0, min(delayMaxs) - 0.2, by = 0.2) # time grid for Kaplan-Meier survival curves
 
 # save 

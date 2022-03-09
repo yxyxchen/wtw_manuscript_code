@@ -132,13 +132,13 @@ expParaAnalysis = function(){
   sumStats$STAI_T = personality$STAI_T
   sumStats$PSS = personality$PSS
   
-  plotData= sumStats[,c("condition", traits , "muWTW", "stdWTW")]
-  plotData = gather(plotData, key = "trait", value = "value", -"condition", -"muWTW", -"stdWTW")
+  plotData= sumStats[,c("condition", traits , "auc", "stdWTW")]
+  plotData = gather(plotData, key = "trait", value = "value", -"condition", -"auc", -"stdWTW")
   plotData$value = as.numeric(plotData$value)
   
   # compose the correlation equations
-  lm_eqn = function(muWTW, value){
-    corrTest = cor.test(muWTW, value)
+  lm_eqn = function(auc, value){
+    corrTest = cor.test(auc, value)
     eq = substitute(italic(r)~"="~corrCoef~","~italic(p)~"="~pvalue, 
                     list(corrCoef = format(as.numeric(corrTest$estimate), digits = 2),
                          pvalue = format(corrTest$p.value, digits = 3)))
@@ -146,7 +146,7 @@ expParaAnalysis = function(){
   }
   
   # plot the first layer
-  p = plotData %>% ggplot(aes(value, muWTW, color = condition)) +
+  p = plotData %>% ggplot(aes(value, auc, color = condition)) +
     facet_grid(condition ~ trait, scales = "free") + geom_point(alpha = 0.8) +
     ylab("AUC (s)") + xlab("") + scale_color_manual(values = conditionColors) +
     myTheme +
@@ -154,7 +154,7 @@ expParaAnalysis = function(){
     geom_smooth(method = "lm", se=FALSE, color="black", formula = y ~ x) 
   
   # add the correlation stats
-  eqDf = plotData %>% group_by(condition, trait) %>% summarise(eq = lm_eqn(muWTW, value)) %>% ungroup()
+  eqDf = plotData %>% group_by(condition, trait) %>% summarise(eq = lm_eqn(auc, value)) %>% ungroup()
   tempt =  ggplot_build(p)$layout$panel_scales_x
   rangeDf = data.frame(
     low = sapply(tempt, function(x) x$range$range[1]),

@@ -45,7 +45,7 @@ ggsave(file.path("../figures/cmb", "exp.eps"), expCmb, width = 9, height = 9)
 ##                     model free analysis                     ##
 #################################################################
 figs_ = vector("list", length = nExp )
-for(i in 1 : nExp){
+for(i in 1 : 2){
   figs = vector("list", length = nExp) # initialize the output 
   setwd(file.path(pwd, wds[i]))
   source(sprintf("exp%d_MFPlot.R", i))
@@ -54,9 +54,8 @@ for(i in 1 : nExp){
 }
 # assemble the figures
 setwd(pwd)
-figMF12 = (figs_[[1]][['curve']] | figs_[[1]][['wtw']] | figs_[[1]][['auc']] | figs_[[1]][['sigma']] | figs_[[1]][['delta']]) / \
-(figs_[[2]][['curve']] | figs_[[2]][['wtw']] | figs_[[2]][['auc']] | figs_[[2]][['sigma']] | figs_[[2]][['delta']]) / + plot_annotation(tag_levels = "a")
-ggsave(file.path("../figures/cmb","mf12.eps"), figMF12 , width = 16, height = 8)
+figMF12 = (figs_[[1]][['curve']] | figs_[[1]][['wtw']] | figs_[[1]][['auc']] | figs_[[1]][['sigma']] | figs_[[1]][['delta']]) / (figs_[[2]][['curve']] | figs_[[2]][['wtw']] | figs_[[2]][['auc']] | figs_[[2]][['sigma']] | figs_[[2]][['delta']]) + plot_annotation(tag_levels = "a")
+ggsave(file.path("../figures/cmb","mf12.eps"), figMF12 , width = 20, height = 8)
 figMF3 = (figs_[[3]][['curve']] | figs_[[3]][['auc']] | figs_[[3]][['sigma']] | figs_[[3]][['wtw']]) + plot_annotation(tag_levels = "a")
 ggsave(file.path("../figures/cmb","mf3.eps"), figMF3 , width = 16, height = 8)
 
@@ -130,7 +129,7 @@ ggsave(file.path("..", "figures", "cmb", "modelRep_example.eps"), figRepExample,
 ##                       qualitative model comparison                       ##
 ##############################################################################
 # plot ovserved and model-generated AUC and sigma_WTW
-figs_ = vector("list", length = nExp )
+outs_ = vector("list", length = nExp )
 # sqerr_df_ = vector("list", length = nExp)
 for(i in 1 : nExp){
   setwd(file.path(pwd, wds[i])) # set the working directory
@@ -139,19 +138,74 @@ for(i in 1 : nExp){
   source("MFAnalysis.R")
   allData = loadAllData() # load all the data 
   MFResults = MFAnalysis(isTrct = T)
-  figs = vector("list", length = nModel) # initialize the output 
+  outs = vector("list", length = nModel) # initialize the output 
   for(j in 1 : nModel){
     model = models[j]
-    thisFig = expModelRep(model, allData, MFResults)
-    figs[[j]] = thisFig
+    output = expModelRep(model, allData, MFResults)
+    outs[[j]] = output
   }
-  figs_[[i]] = figs
+  outs_[[i]] = outs
 }
+
+# combine figures together 
+for(i in 1 : nExp){
+  outs = outs_[[i]]
+  figStats = (outs[[1]]$figStats | outs[[2]]$figStats | outs[[3]]$figStats | outs[[4]]$figStats | outs[[5]]$figStats | outs[[6]]$figStats)
+  setwd(pwd)
+  ggsave(file.path("..", "figures", "cmb", sprintf("modelRep_exp%d.eps", i)), figStats, width = 4 * 6, height = 3 * 4 )
+}
+
+# plot WTW
+for(i in 1 : nExp){
+  outs = outs_[[i]]
+  for(j in 1 : nModel){
+    # aasdads
+    model = models[j]
+    output = outs[[j]]
+    if(j == 1){
+      plotdf = output$rep_wtw_df
+      plotdf$type[plotdf$type == 'rep'] = model
+    }else{
+      added_data = output$rep_wtw_df[output$rep_wtw_df$type == 'rep',] 
+      added_data['type'] = model
+      plotdf = rbind(plotdf, added_data)
+    }
+  }
+  if(i == 1){
+    figWTW = plotdf %>%
+      filter(type %in% c("QL1", "QL2", "RL1", "RL2", "emp")) %>%
+      mutate(type = factor(type, levels = c("QL1", "QL2", "RL1", "RL2", "emp"))) %>%
+      ggplot(aes(time, mu, color = type)) +
+      geom_line() + myTheme +
+      scale_color_manual(values = c("#d6604d", "#b2182b", "#4393c3", "#2166ac", "black")) + 
+      facet_grid(~condition) + xlab("Task time (min)") + 
+      scale_x_continuous(breaks = 0 : 3 * 7 * 60, labels = 0 : 3 * 7) + 
+      ylab("WTW (s)") 
+  }else{
+    figWTW = plotdf %>%
+      filter(type %in% c("QL1", "QL2", "RL1", "RL2", "emp")) %>%
+      mutate(type = factor(type, levels = c("QL1", "QL2", "RL1", "RL2", "emp"))) %>%
+      ggplot(aes(time, mu, color = type)) +
+      geom_line() + myTheme +
+      scale_color_manual(values = c("#d6604d", "#b2182b", "#4393c3", "#2166ac", "black"))  + xlab("Task time (min)") + 
+      scale_x_continuous(breaks = 0 : 2 * 10 * 60, labels = 0 : 2 * 10) + 
+      ylab("WTW (s)") 
+  }
+}
+
+
+  
+
+plotdf %>% 
+  filter(type %in% c("QL1", "QL2", "RL2", "emp")) %>%
+  mutate(type = factor(type, levels = c("QL1", "QL2", "RL1", "RL2", "emp"))) %>%
+  ggplot(aes(time, mu, color = type)) +
+  geom_line() +
+  facet_grid(~condition)
 
 # assemble the figures 
 i = 2
 (figs_[[i]][[1]]$figWTW | figs_[[i]][[2]]$ | figs_[[i]][[3]] | figs_[[i]][[4]] | figs_[[i]][[5]] | figs_[[i]][[6]])
-
 figs_[[i]][[j]]$figWTW
 # assemble the figures 
 setwd(pwd)

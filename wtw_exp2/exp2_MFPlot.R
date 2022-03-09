@@ -71,15 +71,16 @@ MFPlot = function(){
   ################################################################
   ##              plot AUC in the two environments              ##
   ################################################################
-  figAUC = data.frame(muWTWHP = sumStats$auc[sumStats$condition == 'HP'],
-             muWTWLP = sumStats$auc[sumStats$condition == 'LP']) %>%
-    ggplot(aes(muWTWLP, muWTWHP)) +
+  figAUC = data.frame(aucHP = sumStats$auc[sumStats$condition == 'HP'],
+             aucLP = sumStats$auc[sumStats$condition == 'LP']) %>%
+    ggplot(aes(aucLP, aucHP)) +
     geom_point(size = 5, shape = 21, stroke =1) +
     geom_abline(slope = 1, intercept = 0) + 
     annotate("text", x = 8, y = 3, label = sprintf('p = %0.3f*', wTest$p.value), size = 6) +
-    xlab("LP AUC (s)") + ylab("HP AUC (s)") + 
+    xlab("LP") + ylab("HP") + 
+    ggtitle("AUC (s)") +
     myTheme + xlim(c(-1,17)) + ylim(c(-1,17)) +
-    theme(plot.title = element_text(face = "bold", hjust = 0.5, color = themeColor)) +
+    theme(plot.title = element_text(face = "bold", hjust = 0.5)) +
     scale_x_continuous(breaks = c(0, 4, 8, 12, 16), limits = c(0, 16))
   
   
@@ -100,8 +101,8 @@ MFPlot = function(){
     ggplot(aes(stdWTWLP, stdWTWHP)) +
     geom_point(size = 5, shape = 21, stroke =1) +
     geom_abline(slope = 1, intercept = 0)  +
-    xlab(expression(bold(paste("LP ", sigma["WTW"], " (s"^2,")")))) +
-    ylab(expression(bold(paste("HP ", sigma["WTW"], " (s"^2,")")))) + 
+    ggtitle(expression(bold(sigma["WTW"], " (s"^2,")")))+
+    xlab("LP") + ylab("HP") + 
     myTheme + xlim(c(-1,6)) + ylim(c(-1,6)) +
     annotate("text", x = 5, y = 1, label = sprintf('p = %0.3f*', wTest$p.value))
   
@@ -110,19 +111,21 @@ MFPlot = function(){
   ################################################################
   LP_end_vs_start = MFResults$sub_auc_[,2] - MFResults$sub_auc_[,1] 
   HP_end_vs_start = MFResults$sub_auc_[,4] - MFResults$sub_auc_[,3] 
-  # HP_vs_LP = MFResults$sumStats[sumStats$condition == "HP", "auc"] - MFResults$sumStats[sumStats$condition == "LP", "auc"] 
-  figDelta = 
-    data.frame(
-      deltaWTW = c(LP_end_vs_start, HP_end_vs_start),
-      condition = rep(c("LP", "HP"), each = nrow(sumStats) / nBlock)
-    ) %>% ggplot(aes(condition, deltaWTW)) +
-    geom_dotplot(binaxis='y', stackdir='center', aes(fill = condition))  + 
-    ylab(TeX('$AUC_{end} - AUC_{start}$')) +
-    xlab(" ") + 
-    scale_fill_manual(values = conditionColors) +
-    myTheme  + 
-    theme(plot.title = element_text(face = "bold", hjust = 0.5),
-          legend.position =  "none")
+
+  wTest = wilcox.test( LP_end_vs_start,
+                       HP_end_vs_start, paired = T)
+  figDelta = data.frame(
+    delta_HP =  HP_end_vs_start,
+    delta_LP = LP_end_vs_start 
+  ) %>% ggplot(aes(delta_LP, delta_HP)) + 
+    geom_point(size = 5, shape = 21, stroke =1) +
+    geom_abline(slope = 1, intercept = 0) + 
+    ggtitle(expression(bold(paste(AUC[end] - AUC[start], " (s)")))) + 
+    xlab("LP") +
+    ylab("HP") + 
+    annotate("text", x = 2, y = -4, label = sprintf('p = %0.3f*', wTest$p.value)) +
+    xlim(c(-8,5)) + ylim(c(-8,5)) + myTheme +
+    theme(plot.title = element_text(face = "bold", hjust = 0.5))
   
   # wilcox.test(deltaWTW[sumStats$condition == "HP"])
   # wilcox.test(deltaWTW[sumStats$condition == "LP"])
@@ -170,6 +173,7 @@ MFPlot = function(){
     "wtw" = figWTW,
     "auc" = figAUC,
     "sigma" = figSigma,
+    "delta" = figDelta,
     "curve" = figCurve
   )
   return(outputs)  

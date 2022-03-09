@@ -54,7 +54,7 @@ expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs =
     MFResults = MFAnalysis(isTrct = T)
   }
   sumStats = MFResults[['sumStats']]
-  muWTWEmp = sumStats$muWTW
+  aucEmp = sumStats$auc
   stdWTWEmp = sumStats$stdWTW
   timeWTW_ = matrix(NA, nrow = 60, ncol = length(tGrid))
   trialWTW_ = MFResults$trialWTW_
@@ -69,8 +69,8 @@ expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs =
   }
 
   ## 
-  plotData = data.frame(id = ids, mu =  repOutputs$muWTWRep_mu, std = repOutputs$stdWTWRep_mu,
-                        empMu = muWTWEmp, empStd = stdWTWEmp,
+  plotData = data.frame(id = ids, mu =  repOutputs$aucRep_mu, std = repOutputs$stdWTWRep_mu,
+                        empMu = aucEmp, empStd = stdWTWEmp,
                         passCheck = passCheck, 
                         condition = sumStats$condition) %>% filter(passCheck)
   
@@ -81,7 +81,7 @@ expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs =
     ss_ = apply(timeWTW_[sumStats$condition == condition & passCheck,], FUN = function(x) sum((x - mean(x))^2), MARGIN = 2)
     RL_r2_ = vector(length = length(tGrid))
     baseline_r2_ = vector(length = length(tGrid))
-    # auc = sumStats$muWTW[sumStats$condition == condition & passCheck]
+    # auc = sumStats$auc[sumStats$condition == condition & passCheck]
     baseline = apply(timeWTW_[sumStats$condition == condition & passCheck,], FUN = mean, MARGIN = 1)
     for(tIdx in 1 : length(tGrid)){
       y = timeWTW_[sumStats$condition == condition & passCheck, tIdx]
@@ -129,7 +129,7 @@ expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs =
     # ss_ = apply(timeWTW_[sumStats$condition == condition & passCheck,], FUN = function(x) sum((x - mean(x))^2), MARGIN = 2)
     RL_r2_ = vector(length = length(tGrid))
     baseline_r2_ = vector(length = length(tGrid))
-    # auc = sumStats$muWTW[sumStats$condition == condition & passCheck]
+    # auc = sumStats$auc[sumStats$condition == condition & passCheck]
     baseline = apply(timeWTW_[sumStats$condition == condition & passCheck,], FUN = mean, MARGIN = 1)
     rep_baseline = apply(repTimeWTW_[,sumStats$condition == condition & passCheck], FUN = mean, MARGIN = 2)
     for(tIdx in 1 : length(tGrid)){
@@ -208,7 +208,7 @@ expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs =
   
   # replicate these values 
   y = emp_local_wtw_[, 7] - emp_local_wtw_[, 2]
-  x = sumStats$muWTW
+  x = sumStats$auc
   # It has nothing to do with
   
   summary(lm(y[sumStats$condition == "LP"] ~ x[sumStats$condition == "LP"]))$r.squared
@@ -274,7 +274,7 @@ expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs =
   ggsave(file.path("../figures/cmb","exp1_rep_delta_AUC2.eps"),  width = 4, height = 4)  
   
   # plot r explained ratio
-  auc = sumStats$muWTW
+  auc = sumStats$auc
   r2_ = vector(length = 12)
   auc_r2 = vector(length = 12)
   auc_init_r2 =  vector(length = 12)
@@ -283,7 +283,7 @@ expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs =
     filter = sumStats$condition == "HP" & passCheck
     y = emp_local_wtw_diff_[filter, k]
     x =  rep_local_wtw_diff_[filter, k]
-    auc = sumStats$muWTW[filter]
+    auc = sumStats$auc[filter]
     init_wtw = timeWTW_[filter, 1]
     r2_[k] = summary(lm(y ~ x))$r.squared
     auc_r2[k] = summary(lm(y ~  auc))$r.squared
@@ -292,7 +292,7 @@ expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs =
     filter = sumStats$condition == "LP" & passCheck
     y = emp_local_wtw_diff_[filter, k]
     x =  rep_local_wtw_diff_[filter, k]
-    auc = sumStats$muWTW[filter]
+    auc = sumStats$auc[filter]
     init_wtw = timeWTW_[filter, 1]
     r2_[k + 6] = summary(lm(y ~ x))$r.squared
     auc_r2[k + 6] = summary(lm(y ~  auc))$r.squared

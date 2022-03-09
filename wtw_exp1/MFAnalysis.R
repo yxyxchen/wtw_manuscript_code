@@ -8,7 +8,7 @@
   # id : [nSubx1 id]
   # condition : [nSubx1 fac]
   # nExcl : [nSubx1 int] # total number of excluded trials 
-  # muWTW : [nSubx1 num] # average willingness to wait (WTW), measured by area under the Kaplan-Meier survival curve
+  # auc : [nSubx1 num] # average willingness to wait (WTW), measured by area under the Kaplan-Meier survival curve
   # stdWTW : [nSubx1 num] # standard deviation of WTW, measured in Kaplan-Meier survival analysis
   # totalEarnings :  [nSubx1 num] 
 # }
@@ -17,7 +17,7 @@
   # id : [nSubx3 id]
   # condition : [nSubx3 fac]
   # nExcl : [nSubx3  int] # total number of excluded trials 
-  # muWTW : [nSubx3  num] # average willingness to wait (WTW), measured by area under the Kaplan-Meier survival curve
+  # auc : [nSubx3  num] # average willingness to wait (WTW), measured by area under the Kaplan-Meier survival curve
   # stdWTW : [nSubx3 num] # standard deviation of WTW, measured in Kaplan-Meier survival analysis
   # totalEarnings :  [nSubx3 num] 
 # }
@@ -53,7 +53,7 @@ MFAnalysis = function(isTrct){
 
   # initialize output variables 
   nExcl = numeric(length = nSub)
-  muWTW = numeric(length = nSub) 
+  auc = numeric(length = nSub) 
   sub_auc_ = matrix(NA, nrow  = nSub, ncol = nBlock * 2)
   stdWTW = numeric(length = nSub) 
   totalEarnings =  numeric(length = nSub) 
@@ -93,7 +93,7 @@ MFAnalysis = function(isTrct){
 
     # survival analysis
     kmscResults = kmsc(thisTrialData, min(delayMaxs), F, kmGrid)
-    muWTW[sIdx] = kmscResults[['auc']]
+    auc[sIdx] = kmscResults[['auc']]
     survCurve_[[sIdx]] = kmscResults$kmOnGrid
     stdWTW[[sIdx]] = kmscResults$stdWTW
     
@@ -108,13 +108,13 @@ MFAnalysis = function(isTrct){
     condition = factor(hdrData$condition[hdrData$stress == "no_stress"], levels = c("HP", "LP")),
     nExcl = nExcl,
     totalEarnings = totalEarnings,
-    muWTW = muWTW,
+    auc = auc,
     stdWTW = stdWTW
   )
   
   # initialize outputs on the block level
   nExcl = numeric(length = nSub * 3)
-  muWTW = numeric(length = nSub * 3) 
+  auc = numeric(length = nSub * 3) 
   stdWTW = numeric(length = nSub * 3) 
   totalEarnings =  numeric(length = nSub * 3) 
   
@@ -143,7 +143,7 @@ MFAnalysis = function(isTrct){
       
       # survival analysis
       kmscResults = kmsc(thisTrialData, min(delayMaxs), F, kmGrid)
-      muWTW[noIdx] = kmscResults[['auc']]
+      auc[noIdx] = kmscResults[['auc']]
       stdWTW[[noIdx]] = kmscResults$stdWTW
       
       # update noIdx
@@ -156,7 +156,7 @@ MFAnalysis = function(isTrct){
     blockNum = rep(1:3, nSub),
     nExcl = nExcl,
     totalEarnings = totalEarnings,
-    muWTW = muWTW,
+    auc = auc,
     stdWTW = stdWTW
   )
   

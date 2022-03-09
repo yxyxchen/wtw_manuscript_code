@@ -54,267 +54,112 @@ expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs =
     MFResults = MFAnalysis(isTrct = T)
   }
   sumStats = MFResults[['sumStats']]
-  muWTWEmp = sumStats$muWTW
-  stdWTWEmp = sumStats$stdWTW
-  timeWTW_ = matrix(NA, nrow = 60, ncol = length(tGrid))
-  trialWTW_ = MFResults$trialWTW_
+  timeWTW_ = matrix(NA, nrow = nSub, ncol = length(tGrid))
   for(i in 1 : 60){
     timeWTW_[i,] = MFResults[['timeWTW_']][[i]]
   }
   
   ## replicate data
   if(is.null(repOutputs)){
-    repOutputs =  modelRep(modelName, trialData, ids, nRep, T)
-    save(repOutputs, file = sprintf("../../genData/wtw_exp1/expModelRep/%s_trct.RData", modelName))
+    
+    #repOutputs =  modelRep(modelName, trialData, ids, nRep, T)
+    #save(repOutputs, file = sprintf("../../genData/wtw_exp1/expModelRep/%s_trct.RData", modelName))
+    load(file = sprintf("../../genData/wtw_exp1/expModelRep/%s_trct.RData", modelName))
   }
 
-  ## 
-  plotData = data.frame(id = ids, mu =  repOutputs$muWTWRep_mu, std = repOutputs$stdWTWRep_mu,
-                        empMu = muWTWEmp, empStd = stdWTWEmp,
-                        passCheck = passCheck, 
-                        condition = sumStats$condition) %>% filter(passCheck)
+  #################################################################
+  ##      compare observed and replicated WTW time courses    ##
+  #################################################################
+  repTimeWTW_ = repOutputs$timeWTW_
+  timeWTW_ = MFResults$timeWTW_
+  plotdf = data.frame(
+    rep = as.vector(repTimeWTW_),
+    emp = unlist(timeWTW_),
+    time = rep(tGrid, nSub),
+    condition = rep(sumStats$condition, each = length(tGrid)),
+    passCheck = rep(passCheck, each = length(tGrid))
+  ) %>% filter(passCheck) %>%
+    gather(key = "type", value = "wtw", -c(condition, passCheck, time)) %>%
+    group_by(condition, time, type) %>% 
+    summarise(mu = median(wtw),
+              se = sd(wtw) / sqrt(length(wtw))) %>%
+    mutate(ymin = mu - se,
+           ymax = mu + se) %>% ungroup()
   
-
-  # adaptation levels 
-  deltaFig = data.frame(
-    emp  = emp_local_wtw_[, 7] - emp_local_wtw_[, 2],
-    condition = sumStats$condition,
-    rep = rep_local_wtw_[, 7] - rep_local_wtw_[, 2],
-    passCheck = passCheck
-  ) %>% filter(passCheck) %>% ggplot(aes(emp, rep, color = condition)) + 
-    geom_point(size = 4, aes(color = condition), stroke = 1, shape = 21) +
-    scale_color_manual(values = conditionColors) + myTheme +
-    xlab("Observed (s)") + ylab("Model-generated (s)") +
-    ggtitle(TeX('$AUC_{end} - AUC_{start}$')) + 
-    theme(plot.title = element_text(hjust = 0.5),
-          legend.position = "none") +
-    geom_abline(slope = 1, intercept = 0) +
-    scale_x_continuous(breaks = c(-16, -8, 0, 8), limits = c(-18, 9)) +
-    scale_y_continuous(breaks = c(-16, -8, 0, 8), limits = c(-18, 9))
- 
-  tmp = data.frame(
-    emp  = emp_local_wtw_[, 7] - emp_local_wtw_[, 2],
-    condition = sumStats$condition,
-    rep = rep_local_wtw_[, 7] - rep_local_wtw_[, 2],
-    passCheck = passCheck
-  ) 
-  
-  summary(lm(emp~rep, tmp[tmp$passCheck & tmp$condition == "HP",]))$r.squared
-  summary(lm(emp~rep, tmp[tmp$passCheck & tmp$condition == "LP",]))$r.squared
-  
-  # replicate these values 
-  y = emp_local_wtw_[, 7] - emp_local_wtw_[, 2]
-  x = sumStats$muWTW
-  # It has nothing to do with
-  
-  summary(lm(y[sumStats$condition == "LP"] ~ x[sumStats$condition == "LP"]))$r.squared
-  
-  # a more efficient way 
-  
-  
-  # the biggest individual differences were
-  tmp = data.frame(
-    auc_diff = as.vector(emp_local_wtw_diff_),
-    condition = rep(sumStats$condition, 6),
-    time = factor(rep(1:6, each = 60))
-  ) %>% group_by(condition, time) %>% summarize(ss = sum((auc_diff - mean(auc_diff))^2)) %>% 
-    ungroup() 
-  ggplot(tmp, aes(time, ss, fill = condition)) + facet_grid(~condition) + geom_bar(stat = "identity") + 
-    scale_fill_manual(values = conditionColors) + 
-    myTheme + xlab(TeX("$\\Delta AUC$ component")) +
-    ylab("Across-subject variance") +
-    theme(legend.position =  "none")
-  ggsave(file.path("../figures/cmb","exp1_total_vars.eps"), width = 4, height = 2.5)  
-
-  
-  data.frame(
-    auc_diff = as.vector(emp_local_wtw_diff_),
-    condition = rep(sumStats$condition, 6),
-    time = factor(rep(seq(1.75, 19.25, by = 3.5), each = 60))
-  ) %>% ggplot(aes(time, auc_diff, color =
-                     condition)) + geom_boxplot() +
-    scale_fill_manual(values = conditionColors) +
-    scale_color_manual(values = conditionColors) +
-    myTheme + xlab("Task Time") + ylab(TeX("$\\Delta AUC$")) + theme(legend.position = "none") 
-  
-  # ggsave(file.path("../figures/cmb","exp1_delta_AUC.eps"), fig1, width = 4, height = 4)
-  
-  # plot delta AUC 1
-  data.frame(
-    emp = emp_local_wtw_diff_[passCheck, 1],
-    rep = rep_local_wtw_diff_[passCheck, 1],
-    condition = sumStats$condition[passCheck]
-  ) %>% ggplot(aes(emp, rep, color = condition)) + 
-    geom_point(size = 4, aes(color = condition), stroke = 1, shape = 21) + 
-    geom_abline(slope = 1, intercept = 0) +
-    myTheme + scale_color_manual(values = conditionColors) +
-    theme(legend.position = "none",plot.title = element_text(hjust = 0.5)) + 
-    xlab("Observed (s)") + ylab("Model-generated (s)") +
-    ggtitle(TeX("First component of $\\Delta AUC$")) + 
-    coord_fixed() 
-  ggsave(file.path("../figures/cmb","exp1_rep_delta_AUC1.eps"),  width = 4, height = 4)
-  
-  data.frame(
-    emp = emp_local_wtw_diff_[passCheck, 2],
-    rep = rep_local_wtw_diff_[passCheck, 2],
-    condition = sumStats$condition[passCheck]
-  ) %>% ggplot(aes(emp, rep, color = condition)) + 
-    geom_point(size = 4, aes(color = condition), stroke = 1, shape = 21) + 
-    geom_abline(slope = 1, intercept = 0) +
-    myTheme + scale_color_manual(values = conditionColors) +
-    theme(legend.position = "none",plot.title = element_text(hjust = 0.5)) + 
-    xlab("Observed (s)") + ylab("Model-generated (s)") +
-    ggtitle(TeX("Second component of $\\Delta AUC$")) + theme(aspect.ratio=1) +
-    scale_x_continuous(limits = c(-10, 7)) +
-    scale_y_continuous(limits = c(-10, 7)) 
-  ggsave(file.path("../figures/cmb","exp1_rep_delta_AUC2.eps"),  width = 4, height = 4)  
-  
-  # plot r explained ratio
-  auc = sumStats$muWTW
-  r2_ = vector(length = 12)
-  auc_r2 = vector(length = 12)
-  auc_init_r2 =  vector(length = 12)
-  
-  for(k in 1 : 6){
-    filter = sumStats$condition == "HP" & passCheck
-    y = emp_local_wtw_diff_[filter, k]
-    x =  rep_local_wtw_diff_[filter, k]
-    auc = sumStats$muWTW[filter]
-    init_wtw = timeWTW_[filter, 1]
-    r2_[k] = summary(lm(y ~ x))$r.squared
-    auc_r2[k] = summary(lm(y ~  auc))$r.squared
-    auc_init_r2[k] = summary(lm(y ~  auc + init_wtw))$r.squared
-    
-    filter = sumStats$condition == "LP" & passCheck
-    y = emp_local_wtw_diff_[filter, k]
-    x =  rep_local_wtw_diff_[filter, k]
-    auc = sumStats$muWTW[filter]
-    init_wtw = timeWTW_[filter, 1]
-    r2_[k + 6] = summary(lm(y ~ x))$r.squared
-    auc_r2[k + 6] = summary(lm(y ~  auc))$r.squared
-    auc_init_r2[k + 6] = summary(lm(y ~  auc + init_wtw))$r.squared
-  }  
-
-  data.frame(
-    r2 = c(r2_, auc_r2, auc_init_r2),
-    model = rep(c("RL", "auc", "auc_init"), each = 12),
-    time = rep(c(1:6, 1:6), 3),
-    condition = rep(rep(c("HP", "LP"), each = 6),3)
-  ) %>%
-    ggplot(aes(time, r2 * 100, color = model)) +
-    facet_grid(~condition) + geom_line() + geom_point() + myTheme +
-    ylab("Variance explained (%)") + xlab(TeX("$\\Delta AUC$ components")) +
-    scale_color_manual(values = c("grey", "#737373",  "#0570b0"))  + 
-    scale_x_continuous(breaks = 1:6)
-  sggsave(file.path("../figures/cmb","exp1_variance_explained.eps"),  width = 4, height = 2.5) 
-  
-  
-  # I already missed the very first part I assume, so this is not the best way
-  data.frame(
-    auc = as.vector(emp_local_wtw_),
-    condition = rep(sumStats$condition, 7),
-    time = factor(rep(1:7, each = 60))
-  ) %>% ggplot(aes(time, auc, color = condition)) + 
-    geom_boxplot()
-  
-
-  # I don't know what I want to do
-  
-  ##########################
-  ##      calc RSME      ##
-  ##########################
-  summary(lm(plotData$empMu ~ plotData$mu))$r.squared # I can also calculate them separately ...
-  
-  mu_sqerr = (plotData$empMu - plotData$mu)^2
-  std_sqerr = (plotData$empStd - plotData$std)^2
-  sqerr_df = data.frame(
-    id = plotData$id,
-    mu_sqerr = mu_sqerr,
-    std_sqerr = std_sqerr)
+    # 
+    figWTW = ggplot(plotdf, aes(time, mu, color = type)) +
+    geom_ribbon(aes(ymin=ymin, ymax=ymax, fill = type), color = NA, alpha = 0.5)  + 
+    geom_line(aes(time, mu, color = type)) +
+      facet_grid(~condition) + myTheme +
+    scale_color_manual(values = c("black", "#b2182b"))+
+    scale_fill_manual(values = c("#969696", "#fa9fb5")) + 
+    theme(legend.position = "None") +
+    scale_x_continuous(breaks = 0:3 * 60 * 7, labels = 0:3 * 7) + 
+    xlab("Task time (min)") + ylab("WTW (s)")
   
   #################################################################
   ##      compare observed and replicated AUC and sigma_wtw      ##
   #################################################################
+  # plot to compare delta wtw 
+  delta_df = data.frame(
+    delta =  repOutputs$sub_auc_[,6] - repOutputs$sub_auc_[,1],
+    emp_delta = MFResults$sub_auc_[,6] - MFResults$sub_auc_[,1],
+    condition = sumStats$condition,
+    passCheck = passCheck
+  ) %>% filter(passCheck)
   
+  deltaFig = delta_df %>%
+    ggplot(aes(emp_delta, delta, color = condition)) + 
+    geom_point(size = 4, stroke = 1, shape = 21)  + 
+    geom_abline(slope = 1, intercept = 0) + 
+    ylab("Model-generated (s)") +
+    xlab("Observed (s)")  +
+    myTheme + theme(plot.title = element_text(face = "bold", hjust = 0.5)) +
+    coord_fixed() + xlim(c(-20, 8)) + 
+    ylim(c(-20, 8)) + scale_color_manual(values = conditionColors) +
+    theme(legend.position = "none")
+    
   # plot to compare average willingess to wait
+  plotData = data.frame(id = ids, mu =  repOutputs$auc, std = repOutputs$stdWTW,
+                        empMu = sumStats$auc, empStd = sumStats$stdWTW,
+                        passCheck = passCheck, 
+                        condition = sumStats$condition) %>% filter(passCheck)
+  
   aucFig = plotData %>%
   ggplot(aes(empMu, mu)) + 
   geom_point(size = 4, aes(color = condition), stroke = 1, shape = 21) + 
   geom_abline(slope = 1, intercept = 0)  + 
-  ylab("Model-generated AUC (s)") + xlab("Observed AUC (s)") +
+  ylab("Model-generated (s)") + xlab("Observed (s)") +
   myTheme + theme(plot.title = element_text(face = "bold", hjust = 0.5)) +
   scale_x_continuous(breaks = c(0, 20), limits = c(-1, 21)) + 
   scale_y_continuous(breaks = c(0, 20), limits = c(-1, 21)) +
   scale_color_manual(values = conditionColors) +
     theme(legend.position = "none") + 
-    ggtitle(sprintf("%s, N = %d", modelName, sum(passCheck)))
-  
+    ggtitle("AUC")
   summary(lm(empMu~mu, plotData[plotData$passCheck & plotData$condition == "HP",]))$r.squared
   summary(lm(empMu~mu, plotData[plotData$passCheck & plotData$condition == "LP",]))$r.squared
-  
-  aucFig = plotData %>%
-    ggplot(aes(empMu, mu)) +
-    geom_point(size = 4, aes(color = condition), stroke = 1, shape = 21) +
-    geom_abline(slope = 1, intercept = 0)  +
-    ylab("Model-generated(s)") + xlab("Observed(s)") +
-    myTheme + theme(plot.title = element_text(face = "bold", hjust = 0.5)) +
-    scale_x_continuous(breaks = c(0, 20), limits = c(-1, 21)) +
-    scale_y_continuous(breaks = c(0, 20), limits = c(-1, 21)) +
-    scale_color_manual(values = conditionColors) +
-    theme(legend.position = "none") +
-    ggtitle('AUC')
 
-  
-  
-  
-  ## plot to compare std willingess to wait
-  cipFig = plotData %>%
+  # plot to compare std willingess to wait
+  stdFig = plotData %>%
   ggplot(aes(empStd, std, shape = condition)) + 
   geom_point(size = 4, aes(color = condition), stroke = 1, shape = 21)  + 
   geom_abline(slope = 1, intercept = 0) +
-  ylab(expression(bold(paste("Model-generated ", sigma["WTW"], " (s"^2,")")))) +
-    xlab(expression(bold(paste("Observed ", sigma["WTW"], " (s"^2,")")))) +
+  ylab(expression(bold(paste("Model-generated", " (s"^2,")")))) +
+    xlab(expression(bold(paste("Observed", " (s"^2,")")))) +
   myTheme + theme(plot.title = element_text(face = "bold", hjust = 0.5)) + 
   scale_x_continuous(breaks = c(0, 10), limits = c(0, 10)) + 
   scale_y_continuous(breaks = c(0, 10), limits = c(0, 10)) +
     scale_color_manual(values = conditionColors) +
-    theme(legend.position = "none")
+    theme(legend.position = "none") +
+    ggtitle(expression(bold(sigma["WTW"])))
 
   # combind
-  rep = aucFig / cipFig +  plot_annotation(title = sprintf("%s, n = %d", modelName, sum(passCheck)),
-                                     theme = theme(plot.title = element_text(hjust = 0.5, size = 20)))
-  fileName = sprintf("../../figures/wtw_exp1/expModelRep/%s/rep.eps", modelName) 
-  
-  ##################################################################
-  ##                     example participant                      ##
-  ##################################################################
-  
-  # model generated 
-  # repTrialData = repOutputs$repTrialData
-  # repNo = repOutputs$repNo
-  # sIdx = 1
-  # thisRepTrialData = repTrialData[[repNo[1, sIdx]]]
-  # thisRepTrialData = data.frame(thisRepTrialData[1:6])
-  # modelFig = trialPlots(thisRepTrialData) +  
-  #   ggtitle("Model-generated") +
-  #   theme(plot.title = element_text(hjust = 0.5),
-  #         legend.position = "none")
-  # 
-  # # observed
-  # thisTrialData = trialData[[ids[sIdx]]]
-  # thisTrialData  = thisTrialData %>% filter(trialStartTime <=  blockSec - max(delayMaxs))
-  # thisTrialData = block2session(thisTrialData)
-  # empFig = trialPlots(thisTrialData) + ggtitle("Observed") +
-  #   theme(plot.title = element_text(hjust = 0.5),
-  #         legend.position = "none")
-  # example = modelFig / empFig +  plot_annotation(title = sprintf("%s", modelName),
-  #                                      theme = theme(plot.title = element_text(hjust = 0.5, size = 20)))
-  # ggsave(sprintf("../../figures/wtw_exp1/expModelRep/%s/example.eps", modelName), example, width = 6, height = 8)
-  # 
+  figStats = aucFig / deltaFig / stdFig +
+    plot_annotation(title = sprintf("%s, n = %d", modelName, sum(passCheck)), theme = theme(plot.title = element_text(hjust = 0.5, size = 20)))
   
   ################# return figure outputs ###############
   # outputs = list("rep" = rep, "example" = example)
-  outputs = list("rep" = rep, "example" = example, "sqerr_df" = sqerr_df)
+  outputs = list('figWTW' = figWTW, 'figStats' = figStats, "rep_wtw_df" = plotdf)
   return(outputs)
   
 }
