@@ -61,10 +61,9 @@ expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs =
   
   ## replicate data
   if(is.null(repOutputs)){
-    
-    #repOutputs =  modelRep(modelName, trialData, ids, nRep, T)
-    #save(repOutputs, file = sprintf("../../genData/wtw_exp1/expModelRep/%s_trct.RData", modelName))
-    load(file = sprintf("../../genData/wtw_exp1/expModelRep/%s_trct.RData", modelName))
+    repOutputs =  modelRep(modelName, trialData, ids, nRep, T)
+    save(repOutputs, file = sprintf("../../genData/wtw_exp1/expModelRep/%s_trct.RData", modelName))
+    #load(file = sprintf("../../genData/wtw_exp1/expModelRep/%s_trct.RData", modelName))
   }
 
   #################################################################
@@ -81,7 +80,7 @@ expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs =
   ) %>% filter(passCheck) %>%
     gather(key = "type", value = "wtw", -c(condition, passCheck, time)) %>%
     group_by(condition, time, type) %>% 
-    summarise(mu = median(wtw),
+    summarise(mu = mean(wtw),
               se = sd(wtw) / sqrt(length(wtw))) %>%
     mutate(ymin = mu - se,
            ymax = mu + se) %>% ungroup()
@@ -159,7 +158,16 @@ expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs =
   
   ################# return figure outputs ###############
   # outputs = list("rep" = rep, "example" = example)
-  outputs = list('figWTW' = figWTW, 'figStats' = figStats, "rep_wtw_df" = plotdf)
+  repTimeWTW_ = repOutputs$timeWTW_
+  timeWTW_ = MFResults$timeWTW_
+  plotdf = data.frame(
+    rep = as.vector(repTimeWTW_),
+    emp = unlist(timeWTW_),
+    time = rep(tGrid, nSub),
+    condition = rep(sumStats$condition, each = length(tGrid)),
+    passCheck = rep(passCheck, each = length(tGrid))
+  )
+  outputs = list('figWTW' = figWTW, 'figStats' = figStats)
   return(outputs)
   
 }

@@ -59,28 +59,50 @@ expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs =
     save(repOutputs, file = sprintf("../../genData/wtw_exp3/expModelRep/%s_trct.RData", modelName))
   }
 
-  plotData = data.frame(id = blockStats$id, mu =  repOutputs$aucRep_mu, std = repOutputs$stdWTWRep_mu,
-                        empMu = aucEmp, empStd = stdWTWEmp,
-                        passCheck = rep(passCheck, each = 2), 
-                        condition = blockStats$condition) %>% filter(passCheck)
+  ################ observed WTW vs model generated WTW ############
+  repTimeWTW_ = repOutputs$timeWTW_
+  timeWTW_ = MFResults$timeWTW_[blockStats$blockNum <= 2]
+  plotdf = data.frame(
+    rep = as.vector(repTimeWTW_),
+    emp = unlist(timeWTW_),
+    time = rep(seq(0, blockSec * nBlock -1, by = 1), nSub),
+    condition = rep(blockStats$condition[blockStats$blockNum <= 2], each = length(tGrid)),
+    passCheck = rep(passCheck, each = length(tGrid) * 2),
+    cbal = rep(ifelse(blockStats$cbal[blockStats$blockNum <= 2] == 1, "HP First", "LP First"), each = length(tGrid))
+  ) %>% filter(passCheck) %>%
+    gather(key = "type", value = "wtw", -c(condition, passCheck, time, cbal)) %>%
+    group_by(condition, time, type, cbal) %>% 
+    summarise(mu = mean(wtw),
+              se = sd(wtw) / sqrt(length(wtw))) %>%
+    mutate(ymin = mu - se,
+           ymax = mu + se) 
   
-  ##########################
-  ##      calc RSME      ##
-  ##########################
-  mu_sqerr = (plotData$empMu - plotData$mu)^2
-  std_sqerr = (plotData$empStd - plotData$std)^2
-  sqerr_df = data.frame(
-    id = plotData$id, 
-    condition = plotData$condition,
-    mu_sqerr = mu_sqerr,
-    std_sqerr = std_sqerr)
+  # plotdf$mu[plotdf$time %in% c((blockSec - max(delayMaxs)) : blockSec, (blockSec*2 - max(delayMaxs)) : (blockSec*2))] = NA
+  # plotdf$ymin[plotdf$time %in% c((blockSec - max(delayMaxs)) : blockSec, (blockSec*2 - max(delayMaxs)) : (blockSec*2))]  = NA
+  # plotdf$ymax[plotdf$time %in% c((blockSec - max(delayMaxs)) : blockSec, (blockSec*2 - max(delayMaxs)) : (blockSec*2))]  = NA
+  figWTW = ggplot(plotdf, aes(time, mu)) +
+    geom_ribbon(aes(ymin=ymin, ymax=ymax, fill = type), color = NA, alpha = 0.5)  + 
+    geom_line(aes(time, mu, color = type)) + facet_grid(~cbal) +
+    myTheme +
+    scale_color_manual(values = c("black", "#b2182b"))+
+    scale_fill_manual(values = c("#969696", "#fa9fb5")) + 
+    theme(legend.position = "None") +
+    scale_x_continuous(breaks = c(0, 300, 600, 900, 1200)) + 
+    xlab("Task time (s)") + ylab("WTW (s)") + ylim(c(0, 20))
+  
+  # plotData = data.frame(id = blockStats$id, auc =  repOutputs$auc, std = repOutputs$stdWTW,
+  #                       emp_auc = aucEmp, emp_std= stdWTWEmp,
+  #                       passCheck = rep(passCheck, each = 2), 
+  #                       condition = blockStats$condition,
+  #                       cbal = blockStats$cbal) %>% filter(passCheck)
+
   
   #################################################################
   ##      compare observed and replicated AUC and sigma_wtw      ##
   #################################################################
   ## plot to compare average willingess to wait
   aucFig = plotData %>%
-    ggplot(aes(empMu, mu)) + 
+    ggplot(aes(emp_auc, auc)) + 
     geom_point(size = 4, aes(color = condition), stroke = 1, shape = 21) + 
     geom_abline(slope = 1, intercept = 0)  + 
     ylab("Model-generated AUC (s)") + xlab("Observed AUC (s)") +
@@ -88,7 +110,8 @@ expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs =
     scale_x_continuous(breaks = c(0, 30), limits = c(-1, 31)) + 
     scale_y_continuous(breaks = c(0, 30), limits = c(-1, 31)) +
     scale_color_manual(values = conditionColors) +
-    theme(legend.position = "none") + ggtitle(sprintf("%s, N = %d", modelName, sum(passCheck)))
+    theme(legend.position = "none") + ggtitle(sprintf("%s, N = %d", modelName, sum(passCheck))) + 
+    facet_grid(~cbal)
   
   ## plot to compare std willingess to wait
   cipFig = plotData %>%

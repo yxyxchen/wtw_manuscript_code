@@ -157,22 +157,56 @@ for(i in 1 : nExp){
 
 # plot WTW
 for(i in 1 : nExp){
-  outs = outs_[[i]]
+  
+  # all passcheck
+  modelNames = c("QL1", "QL2", "RL1", "RL2", "naive", "omni")
+  nModel = length(modelNames)
+  passCheck_ = matrix(NA, nrow = nSub, ncol = nModel)
+  for(k in 1 : nModel){
+    modelName = modelNames[k]
+    paraNames = getParaNames(modelName)
+    expPara = loadExpPara(paraNames, sprintf("../../genData/wtw_exp1/expModelFit/%s", modelName))
+    passCheck_[,k] = checkFit(paraNames, expPara)
+  }
+  passCheck = apply(passCheck_, MARGIN = 1, all)
+  
+  # emp MF 
+  MFResults = MFAnalysis(isTrct = T)
+  plotdf = data.frame(
+    wtw = unlist(MFResults$timeWTW_),
+    time = rep(tGrid, nSub),
+    condition = rep(sumStats$condition, each = length(tGrid)),
+    passCheck = rep(passCheck, each = length(tGrid)),
+    type = "emp"
+  ) %>% filter(passCheck)  %>%
+    group_by(condition, time, type) %>% 
+    summarise(mu = mean(wtw),
+              se = sd(wtw) / sqrt(length(wtw))) %>%
+    mutate(ymin = mu - se,
+           ymax = mu + se) %>% ungroup()
+  # plotdf %>% ggplot(aes(time, mu)) + facet_grid(~condition) + geom_line()
+
   for(j in 1 : nModel){
     # aasdads
     model = models[j]
-    output = outs[[j]]
-    if(j == 1){
-      plotdf = output$rep_wtw_df
-      plotdf$type[plotdf$type == 'rep'] = model
-    }else{
-      added_data = output$rep_wtw_df[output$rep_wtw_df$type == 'rep',] 
-      added_data['type'] = model
-      plotdf = rbind(plotdf, added_data)
-    }
+    load(file = sprintf("../../genData/wtw_exp%d/expModelRep/%s_trct.RData", i, model))
+    added_data = data.frame(
+      wtw = as.vector(repOutputs$timeWTW_),
+      time = rep(tGrid, nSub),
+      condition = rep(sumStats$condition, each = length(tGrid)),
+      passCheck = rep(passCheck, each = length(tGrid)),
+      type = model
+    ) %>% filter(passCheck)  %>%
+      group_by(condition, time, type) %>% 
+      summarise(mu = mean(wtw),
+                se = sd(wtw) / sqrt(length(wtw))) %>%
+      mutate(ymin = mu - se,
+             ymax = mu + se) %>% ungroup()
+  
+    plotdf = rbind(plotdf, added_data)
   }
   if(i == 1){
-    figWTW = plotdf %>%
+     plotdf %>%
       filter(type %in% c("QL1", "QL2", "RL1", "RL2", "emp")) %>%
       mutate(type = factor(type, levels = c("QL1", "QL2", "RL1", "RL2", "emp"))) %>%
       ggplot(aes(time, mu, color = type)) +

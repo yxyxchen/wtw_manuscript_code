@@ -80,13 +80,33 @@ MFPlot = function(){
   ###################################################################
   figAUC = data.frame(aucHP = blockStats$auc[blockStats$condition == 'HP'],
                       aucLP = blockStats$auc[blockStats$condition == 'LP'],
-                      cbal = blockStats$cbal[blockStats$condition == "HP"],
-                      block = ifelse(blockStats$blockNum <= 2, "Block1-2", "Block3-4")) %>%
-    ggplot(aes(aucLP, aucHP)) + facet_grid(block~.) +
+                      cbal = ifelse(blockStats$cbal[blockStats$condition == "HP"] == 1, "HP First", "LP First"),
+                      block = ifelse(blockStats$blockNum[blockStats$condition == "HP"] <= 2, "Block1-2", "Block3-4")) %>% 
+    filter(block == "Block1-2") %>% 
+    ggplot(aes(aucLP, aucHP)) + facet_grid(cbal~.) +
     geom_point(size = 5, shape = 21, stroke =1) +
     geom_abline(slope = 1, intercept = 0) + 
     myTheme + xlim(c(-1,31)) + ylim(c(-1,31)) +
     ggtitle("AUC") + xlab("LP (s)") + ylab("HP (s)") 
+  
+  data.frame(aucHP = blockStats$auc[blockStats$condition == 'HP'],
+             aucLP = blockStats$auc[blockStats$condition == 'LP'],
+             cbal = ifelse(blockStats$cbal[blockStats$condition == "HP"] == 1, "HP First", "LP First"),
+             block = ifelse(blockStats$blockNum[blockStats$condition == "HP"] <= 2, "Block1-2", "Block3-4")) %>% 
+    filter(block == "Block1-2") %>% 
+    ggplot(aes(aucLP, aucHP)) + facet_grid(cbal~.) +
+    geom_point(size = 5, shape = 21, stroke =1) +
+    geom_abline(slope = 1, intercept = 0) + 
+    myTheme + xlim(c(-1,31)) + ylim(c(-1,31)) +
+    ggtitle("AUC") + xlab("LP (s)") + ylab("HP (s)")  
+  
+  blockStats %>% filter(blockNum <= 2) %>%
+    mutate(cbal = ifelse(cbal == 1, "HP First", "LP First")) %>%
+    ggplot(aes(condition, auc, fill = condition)) + geom_boxplot() + myTheme +
+    facet_grid(~cbal) + scale_fill_manual(values = conditionColors) +
+    theme(legend.position = "None") + 
+    xlab("") + ylab("AUC (s)")
+    
   ###################################################################
   ##              compare sigma_wtw in the two environments             ##
   ###################################################################
@@ -126,21 +146,15 @@ MFPlot = function(){
   ##              plot adaptation in the two environments             ##
   ###################################################################
   delta_df = data.frame(
-    delta =  as.vector(t(MFResults$sub_auc_[, c(8, 6, 4, 2)] - MFResults$sub_auc_[, c(7, 5, 3, 1)])),
+    delta =  as.vector(t(MFResults$sub_auc_[, c(2, 4, 6, 8)] - MFResults$sub_auc_[, c(1, 3, 5, 7)])),
     condition = blockStats$condition,
     block = blockStats$block,
-    id = blockStats$id
-  ) %>% spread(key = "condition", value = "delta") %>% 
-    ggplot(aes(LP, HP)) + facet_grid(~block) + geom_point()
+    id = blockStats$id,
+    cbal = blockStats$cbal,
+    blockNum = blockStats$blockNum
+  ) %>% ggplot(aes(condition, delta, fill = condition)) + geom_boxplot() + facet_grid(cbal~block) + 
+    myTheme + scale_fill_manual(values = conditionColors)
     
-  data.frame(
-    early_auc =  as.vector(t(MFResults$sub_auc_[,c(1, 3, 5, 7)])),
-    late_auc =  as.vector(t(MFResults$sub_auc_[,c(2, 4, 6, 8)])),
-    condition = blockStats$condition,
-    block = blockStats$block
-  ) %>% ggplot(aes(early_auc, late_auc)) + facet_grid(block ~ condition) +
-    geom_point()
-  
   ###################################################################
   ##              plot  survival curves            ##
   ###################################################################

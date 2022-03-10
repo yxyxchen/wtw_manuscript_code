@@ -53,8 +53,8 @@ expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs =
   
   ## AUCs and CIPs from simulated data 
   if(is.null(repOutputs)){
-    # repOutputs =  modelRep(trialData, ids, nRep, T, modelName)
-    # save(repOutputs, file = sprintf("../../genData/wtw_exp2/expModelRep/%s_trct.RData", modelName))
+    #repOutputs =  modelRep(trialData, ids, nRep, T, modelName)
+    #save(repOutputs, file = sprintf("../../genData/wtw_exp2/expModelRep/%s_trct.RData", modelName))
     load(file = sprintf("../../genData/wtw_exp2/expModelRep/%s_trct.RData", modelName))
   }
 
@@ -70,7 +70,7 @@ expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs =
   ) %>% filter(passCheck) %>%
     gather(key = "type", value = "wtw", -c(condition, passCheck, time)) %>%
     group_by(condition, time, type) %>% 
-    summarise(mu = median(wtw),
+    summarise(mu = mean(wtw),
               se = sd(wtw) / sqrt(length(wtw))) %>%
     mutate(ymin = mu - se,
           ymax = mu + se) 
@@ -150,7 +150,7 @@ expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs =
   # summary(lm(delta_df$delta[passCheck] ~ delta_df$emp_delta[passCheck]))$r.squared
   # summary(lm(delta_df$delta[passCheck] ~ delta_df$emp_delta[passCheck]))$r.squared
   
-  outputs = list('figWTW' = figWTW, 'figStats' = figStats, "rep_wtw_df" = plotdf)
+  outputs = list('figWTW' = figWTW, 'figStats' = figStats)
   return(outputs)
 
 }
