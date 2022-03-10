@@ -52,7 +52,7 @@ MFPlot = function(){
   figWTW = plotData %>% ggplot(aes(time, mu, color = condition)) + 
     geom_rect(data = greyData, aes(xmin = xmin, xmax = xmax), ymin = 0, ymax = 20,
               fill = "#d9d9d9", inherit.aes = F) +
-    geom_ribbon(aes(ymin=min, ymax=max, fill = condition, color = NA)) +
+    geom_ribbon(aes(ymin=min, ymax=max, fill = condition), color = NA) +
     geom_line(aes(color = condition), size = 1) +
     xlab("Task time (min)") + ylab("WTW (s)") + 
     myTheme + ylim(0, 20)  +
@@ -80,10 +80,11 @@ MFPlot = function(){
     geom_dotplot(binaxis='y', stackdir='center', aes(fill = condition)) + 
     stat_compare_means(comparisons = list(c("HP", "LP")),
                        aes(label = ..p.signif..), label.x = 1.5, symnum.args= symnum.args,
-                       bracket.size = 1, size = 6, label.y = 22) + ylab("AUC (s)") + 
-    myTheme  + 
+                       bracket.size = 1, size = 6, label.y = 22,
+                       method = "wilcox.test") + 
+    ylab("AUC (s)") + myTheme  + 
     theme(plot.title = element_text(face = "bold", hjust = 0.5, color = themeColor)) + 
-    scale_y_continuous(breaks = c(0, 12, 24), limits = c(0, 26)) +
+    scale_y_continuous(breaks = c(0, 10, 20), limits = c(0, 25)) +
     scale_fill_manual(values = conditionColors) +
     theme(legend.position = "none") + xlab("")
   
@@ -100,7 +101,8 @@ MFPlot = function(){
     geom_dotplot(binaxis='y', stackdir='center', aes(fill = condition))  + 
     stat_compare_means(comparisons = list(c("HP", "LP")),
                        aes(label = ..p.signif..), label.x = 1.5, symnum.args= symnum.args,
-                       bracket.size = 1, size = 6, label.y = 9) +
+                       bracket.size = 1, size = 6, label.y = 9,
+                       method = "wilcox.test") +
     ylab(expression(bold(paste(AUC[end] - AUC[start], " (s)")))) +
     xlab(" ") + 
     ylim(c(-10, 12)) +
@@ -129,7 +131,8 @@ MFPlot = function(){
     geom_dotplot(binaxis='y', stackdir='center', aes(fill = condition)) + 
     stat_compare_means(comparisons = list(c("HP", "LP")),
                        aes(label = ..p.signif..), label.x = 1.5, symnum.args= symnum.args,
-                       bracket.size = 1, size = 6, label.y = 10) + xlab("") +
+                       bracket.size = 1, size = 6, label.y = 10,
+                       method = "wilcox.test") + xlab("") +
     ylab(expression(bold(paste(sigma["WTW"], " (s"^2,")"))))+ 
     myTheme  + 
     theme(plot.title = element_text(face = "bold", hjust = 0.5, color = themeColor)) + 

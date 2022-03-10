@@ -68,9 +68,9 @@ MFAnalysis = function(isTrct){
       }
       
       # first half block
-      sub_kmsc_res = kmsc(thisTrialData[thisTrialData$sellTime < 300,], min(delayMaxs), F, kmGrid)
+      sub_kmsc_res = kmsc(thisTrialData[thisTrialData$sellTime < 5 * 60,], min(delayMaxs), F, kmGrid)
       sub_auc_[sIdx, bkIdx * 2 - 1] = sub_kmsc_res$auc
-      sub_kmsc_res = kmsc(thisTrialData[thisTrialData$sellTime >= 300,], min(delayMaxs), F, kmGrid)
+      sub_kmsc_res = kmsc(thisTrialData[thisTrialData$sellTime >= 5 * 60,], min(delayMaxs), F, kmGrid)
       sub_auc_[sIdx, bkIdx * 2]  = sub_kmsc_res$auc
 
       
