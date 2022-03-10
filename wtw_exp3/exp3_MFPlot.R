@@ -35,29 +35,33 @@ MFPlot = function(){
   )
   
   # plot
-  ## add NA values
-  newPlotData = data.frame(wtw = unlist(timeWTW_),
+  plotData = data.frame(wtw = unlist(timeWTW_),
                         time = rep(seq(0, blockSec * nBlock - 1, by = 1) / 60, nSub),
                         condition = rep(blockStats$condition, each = length(tGrid)),
                         blockIdx = rep(rep(1 : nBlock, length(tGrid)), nSub),
-                        cbal = rep(cbal, each = length(tGrid))) %>%
+                        cbal = rep(ifelse(blockStats$cbal == 1, "HP First", "LP First"), each = length(tGrid))) %>%
     group_by(time, cbal, condition) %>% 
     dplyr::summarise(mu = mean(wtw, na.rm = F), se = sd(wtw, na.rm = F) / sqrt(sum(!is.na(wtw))),
                      min = mu- se, max = mu + se) %>% ungroup()
-    figWTW = newPlotData %>%
-    mutate(block = ifelse(newPlotData$time < blockMin * 2, "Block1-2", "Block3-4")) %>%
-    ggplot(aes(time, mu, fill = condition, color = condition)) +
+  # insert NA values to use two colors to draw one line 
+  na_df = plotData
+  na_df$mu = NA
+  na_df$min = NA
+  na_df$max = NA
+  na_df$condition = ifelse(plotData$condition == "HP", "LP", "HP")
+  plotData= rbind(plotData, na_df)
+
+  plotData %>%
+    ggplot(aes(time, mu, color = condition, fill = condition)) +
       geom_rect(data = greyData, aes(xmin = xmin, xmax = xmax, ymin = 0, ymax = 20), inherit.aes = F, fill = "#d9d9d9") +
     geom_ribbon(aes(ymin=min, ymax=max), color = NA) +
     geom_line(size = 1) +
     xlab("Task time (min)") + ylab("WTW (s)") + 
-    myTheme +
-    facet_wrap(~block+cbal, scales = "free")  +
+    myTheme + facet_grid(cbal~.)  +
     scale_fill_manual(values = c("#7fbf7b", "#af8dc3")) + 
     scale_color_manual(values = conditionColors) +
     theme(legend.position =  "none")
 
-    
   
   ###################################################################
   ##              compare AUC in the two environments             ##
@@ -78,16 +82,20 @@ MFPlot = function(){
   ###################################################################
   ##              plot AUC in the two environments             ##
   ###################################################################
-  figAUC = data.frame(aucHP = blockStats$auc[blockStats$condition == 'HP'],
-                      aucLP = blockStats$auc[blockStats$condition == 'LP'],
-                      cbal = ifelse(blockStats$cbal[blockStats$condition == "HP"] == 1, "HP First", "LP First"),
-                      block = ifelse(blockStats$blockNum[blockStats$condition == "HP"] <= 2, "Block1-2", "Block3-4")) %>% 
-    filter(block == "Block1-2") %>% 
-    ggplot(aes(aucLP, aucHP)) + facet_grid(cbal~.) +
-    geom_point(size = 5, shape = 21, stroke =1) +
-    geom_abline(slope = 1, intercept = 0) + 
-    myTheme + xlim(c(-1,31)) + ylim(c(-1,31)) +
-    ggtitle("AUC") + xlab("LP (s)") + ylab("HP (s)") 
+    
+  ggdotplot(blockStats, x = "block", y = "auc", fill = "condition") + 
+    ggpubr::stat_compare_means(aes(group = condition)) 
+    
+  # figAUC = data.frame(aucHP = blockStats$auc[blockStats$condition == 'HP'],
+  #                     aucLP = blockStats$auc[blockStats$condition == 'LP'],
+  #                     cbal = ifelse(blockStats$cbal[blockStats$condition == "HP"] == 1, "HP First", "LP First"),
+  #                     block = ifelse(blockStats$blockNum[blockStats$condition == "HP"] <= 2, "Block1-2", "Block3-4")) %>% 
+  #   filter(block == "Block1-2") %>% 
+  #   ggplot(aes(aucLP, aucHP)) + facet_grid(cbal~.) +
+  #   geom_point(size = 5, shape = 21, stroke =1) +
+  #   geom_abline(slope = 1, intercept = 0) + 
+  #   myTheme + xlim(c(-1,31)) + ylim(c(-1,31)) +
+  #   ggtitle("AUC") + xlab("LP (s)") + ylab("HP (s)") 
   
   data.frame(aucHP = blockStats$auc[blockStats$condition == 'HP'],
              aucLP = blockStats$auc[blockStats$condition == 'LP'],
