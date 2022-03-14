@@ -125,7 +125,7 @@ MFPlot = function(){
                                method = "wilcox.test", paired = T,  label.y = 13) +
     scale_fill_manual(values = conditionColors) +
     ylab(expression(bold(paste(AUC[end]-AUC[start], " (s)")))) +
-    xlab("")  + ylim(c(0, 15)) +
+    xlab("")  + ylim(c(-15, 15)) +
     theme(legend.position = "None")
     
   ###################################################################
