@@ -36,7 +36,7 @@ MFPlot = function(){
   )
   
   plotData = data.frame(wtw = unlist(timeWTW_),
-             time = rep(seq(0, blockSec * nBlock -1, by = 1), nSub),
+             time = rep(seq(0, blockSec * nBlock -1, by = 2), nSub),
              condition = rep(rep(c("LP", "HP"), each = length(tGrid))), nSub) %>%
     group_by(condition, time) %>%
     dplyr::summarise(mu = mean(wtw, na.rm = F), se = sd(wtw, na.rm = F) / sqrt(sum(!is.na(wtw))),

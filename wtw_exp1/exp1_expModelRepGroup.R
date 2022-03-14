@@ -32,6 +32,7 @@ for(k in 1 : nModel){
   expPara = loadExpPara(paraNames, sprintf("../../genData/wtw_exp1/expModelFit/%s", modelName))
   passCheck_[,k] = checkFit(paraNames, expPara)
 }
+apply(passCheck_, MARGIN =  2, sum)
 passCheck = apply(passCheck_, MARGIN = 1, all)
 
 # emp MF 

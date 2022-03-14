@@ -10,7 +10,7 @@ source('MFAnalysis.R')
 # library("PerformanceAnalytics")
 
 # model Name
-modelName = "QL1"
+modelName = "RL2"
 paraNames = getParaNames(modelName)
 nPara = length(paraNames)
 
@@ -21,8 +21,11 @@ parentDir = "../../genData/wtw_exp1/expModelFit"
 dirName = sprintf("%s/%s",parentDir, modelName)
 expPara = loadExpPara(paraNames, dirName)
 passCheck = checkFit(paraNames, expPara)
+hist(expPara$tau[passCheck])
+max(expPara$tau)
+
 hist(expPara$eta[passCheck])
-max(expPara$eta)
+max(expPara$eta[passCheck])
 
 # plot hist
 plotData = expPara %>% filter(passCheck) %>% select(c(paraNames)) 

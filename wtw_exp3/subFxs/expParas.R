@@ -5,7 +5,7 @@ blockMin = 10 # block duration in mins
 blockSec = blockMin * 60 # block duration in secs
 tokenValue = c(-1, 8)
 # analyses parameters
-tGrid = seq(0, blockSec - 1, by = 1) # time grid for wtw time courses
+tGrid = seq(0, blockSec - 1, by = 2) # time grid for wtw time courses
 kmGrid = seq(0, min(delayMaxs), by = 0.1) # time grid for Kaplan-Meier survival curves
 save("conditions" = conditions,
      "nCondition" = nCondition,

@@ -64,7 +64,7 @@ expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs =
   plotdf = data.frame(
     rep = as.vector(repTimeWTW_),
     emp = unlist(timeWTW_),
-    time = rep(seq(0, blockSec * nBlock -1, by = 1), nSub),
+    time = rep(seq(0, blockSec * nBlock -1, by = 2), nSub),
     condition = rep(rep(c("LP", "HP"), each = length(tGrid))),
     passCheck = rep(passCheck, each = length(tGrid) * 2)
   ) %>% filter(passCheck) %>%

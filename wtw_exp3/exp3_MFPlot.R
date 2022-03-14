@@ -36,7 +36,7 @@ MFPlot = function(){
   
   # plot
   plotData = data.frame(wtw = unlist(timeWTW_),
-                        time = rep(seq(0, blockSec * nBlock - 1, by = 1) / 60, nSub),
+                        time = rep(seq(0, blockSec * nBlock - 1, by = 2) / 60, nSub),
                         condition = rep(blockStats$condition, each = length(tGrid)),
                         blockIdx = rep(rep(1 : nBlock, length(tGrid)), nSub),
                         cbal = rep(ifelse(blockStats$cbal == 1, "HP First", "LP First"), each = length(tGrid))) %>%
@@ -51,7 +51,7 @@ MFPlot = function(){
   na_df$condition = ifelse(plotData$condition == "HP", "LP", "HP")
   plotData= rbind(plotData, na_df)
 
-  plotData %>%
+  figWTW = plotData %>%
     ggplot(aes(time, mu, color = condition, fill = condition)) +
       geom_rect(data = greyData, aes(xmin = xmin, xmax = xmax, ymin = 0, ymax = 20), inherit.aes = F, fill = "#d9d9d9") +
     geom_ribbon(aes(ymin=min, ymax=max), color = NA) +
@@ -82,38 +82,12 @@ MFPlot = function(){
   ###################################################################
   ##              plot AUC in the two environments             ##
   ###################################################################
-    
-  ggdotplot(blockStats, x = "block", y = "auc", fill = "condition") + 
-    ggpubr::stat_compare_means(aes(group = condition)) 
-    
-  # figAUC = data.frame(aucHP = blockStats$auc[blockStats$condition == 'HP'],
-  #                     aucLP = blockStats$auc[blockStats$condition == 'LP'],
-  #                     cbal = ifelse(blockStats$cbal[blockStats$condition == "HP"] == 1, "HP First", "LP First"),
-  #                     block = ifelse(blockStats$blockNum[blockStats$condition == "HP"] <= 2, "Block1-2", "Block3-4")) %>% 
-  #   filter(block == "Block1-2") %>% 
-  #   ggplot(aes(aucLP, aucHP)) + facet_grid(cbal~.) +
-  #   geom_point(size = 5, shape = 21, stroke =1) +
-  #   geom_abline(slope = 1, intercept = 0) + 
-  #   myTheme + xlim(c(-1,31)) + ylim(c(-1,31)) +
-  #   ggtitle("AUC") + xlab("LP (s)") + ylab("HP (s)") 
-  
-  data.frame(aucHP = blockStats$auc[blockStats$condition == 'HP'],
-             aucLP = blockStats$auc[blockStats$condition == 'LP'],
-             cbal = ifelse(blockStats$cbal[blockStats$condition == "HP"] == 1, "HP First", "LP First"),
-             block = ifelse(blockStats$blockNum[blockStats$condition == "HP"] <= 2, "Block1-2", "Block3-4")) %>% 
-    filter(block == "Block1-2") %>% 
-    ggplot(aes(aucLP, aucHP)) + facet_grid(cbal~.) +
-    geom_point(size = 5, shape = 21, stroke =1) +
-    geom_abline(slope = 1, intercept = 0) + 
-    myTheme + xlim(c(-1,31)) + ylim(c(-1,31)) +
-    ggtitle("AUC") + xlab("LP (s)") + ylab("HP (s)")  
-  
-  blockStats %>% filter(blockNum <= 2) %>%
-    mutate(cbal = ifelse(cbal == 1, "HP First", "LP First")) %>%
-    ggplot(aes(condition, auc, fill = condition)) + geom_boxplot() + myTheme +
-    facet_grid(~cbal) + scale_fill_manual(values = conditionColors) +
-    theme(legend.position = "None") + 
-    xlab("") + ylab("AUC (s)")
+  figAUC = ggdotplot(blockStats, x = "block", y = "auc", fill = "condition") + 
+    ggpubr::stat_compare_means(aes(group = condition, label = ..p.signif..),
+                               method = "wilcox.test", paired = T) +
+    scale_fill_manual(values = conditionColors) + 
+    ylab("AUC (s)") + xlab("") + ylim(c(0, 32)) + 
+    theme(legend.position = "None")
     
   ###################################################################
   ##              compare sigma_wtw in the two environments             ##
@@ -127,41 +101,32 @@ MFPlot = function(){
   ###################################################################
   ##              plot sigma_wtw in the two environments             ##
   ###################################################################
-  data.frame(stdWTWHP = blockStats$stdWTW[blockStats$condition == 'HP'],
-             stdWTWLP = blockStats$stdWTW[blockStats$condition == 'LP'],
-             cbal = blockStats$cbal[blockStats$condition == "HP"],
-             block = ifelse(blockStats$blockNum <= 2, "Block1-2", "Block3-4")) %>%
-    ggplot(aes(stdWTWLP, stdWTWHP)) + 
-    geom_point(size = 5, shape = 21, stroke =1) +
-    geom_abline(slope = 1, intercept = 0)  + facet_grid(.~block) + 
-    xlab(expression(bold(paste("LP ", sigma["WTW"], " (s"^2,")")))) +
-    ylab(expression(bold(paste("HP ", sigma["WTW"], " (s"^2,")")))) + 
-    myTheme + xlim(c(-1,16)) + ylim(c(-1,16)) 
-  
-  figSigma = data.frame(stdWTWHP = blockStats$stdWTW[blockStats$condition == 'HP'],
-                        stdWTWLP = blockStats$stdWTW[blockStats$condition == 'LP'],
-                        cbal = ifelse(blockStats$cbal[blockStats$condition == "HP"] == 1, "HP First", "LP First"),
-                        block = ifelse(blockStats$blockNum <= 2, "Block1-2", "Block3-4")) %>%
-    filter(block == "Block1-2") %>%
-    ggplot(aes(stdWTWLP, stdWTWHP)) + facet_grid(cbal~.) + 
-    geom_point(size = 5, shape = 21, stroke =1) +
-    geom_abline(slope = 1, intercept = 0) +
-    myTheme + xlim(c(-1,16)) + ylim(c(-1,16)) + 
-    ggtitle(expression(bold(sigma["WTW"]))) + xlab("LP (s)") + ylab("HP (s)") 
-    
+  figSigma = ggdotplot(blockStats, x = "block", y = "stdWTW", fill = "condition") + 
+    ggpubr::stat_compare_means(aes(group = condition, label = ..p.signif..),
+                               method = "wilcox.test", paired = T, size = 6) +
+    scale_fill_manual(values = conditionColors) + 
+    ylab(expression(bold(paste(sigma["WTW"], " (s"^2, ")")))) +
+    xlab("") + ylim(c(0, 18)) + 
+    theme(legend.position = "None")
 
   ###################################################################
   ##              plot adaptation in the two environments             ##
   ###################################################################
-  delta_df = data.frame(
+  # plot sub_auc first I guess
+  figDelta = data.frame(
     delta =  as.vector(t(MFResults$sub_auc_[, c(2, 4, 6, 8)] - MFResults$sub_auc_[, c(1, 3, 5, 7)])),
     condition = blockStats$condition,
     block = blockStats$block,
     id = blockStats$id,
     cbal = blockStats$cbal,
     blockNum = blockStats$blockNum
-  ) %>% ggplot(aes(condition, delta, fill = condition)) + geom_boxplot() + facet_grid(cbal~block) + 
-    myTheme + scale_fill_manual(values = conditionColors)
+  ) %>% ggdotplot(x = "block", y = "delta", fill = "condition") + 
+    ggpubr::stat_compare_means(aes(group = condition, label = ..p.signif..),
+                               method = "wilcox.test", paired = T) +
+    scale_fill_manual(values = conditionColors) +
+    ylab(expression(bold(paste(AUC[end]-AUC[start], " (s)")))) +
+    xlab("")  + 
+    theme(legend.position = "None")
     
   ###################################################################
   ##              plot  survival curves            ##
@@ -187,10 +152,29 @@ MFPlot = function(){
   #optim = rbind(optim, optim)
   #optim$block = rep(c("Block1-2", "Block3-4"), each = nrow(optim) / 2)
 
-  # figCurve = plotData %>% group_by(condition, time, block) %>%
+  figCurve = plotData %>% group_by(condition, time, block) %>%
+    dplyr::summarise(mu = mean(survCurve, na.rm = F), se = sd(survCurve, na.rm = F) / sqrt(sum(!is.na(survCurve))),
+                     min = mu- se, max = mu + se) %>%
+    ggplot(aes(time, mu, color = condition, fill = condition)) + facet_grid(.~block) +
+    geom_ribbon(aes(time, ymin = min, ymax = max), color = NA)  +
+    geom_line() +
+    geom_line(data = optim, aes(t, surv, color = condition, linetype = condition, alpha = condition), size = 1.2) +
+    geom_line(data = data.frame(t = kmGrid[kmGrid > 2],surv = 1),
+              aes(t, surv), color = conditionColors[1], size = 1.2, inherit.aes = F, alpha = 0.8) +
+    scale_fill_manual(values = c("#7fbf7b", "#af8dc3")) +
+    scale_color_manual(values = conditionColors) +
+    scale_linetype_manual(values = c("solid", "dotted")) +
+    scale_alpha_manual(values = c(0.8, 1))+
+    xlab("Elapsed time (s)") + ylab("Survival rate") + myTheme +
+    theme(legend.position = "none")
+  
+  # figCurve = plotData %>% filter(block == "Block1-2") %>% 
+  #   mutate(cbal = ifelse(cbal == 1, "HPLP", "LPHP")) %>%
+  #   group_by(condition, time, cbal) %>%
   #   dplyr::summarise(mu = mean(survCurve, na.rm = F), se = sd(survCurve, na.rm = F) / sqrt(sum(!is.na(survCurve))),
   #                    min = mu- se, max = mu + se) %>%
-  #   ggplot(aes(time, mu, color = condition, fill = condition)) + facet_grid(block~.) + 
+  #   ggplot(aes(time, mu, color = condition, fill = condition)) + 
+  #   facet_grid(cbal~.) + 
   #   geom_ribbon(aes(time, ymin = min, ymax = max), color = NA)  +
   #   geom_line() +
   #   geom_line(data = optim, aes(t, surv, color = condition, linetype = condition, alpha = condition), size = 1.2) +
@@ -202,30 +186,12 @@ MFPlot = function(){
   #   scale_alpha_manual(values = c(0.8, 1))+
   #   xlab("Elapsed time (s)") + ylab("Survival rate") + myTheme +
   #   theme(legend.position = "none")
-  
-  figCurve = plotData %>% filter(block == "Block1-2") %>% 
-    mutate(cbal = ifelse(cbal == 1, "HPLP", "LPHP")) %>%
-    group_by(condition, time, cbal) %>%
-    dplyr::summarise(mu = mean(survCurve, na.rm = F), se = sd(survCurve, na.rm = F) / sqrt(sum(!is.na(survCurve))),
-                     min = mu- se, max = mu + se) %>%
-    ggplot(aes(time, mu, color = condition, fill = condition)) + 
-    facet_grid(cbal~.) + 
-    geom_ribbon(aes(time, ymin = min, ymax = max), color = NA)  +
-    geom_line() +
-    geom_line(data = optim, aes(t, surv, color = condition, linetype = condition, alpha = condition), size = 1.2) +
-    geom_line(data = data.frame(t = kmGrid[kmGrid > 2],surv = 1),
-              aes(t, surv), color = conditionColors[1], size = 1.2, inherit.aes = F, alpha = 0.8) + 
-    scale_fill_manual(values = c("#7fbf7b", "#af8dc3")) +
-    scale_color_manual(values = conditionColors) +
-    scale_linetype_manual(values = c("solid", "dotted")) +
-    scale_alpha_manual(values = c(0.8, 1))+
-    xlab("Elapsed time (s)") + ylab("Survival rate") + myTheme +
-    theme(legend.position = "none")
     
   ############# return the output ###############
     outputs = list(
       "wtw" = figWTW,
       "auc" = figAUC,
+      "delta" = figDelta,
       "sigma" = figSigma,
       "curve" = figCurve
     )
