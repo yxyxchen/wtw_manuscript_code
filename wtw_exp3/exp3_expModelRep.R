@@ -1,6 +1,8 @@
 # replicate behavioral data by sumulating with individual fitted parameters
 expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs = NULL){
   set.seed(123)
+  
+  
   # create output directories
   # dir.create("../../figures/wtw_exp3")
   # dir.create("../../figures/wtw_exp3/expModelRep/")
@@ -68,7 +70,7 @@ expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs =
     condition = rep(blockStats$condition, each = length(tGrid)),
     passCheck = rep(passCheck, each = length(tGrid) * 2),
     cbal = rep(ifelse(blockStats$cbal == 1, "HP First", "LP First"), each = length(tGrid))
-  )  %>% filter(passCheck) %>%
+  ) %>% filter(passCheck) %>%
     gather(key = "type", value = "wtw", -c(condition, passCheck, time, cbal)) %>%
     group_by(condition, time, type, cbal) %>% 
     summarise(mu = mean(wtw),
@@ -82,7 +84,7 @@ expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs =
     condition = c("HP", "LP", "LP", "HP"),
     cbal = c("HP First", "HP First", "LP First", "LP First")
   )
-  ggplot(plotdf, aes(time, mu)) +
+  figWTW = ggplot(plotdf, aes(time, mu)) +
     geom_rect(aes(xmin = xmin, xmax = xmax, fill = condition),
               data = rectData, ymin = 0, ymax = 20, alpha = 0.75, inherit.aes = F) + 
     facet_grid(~cbal) + 

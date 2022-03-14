@@ -9,7 +9,7 @@ library(grid)
 library(ggplot2)
 library("patchwork")
 library(lattice)
-source("exp2_expSchematics.R")
+source("exp3_expSchematics.R")
 source("subFxs/plotThemes.R")
 source("subFxs/helpFxs.R") 
 source("subFxs/loadFxs.R") # 
@@ -29,22 +29,24 @@ passCheck_ = matrix(NA, nrow = nSub, ncol = nModel)
 for(k in 1 : nModel){
   modelName = modelNames[k]
   paraNames = getParaNames(modelName)
-  expPara = loadExpPara(paraNames, sprintf("../../genData/wtw_exp2/expModelFit/%s", modelName))
+  expPara = loadExpPara(paraNames, sprintf("../../genData/wtw_exp3/expModelFit/%s", modelName))
   passCheck_[,k] = checkFit(paraNames, expPara)
 }
-passCheck = apply(passCheck_, MARGIN = 1, all)
 apply(passCheck_, MARGIN = 2, sum)
+passCheck = apply(passCheck_, MARGIN = 1, all)
 
-# emp MF 
+# empirical data
 MFResults = MFAnalysis(isTrct = T)
+blockStats = MFResults$blockStats
 plotdf = data.frame(
-  wtw = unlist(MFResults$timeWTW_),
-  time = rep(seq(0, blockSec * nBlock -1, by = 1), nSub),
-  condition = rep(rep(c("LP", "HP"), each = length(tGrid))),
+  wtw = unlist(MFResults$timeWTW_[blockStats$blockNum <= 2]),
+  time = rep(seq(0, blockSec * 2 -1, by = 2), nSub),
+  condition = rep(blockStats$condition[blockStats$blockNum <= 2], each = length(tGrid)),
+  cbal = rep(blockStats$cbal[blockStats$blockNum <= 2], each = length(tGrid)),
   passCheck = rep(passCheck, each = length(tGrid) * 2),
   type = "emp"
 ) %>% filter(passCheck)  %>%
-  group_by(condition, time, type) %>% 
+  group_by(cbal, time, type) %>% 
   summarise(mu = mean(wtw),
             se = sd(wtw) / sqrt(length(wtw))) %>%
   mutate(ymin = mu - se,
@@ -52,17 +54,17 @@ plotdf = data.frame(
 # plotdf %>% ggplot(aes(time, mu)) + facet_grid(~condition) + geom_line()
 
 for(j in 1 : nModel){
-  # aasdads
-  model = models[j]
-  load(file = sprintf("../../genData/wtw_exp2/expModelRep/%s_trct.RData",  model))
+  model = modelNames[j]
+  load(file = sprintf("../../genData/wtw_exp3/expModelRep/%s_trct.RData",  model))
   added_data = data.frame(
     wtw = as.vector(repOutputs$timeWTW_),
-    time = rep(seq(0, blockSec * nBlock -1, by = 1), nSub),
-    condition = rep(rep(c("LP", "HP"), each = length(tGrid))),
+    time = rep(seq(0, blockSec * 2 -1, by = 2), nSub),
+    condition = rep(blockStats$condition[blockStats$blockNum <= 2], each = length(tGrid)),
+    cbal = rep(blockStats$cbal[blockStats$blockNum <= 2], each = length(tGrid)),
     passCheck = rep(passCheck, each = length(tGrid) * 2),
     type = model
   ) %>% filter(passCheck)  %>%
-    group_by(condition, time, type) %>% 
+    group_by(cbal, time, type) %>% 
     summarise(mu = mean(wtw),
               se = sd(wtw) / sqrt(length(wtw))) %>%
     mutate(ymin = mu - se,
@@ -78,7 +80,7 @@ plotdf %>%
   geom_line() + myTheme +
   scale_color_manual(values = c("#d6604d", "#b2182b", "#4393c3", "#2166ac", "black"))  + xlab("Task time (min)") + 
   scale_x_continuous(breaks = 0 : 2 * 10 * 60, labels = 0 : 2 * 10) + 
-  ylab("WTW (s)") 
+  ylab("WTW (s)") + facet_grid(.~cbal)
 
 
 plotdf %>%

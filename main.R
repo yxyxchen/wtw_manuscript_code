@@ -45,7 +45,7 @@ ggsave(file.path("../figures/cmb", "exp.eps"), expCmb, width = 9, height = 9)
 ##                     model free analysis                     ##
 #################################################################
 figs_ = vector("list", length = nExp )
-for(i in 3 : 3){
+for(i in 1 : 3){
   figs = vector("list", length = nExp) # initialize the output 
   setwd(file.path(pwd, wds[i]))
   source(sprintf("exp%d_MFPlot.R", i))
@@ -57,10 +57,10 @@ setwd(pwd)
 figMF12 = ( figs_[[1]][['wtw']] | figs_[[1]][['curve']] | figs_[[1]][['auc']] | figs_[[1]][['delta']] | figs_[[1]][['sigma']]) / ( figs_[[2]][['wtw']] | figs_[[2]][['curve']] | figs_[[2]][['auc']] | figs_[[2]][['delta']] | figs_[[2]][['sigma']]) + plot_annotation(tag_levels = "a")
 ggsave(file.path("../figures/cmb","mf12.eps"), figMF12 , width = 20, height = 8)
 figMF3_upper = ( figs_[[3]][['wtw']] | figs_[[3]][['curve']] ) + plot_annotation(tag_levels = "a")
-ggsave(file.path("../figures/cmb","mf3_upper.eps"), figMF3_upper , width = 12, height = 4)
+ggsave(file.path("../figures/cmb","mf3.eps"), figMF3_upper , width = 12, height = 4)
 
 figMF3_lower = ( figs_[[3]][['auc']] | figs_[[3]][['delta']] | figs_[[3]][['sigma']] ) + plot_annotation(tag_levels = "a")
-ggsave(file.path("../figures/cmb","mf3_lower.eps"), figMF3_lower , width = 20, height = 4)
+ggsave(file.path("../figures/cmb","mf3_lower.eps"), figMF3_lower , width = 12, height = 4)
 
 ##################################################################
 ##                 Performance check simulation                 ##
@@ -134,7 +134,7 @@ ggsave(file.path("..", "figures", "cmb", "modelRep_example.eps"), figRepExample,
 # plot ovserved and model-generated AUC and sigma_WTW
 outs_ = vector("list", length = nExp )
 # sqerr_df_ = vector("list", length = nExp)
-for(i in 1 : nExp){
+for(i in 2 : nExp){
   setwd(file.path(pwd, wds[i])) # set the working directory
   source(sprintf("exp%d_expModelRep.R", i)) 
   source("subFxs/loadFxs.R")
@@ -151,7 +151,7 @@ for(i in 1 : nExp){
 }
 
 # combine figures together 
-for(i in 1 : nExp){
+for(i in 2 : nExp){
   outs = outs_[[i]]
   figStats = (outs[[1]]$figStats | outs[[2]]$figStats | outs[[3]]$figStats | outs[[4]]$figStats | outs[[5]]$figStats | outs[[6]]$figStats)
   setwd(pwd)

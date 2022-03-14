@@ -84,7 +84,7 @@ MFPlot = function(){
   ###################################################################
   figAUC = ggdotplot(blockStats, x = "block", y = "auc", fill = "condition") + 
     ggpubr::stat_compare_means(aes(group = condition, label = ..p.signif..),
-                               method = "wilcox.test", paired = T) +
+                               method = "wilcox.test", paired = T, label.y = 31) +
     scale_fill_manual(values = conditionColors) + 
     ylab("AUC (s)") + xlab("") + ylim(c(0, 32)) + 
     theme(legend.position = "None")
@@ -103,7 +103,7 @@ MFPlot = function(){
   ###################################################################
   figSigma = ggdotplot(blockStats, x = "block", y = "stdWTW", fill = "condition") + 
     ggpubr::stat_compare_means(aes(group = condition, label = ..p.signif..),
-                               method = "wilcox.test", paired = T, size = 6) +
+                               method = "wilcox.test", paired = T, size = 6, label.y = 16) +
     scale_fill_manual(values = conditionColors) + 
     ylab(expression(bold(paste(sigma["WTW"], " (s"^2, ")")))) +
     xlab("") + ylim(c(0, 18)) + 
@@ -122,10 +122,10 @@ MFPlot = function(){
     blockNum = blockStats$blockNum
   ) %>% ggdotplot(x = "block", y = "delta", fill = "condition") + 
     ggpubr::stat_compare_means(aes(group = condition, label = ..p.signif..),
-                               method = "wilcox.test", paired = T) +
+                               method = "wilcox.test", paired = T,  label.y = 13) +
     scale_fill_manual(values = conditionColors) +
     ylab(expression(bold(paste(AUC[end]-AUC[start], " (s)")))) +
-    xlab("")  + 
+    xlab("")  + ylim(c(0, 15)) +
     theme(legend.position = "None")
     
   ###################################################################
