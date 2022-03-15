@@ -184,7 +184,7 @@ truncateTrials = function(data, startTidx, endTidx){
 
 ############# help functions to plot the correlation figure 
 my.reg <- function(x, y, digits = 2, prefix = "", use="pairwise.complete.obs", method = "kendall", cex.cor, nCmp = 1, ...) {
-  points(x,y, pch=20, col = "grey")
+  points(x,y, pch=20, col = "#4d4d4d")
   abline(lm(y~x), col = "black") 
   
   # position to put the correlation coefficient 
@@ -209,9 +209,9 @@ my.reg <- function(x, y, digits = 2, prefix = "", use="pairwise.complete.obs", m
   if(Signif == "***"){
     sigX = usr[1] + 0.85 * (usr[2] - usr[1])
   }else if(Signif == "**"){
-    sigX = usr[1] + 0.80 * (usr[2] - usr[1])
+    sigX = usr[1] + 0.83 * (usr[2] - usr[1])
   }else{
-    sigX = usr[1] + 0.75 * (usr[2] - usr[1])
+    sigX = usr[1] + 0.80 * (usr[2] - usr[1])
   }
   if(corrRes$estimate > 0){
     sigX = sigX - 0.025 * (usr[2] - usr[1])
@@ -219,9 +219,10 @@ my.reg <- function(x, y, digits = 2, prefix = "", use="pairwise.complete.obs", m
   sigY = usr[3] + 0.75 * (usr[4] - usr[3])
   # MG: add abs here and also include a 30% buffer for small numbers
   # text(0.5, 0.5, txt, cex = cex * (abs(r) + .3) / 1.3)
-  text(rX, rY, txt, cex = 1)
+  text(rX, rY, txt, cex = 1, col = "#08519c")
   text(sigX, sigY, Signif, cex = 1.5, col=2)
 }
+
 my.panel.cor <- function(x, y, digits=2,  prefix="", use="pairwise.complete.obs", method = "Kendall", cex.cor, ...)
 {
   usr <- par("usr"); on.exit(par(usr))

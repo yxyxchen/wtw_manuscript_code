@@ -62,6 +62,13 @@ ggsave(file.path("../figures/cmb","mf3.eps"), figMF3_upper , width = 12, height 
 figMF3_lower = ( figs_[[3]][['auc']] | figs_[[3]][['delta']] | figs_[[3]][['sigma']] ) + plot_annotation(tag_levels = "a")
 ggsave(file.path("../figures/cmb","mf3_lower.eps"), figMF3_lower , width = 12, height = 4)
 
+######
+source("wtw_exp1/exp1_taskTraitCorr.R")
+setwd("wtw_exp1")
+figs = taskTraitCorr()
+figTaskTrait = figs[['figTraitAUC']] / figs[['figTraitDelta']] / figs[['figTraitSigma']] + plot_annotation(tag_levels = "a")
+setwd(pwd)
+ggsave(file.path("../figures/cmb","exp1_task_trait.pdf"), figTaskTrait, width = 12, height = 15)
 ##################################################################
 ##                 Performance check simulation                 ##
 ##################################################################

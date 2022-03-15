@@ -17,7 +17,7 @@ expParaAnalysis = function(){
   hdrData = allData$hdrData        
   trialData = allData$trialData       
   condition = hdrData$condition[hdrData$stress == "no_stress"]
-  MFResults = MFAnalysis(isTrct = F)
+  MFResults = MFAnalysis(isTrct = T)
   sumStats = MFResults[['sumStats']]
   
   # model Name
@@ -120,74 +120,7 @@ expParaAnalysis = function(){
   pdf("../../figures/cmb/LP_trait_corr.pdf", width = 13.5, height = 13.5) 
   pairs(expPara[expPara$condition == "LP", c(paraNames, traits)], gap=0, lower.panel = my.reg, upper.panel = my.panel.cor, main= "Exp.1 LP", nCmp = length(traits)) 
   dev.off()
-  
-  
-  ##################################################################
-  ##                     AUC  and self-report                     ##
-  ##################################################################
-  sumStats$BDI = personality$BDI
-  sumStats$IUS = personality$IUS
-  sumStats$DoG = personality$DoG
-  sumStats$BIS.11 = personality$BIS.11
-  sumStats$STAI_T = personality$STAI_T
-  sumStats$PSS = personality$PSS
-  
-  plotData= sumStats[,c("condition", traits , "auc", "stdWTW")]
-  plotData = gather(plotData, key = "trait", value = "value", -"condition", -"auc", -"stdWTW")
-  plotData$value = as.numeric(plotData$value)
-  
-  # compose the correlation equations
-  lm_eqn = function(auc, value){
-    corrTest = cor.test(auc, value)
-    eq = substitute(italic(r)~"="~corrCoef~","~italic(p)~"="~pvalue, 
-                    list(corrCoef = format(as.numeric(corrTest$estimate), digits = 2),
-                         pvalue = format(corrTest$p.value, digits = 3)))
-    return(as.character(as.expression(eq)))  
-  }
-  
-  # plot the first layer
-  p = plotData %>% ggplot(aes(value, auc, color = condition)) +
-    facet_grid(condition ~ trait, scales = "free") + geom_point(alpha = 0.8) +
-    ylab("AUC (s)") + xlab("") + scale_color_manual(values = conditionColors) +
-    myTheme +
-    theme(legend.position = "None") +
-    geom_smooth(method = "lm", se=FALSE, color="black", formula = y ~ x) 
-  
-  # add the correlation stats
-  eqDf = plotData %>% group_by(condition, trait) %>% summarise(eq = lm_eqn(auc, value)) %>% ungroup()
-  tempt =  ggplot_build(p)$layout$panel_scales_x
-  rangeDf = data.frame(
-    low = sapply(tempt, function(x) x$range$range[1]),
-    up = sapply(tempt, function(x) x$range$range[2])
-  ) %>% mutate(pos = low + (up - low) * 0.5)
-  eqDf = cbind(eqDf, sapply(rangeDf, rep.int, times = 2))
-  figTraitAUC = p + geom_text(data=eqDf, aes(x = pos, y = 21, label = eq), parse = TRUE, inherit.aes=FALSE) +
-    ylim(c(0, 22)) +
-    ggtitle("AUC vs self-report measurments") +
-    theme(plot.title = element_text(hjust = 0.5))
-  
-  ##################################################################
-  ##                     sigma_WTW and self-report                     ##
-  ##################################################################
-  # plot the first layer
-  p = plotData %>% ggplot(aes(value, stdWTW, color = condition)) +
-    facet_grid(condition ~ trait, scales = "free") + geom_point(alpha = 0.8) +
-    ylab(expression(bold(sigma[WTW])~"("~"s"^2~")")) + xlab("") +
-    scale_color_manual(values = conditionColors) +
-    myTheme +
-    theme(legend.position = "None") +
-    geom_smooth(method = "lm", se=FALSE, color="black", formula = y ~ x) 
-  
-  eqDf = plotData %>% group_by(condition, trait) %>% summarise(eq = lm_eqn(stdWTW, value)) %>% ungroup()
-  tempt =  ggplot_build(p)$layout$panel_scales_x
-  rangeDf = data.frame(
-    low = sapply(tempt, function(x) x$range$range[1]),
-    up = sapply(tempt, function(x) x$range$range[2])
-  ) %>% mutate(pos = low + (up - low) * 0.5)
-  eqDf = cbind(eqDf, sapply(rangeDf, rep.int, times = 2))
-  figTraitSigma = p + geom_text(data=eqDf, aes(x = pos, y = 9, label = eq), parse = TRUE, inherit.aes=FALSE) +
-    ggtitle(expression(bold(sigma[WTW]~" vs self-report measurements"))) +
-    theme(plot.title = element_text(hjust = 0.5))
+
   
   #################################################################
   ##                  Correlations among traits                  ##
