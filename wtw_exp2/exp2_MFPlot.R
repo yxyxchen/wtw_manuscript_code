@@ -154,6 +154,10 @@ MFPlot = function(){
   ################################################################
   wTest = wilcox.test(MFResults$sub_auc_[,2] - MFResults$sub_auc_[,1],
                       MFResults$sub_auc_[,4] - MFResults$sub_auc_[,3], paired = T)
+  
+  wilcox.test(MFResults$sub_auc_[,2] - MFResults$sub_auc_[,1])
+  wilcox.test(MFResults$sub_auc_[,4] - MFResults$sub_auc_[,3])
+  
   df_delta = 
     data.frame(
       delta = c(MFResults$sub_auc_[,2] - MFResults$sub_auc_[,1], MFResults$sub_auc_[,4] - MFResults$sub_auc_[,3]),
