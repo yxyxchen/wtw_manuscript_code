@@ -113,8 +113,6 @@ MFPlot = function(){
   
   wilcox.test(deltaWTW[sumStats$condition == "HP"])
   wilcox.test(deltaWTW[sumStats$condition == "LP"])
-  cor.test(deltaWTW[sumStats$condition == "HP"], sumStats$auc[sumStats$condition == "HP"], method=c( "spearman"))
-  cor.test(deltaWTW[sumStats$condition == "LP"], sumStats$auc[sumStats$condition == "LP"], method=c( "spearman"))
   
   ###################################################################
   ##              compare sigma_wtw in the two environments        ##
@@ -139,7 +137,7 @@ MFPlot = function(){
     scale_y_continuous(breaks = c(0, 5, 10), limits = c(0, 11)) +
     scale_fill_manual(values = conditionColors) +
     theme(legend.position = "none") + xlab("")
-  
+
   ##################################################################
   ##                     plot survival curves                     ##
   ##################################################################
