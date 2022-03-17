@@ -64,18 +64,43 @@ MFPlot = function(){
 
   
   ###################################################################
-  ##              compare AUC in the two environments             ##
+  ##              compare stats in the two environments             ##
   ###################################################################
   MFResults = MFAnalysis(isTrct = T)
-  # plot the first two blocks and the second two blocks separately 
   blockStats = MFResults[['blockStats']]
   blockStats$block = ifelse(blockStats$blockNum <= 2, "Block1-2", "Block3-4")
   survCurve_ = MFResults$survCurve_
-  blockStats %>% group_by(condition, block) %>%
-    summarise(median(auc), IQR(auc), median(stdWTW), IQR(stdWTW))
   
-  wilcox.test( blockStats[blockStats$condition == "HP" & blockStats$block == "Block1-2", "auc"],
-               blockStats[blockStats$condition == "LP" & blockStats$block == "Block1-2", "auc"], paired = T)
+  blockStats$delta = as.vector(t(MFResults$sub_auc_[, c(2, 4, 6, 8)] - MFResults$sub_auc_[, c(1, 3, 5, 7)]))
+  
+  stats_df = blockStats %>% gather("variable", "value", -setdiff(names(blockStats), c("auc", "stdWTW", "delta"))) %>%
+    group_by(variable, block, condition) %>%
+    summarise(median = round(median(value), 2), IQR = round(IQR(value), 2),
+              pvalue = round(wilcox.test(value)$p.value, 3)) %>%
+    mutate(lower = median - IQR,
+           upper = median + IQR)
+    
+  contrast_df = data.frame(
+    variable = rep(c("auc", "delta", "stdWTW"), each = 2),
+    block = rep(c("Block1-2", "Block3-4"), 3),
+    pvalue = round(c(
+      wilcox.test( blockStats[blockStats$condition == "HP" & blockStats$block == "Block1-2", "auc"],
+                   blockStats[blockStats$condition == "LP" & blockStats$block == "Block1-2", "auc"], paired = T)$p.value,
+      wilcox.test( blockStats[blockStats$condition == "HP" & blockStats$block == "Block3-4", "auc"],
+                   blockStats[blockStats$condition == "LP" & blockStats$block == "Block3-4", "auc"], paired = T)$p.value,
+      wilcox.test( blockStats[blockStats$condition == "HP" & blockStats$block == "Block1-2", "delta"],
+                   blockStats[blockStats$condition == "LP" & blockStats$block == "Block1-2", "delta"], paired = T)$p.value,
+      wilcox.test( blockStats[blockStats$condition == "HP" & blockStats$block == "Block3-4", "delta"],
+                   blockStats[blockStats$condition == "LP" & blockStats$block == "Block3-4", "delta"], paired = T)$p.value,
+      wilcox.test( blockStats[blockStats$condition == "HP" & blockStats$block == "Block1-2", "stdWTW"],
+                   blockStats[blockStats$condition == "LP" & blockStats$block == "Block1-2", "stdWTW"], paired = T)$p.value,
+      wilcox.test( blockStats[blockStats$condition == "HP" & blockStats$block == "Block3-4", "stdWTW"],
+                   blockStats[blockStats$condition == "LP" & blockStats$block == "Block3-4", "stdWTW"], paired = T)$p.value
+    ), 3)
+  ) 
+  
+    
+
   
   wilcox.test( blockStats[blockStats$condition == "HP" & blockStats$block == "Block3-4", "auc"],
                blockStats[blockStats$condition == "LP" & blockStats$block == "Block3-4", "auc"], paired = T)  
@@ -113,14 +138,7 @@ MFPlot = function(){
   ##              plot adaptation in the two environments             ##
   ###################################################################
   # plot sub_auc first I guess
-  figDelta = data.frame(
-    delta =  as.vector(t(MFResults$sub_auc_[, c(2, 4, 6, 8)] - MFResults$sub_auc_[, c(1, 3, 5, 7)])),
-    condition = blockStats$condition,
-    block = blockStats$block,
-    id = blockStats$id,
-    cbal = blockStats$cbal,
-    blockNum = blockStats$blockNum
-  ) %>% ggdotplot(x = "block", y = "delta", fill = "condition") + 
+  figDelta = delta_df %>% ggdotplot(x = "block", y = "delta", fill = "condition") + 
     ggpubr::stat_compare_means(aes(group = condition, label = ..p.signif..),
                                method = "wilcox.test", paired = T,  label.y = 13) +
     scale_fill_manual(values = conditionColors) +
@@ -193,7 +211,9 @@ MFPlot = function(){
       "auc" = figAUC,
       "delta" = figDelta,
       "sigma" = figSigma,
-      "curve" = figCurve
+      "curve" = figCurve,
+      "stats_df" = stats_df,
+      "constrast_df" = contrast_df
     )
     return(outputs)
 }

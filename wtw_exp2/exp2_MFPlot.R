@@ -77,15 +77,49 @@ MFPlot = function(){
     theme(legend.position = "none")
   
   ################################################################
-  ##              compare AUC in the two environments              ##
+  ##              compare stats in the two environments              ##
   ################################################################
   MFResults = MFAnalysis(isTrct = T)
   sumStats = MFResults[['sumStats']]
-  sumStats %>% group_by(condition) %>% summarise(median = median(auc),
-                                                 IQR(auc))
-  wTest = wilcox.test( sumStats[sumStats$condition == "HP", "auc"],
-                       sumStats[sumStats$condition == "LP", "auc"],paired = T)
   
+  auc_stats = sumStats %>% group_by(condition) %>% summarise(median = round(median(auc), 2),
+                                                             IQR = round(IQR(auc), 2),
+                                                             pvalue = round(wilcox.test(auc)$p.value, 3)) %>%
+    mutate(lower = median - IQR, upper = median + IQR)
+  
+  auc_contrast_p = round(wilcox.test( sumStats[sumStats$condition == "HP", "auc"],
+                                sumStats[sumStats$condition == "LP", "auc"],paired = T)$p.value, 3)
+  
+  sigma_stats = sumStats %>% group_by(condition) %>% summarise(median = round(median(stdWTW),2),
+                                                               IQR = round(IQR(stdWTW), 2),
+                                                               pvalue = round(wilcox.test(stdWTW)$p.value, 3)) %>%
+    mutate(lower = median - IQR, upper = median + IQR)
+  
+  sigma_contrast_p = round(wilcox.test( sumStats[sumStats$condition == "HP", "stdWTW"],
+                                  sumStats[sumStats$condition == "LP", "stdWTW"], paired = T)$p.value, 3)
+  
+  delta_contrast_p = round(wilcox.test(MFResults$sub_auc_[,2] - MFResults$sub_auc_[,1],
+                      MFResults$sub_auc_[,4] - MFResults$sub_auc_[,3], paired = T)$p.value, 3)
+  
+  delta_stats = data.frame(
+    condition = c("LP", "HP"),
+    median = c(round(median(MFResults$sub_auc_[,2] - MFResults$sub_auc_[,1]), 2),
+               round(median(MFResults$sub_auc_[,4] - MFResults$sub_auc_[,3]), 2)),
+    IQR = c(round(IQR(MFResults$sub_auc_[,2] - MFResults$sub_auc_[,1]), 2),
+            round(IQR(MFResults$sub_auc_[,4] - MFResults$sub_auc_[,3]), 2)),
+    pvalue = c(round(wilcox.test(MFResults$sub_auc_[,2] - MFResults$sub_auc_[,1])$p.value, 3),
+               round(wilcox.test(MFResults$sub_auc_[,4] - MFResults$sub_auc_[,3])$p.value, 3))
+  ) %>% 
+    mutate(lower = median - IQR, upper = median + IQR)
+  
+  stats_df = rbind(auc_stats, delta_stats, sigma_stats)
+  stats_df['variable'] = rep(c("auc",  "delta", "stdWTW"), each = 2) 
+  stats_df = stats_df %>% arrange(variable, condition)
+  
+  contrast_df = data.frame(
+    variable = c("auc", "delta", "stdWTW"),
+    pvalue = c(auc_contrast_p, delta_contrast_p, sigma_contrast_p)
+  )
   ################################################################
   ##              plot AUC in the two environments              ##
   ################################################################
@@ -101,31 +135,11 @@ MFPlot = function(){
     scale_y_continuous(breaks = c(0, 8, 16), limits = c(0, 20)) +
     scale_fill_manual(values = conditionColors) +
     theme(legend.position = "none") + xlab("")
-    
-  # figAUC = data.frame(aucHP = sumStats$auc[sumStats$condition == 'HP'],
-    #          aucLP = sumStats$auc[sumStats$condition == 'LP']) %>%
-    # ggplot(aes(aucLP, aucHP)) +
-    # geom_point(size = 5, shape = 21, stroke =1) +
-    # geom_abline(slope = 1, intercept = 0) + 
-    # annotate("text", x = 8, y = 3, label = sprintf('p = %0.3f*', wTest$p.value), size = 6) +
-    # xlab("LP") + ylab("HP") + 
-    # ggtitle("AUC (s)") +
-    # myTheme + xlim(c(-1,17)) + ylim(c(-1,17)) +
-    # theme(plot.title = element_text(face = "bold", hjust = 0.5)) +
-    # scale_x_continuous(breaks = c(0, 4, 8, 12, 16), limits = c(0, 16))
-  
-  
-  ################################################################
-  ##              compare sigma_wtw in the two environments              ##
-  ################################################################
-  wTest = wilcox.test( sumStats[sumStats$condition == "HP", "stdWTW"],
-                       sumStats[sumStats$condition == "LP", "stdWTW"], paired = T)
   
   ################################################################
   ##              plot sigma_wtw in the two environments              ##
   ################################################################
-  sumStats %>% group_by(condition) %>% summarise(median = median(stdWTW),
-                                                 IQR = IQR(stdWTW))
+
   # plot
   figSigma = sumStats %>% ggplot(aes(condition, stdWTW)) +
     geom_dotplot(binaxis='y', stackdir='center', aes(fill = condition)) + 
@@ -139,24 +153,10 @@ MFPlot = function(){
     scale_y_continuous(breaks = c(0, 3, 6), limits = c(0, 7)) +
     scale_fill_manual(values = conditionColors) +
     theme(legend.position = "none") + xlab("")
-  # figSigma = data.frame(stdWTWHP = sumStats$stdWTW[sumStats$condition == 'HP'],
-  #            stdWTWLP = sumStats$stdWTW[sumStats$condition == 'LP']) %>%
-  #   ggplot(aes(stdWTWLP, stdWTWHP)) +
-  #   geom_point(size = 5, shape = 21, stroke =1) +
-  #   geom_abline(slope = 1, intercept = 0)  +
-  #   ggtitle(expression(bold(sigma["WTW"], " (s"^2,")")))+
-  #   xlab("LP") + ylab("HP") + 
-  #   myTheme + xlim(c(-1,6)) + ylim(c(-1,6)) +
-  #   annotate("text", x = 5, y = 1, label = sprintf('p = %0.3f*', wTest$p.value))
   
   ################################################################
   ##              plot delta AUC in the two environments        ##
   ################################################################
-  wTest = wilcox.test(MFResults$sub_auc_[,2] - MFResults$sub_auc_[,1],
-                      MFResults$sub_auc_[,4] - MFResults$sub_auc_[,3], paired = T)
-  
-  wilcox.test(MFResults$sub_auc_[,2] - MFResults$sub_auc_[,1])
-  wilcox.test(MFResults$sub_auc_[,4] - MFResults$sub_auc_[,3])
   
   df_delta = 
     data.frame(
@@ -236,7 +236,9 @@ MFPlot = function(){
     "auc" = figAUC,
     "sigma" = figSigma,
     "delta" = figDelta,
-    "curve" = figCurve
+    "curve" = figCurve,
+    "stats_df" = stats_df,
+    "contrast_df" = contrast_df
   )
   return(outputs)  
 }

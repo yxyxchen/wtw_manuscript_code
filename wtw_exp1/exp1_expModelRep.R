@@ -61,9 +61,9 @@ expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs =
   
   ## replicate data
   if(is.null(repOutputs)){
-    repOutputs =  modelRep(modelName, trialData, ids, nRep, T)
-    save(repOutputs, file = sprintf("../../genData/wtw_exp1/expModelRep/%s_trct.RData", modelName))
-    #load(file = sprintf("../../genData/wtw_exp1/expModelRep/%s_trct.RData", modelName))
+    #repOutputs =  modelRep(modelName, trialData, ids, nRep, T)
+    #save(repOutputs, file = sprintf("../../genData/wtw_exp1/expModelRep/%s_trct.RData", modelName))
+    load(file = sprintf("../../genData/wtw_exp1/expModelRep/%s_trct.RData", modelName))
   }
 
   #################################################################
@@ -85,17 +85,23 @@ expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs =
     mutate(ymin = mu - se,
            ymax = mu + se) %>% ungroup()
   
+    seg_df = data.frame(
+      x =  rep(1:2 * 60 * 7, 2),
+      condition = rep(c("HP", "LP"), each = 2)
+    )
     # 
-    figWTW = ggplot(plotdf, aes(time, mu, color = type)) +
-    geom_ribbon(aes(ymin=ymin, ymax=ymax, fill = type), color = NA, alpha = 0.5)  + 
-    geom_line(aes(time, mu, color = type)) +
+    ggplot(plotdf, aes(time, mu, color = type))  + 
+    geom_line(aes(time, mu, color = type), alpha = 0.75) +
       facet_grid(~condition) + myTheme +
     scale_color_manual(values = c("black", "#b2182b"))+
     scale_fill_manual(values = c("#969696", "#fa9fb5")) + 
     theme(legend.position = "None") +
     scale_x_continuous(breaks = 0:3 * 60 * 7, labels = 0:3 * 7) + 
-    xlab("Task time (min)") + ylab("WTW (s)")
+    xlab("Task time (min)") + ylab("WTW (s)") +
+      geom_segment(aes(x = x, xend = x), data = seg_df, y = 0, yend = 20,
+                   inherit.aes =  F, linetype = "dashed", color = "grey")
   
+      # geom_ribbon(aes(ymin=ymin, ymax=ymax, fill = type), color = NA, alpha = 0.5) 
   #################################################################
   ##      compare observed and replicated AUC and sigma_wtw      ##
   #################################################################
