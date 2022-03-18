@@ -81,44 +81,25 @@ MFPlot = function(){
   ################################################################
   MFResults = MFAnalysis(isTrct = T)
   sumStats = MFResults[['sumStats']]
+  deltas = cbind(MFResults$sub_auc_[,2] - MFResults$sub_auc_[,1],
+                 MFResults$sub_auc_[,4] - MFResults$sub_auc_[,3])
+  sumStats$delta = as.vector(t(deltas))
   
-  auc_stats = sumStats %>% group_by(condition) %>% summarise(median = round(median(auc), 2),
-                                                             IQR = round(IQR(auc), 2),
-                                                             pvalue = round(wilcox.test(auc)$p.value, 3)) %>%
-    mutate(lower = median - IQR, upper = median + IQR)
-  
-  auc_contrast_p = round(wilcox.test( sumStats[sumStats$condition == "HP", "auc"],
-                                sumStats[sumStats$condition == "LP", "auc"],paired = T)$p.value, 3)
-  
-  sigma_stats = sumStats %>% group_by(condition) %>% summarise(median = round(median(stdWTW),2),
-                                                               IQR = round(IQR(stdWTW), 2),
-                                                               pvalue = round(wilcox.test(stdWTW)$p.value, 3)) %>%
-    mutate(lower = median - IQR, upper = median + IQR)
-  
-  sigma_contrast_p = round(wilcox.test( sumStats[sumStats$condition == "HP", "stdWTW"],
-                                  sumStats[sumStats$condition == "LP", "stdWTW"], paired = T)$p.value, 3)
-  
-  delta_contrast_p = round(wilcox.test(MFResults$sub_auc_[,2] - MFResults$sub_auc_[,1],
-                      MFResults$sub_auc_[,4] - MFResults$sub_auc_[,3], paired = T)$p.value, 3)
-  
-  delta_stats = data.frame(
-    condition = c("LP", "HP"),
-    median = c(round(median(MFResults$sub_auc_[,2] - MFResults$sub_auc_[,1]), 2),
-               round(median(MFResults$sub_auc_[,4] - MFResults$sub_auc_[,3]), 2)),
-    IQR = c(round(IQR(MFResults$sub_auc_[,2] - MFResults$sub_auc_[,1]), 2),
-            round(IQR(MFResults$sub_auc_[,4] - MFResults$sub_auc_[,3]), 2)),
-    pvalue = c(round(wilcox.test(MFResults$sub_auc_[,2] - MFResults$sub_auc_[,1])$p.value, 3),
-               round(wilcox.test(MFResults$sub_auc_[,4] - MFResults$sub_auc_[,3])$p.value, 3))
-  ) %>% 
-    mutate(lower = median - IQR, upper = median + IQR)
-  
-  stats_df = rbind(auc_stats, delta_stats, sigma_stats)
-  stats_df['variable'] = rep(c("auc",  "delta", "stdWTW"), each = 2) 
-  stats_df = stats_df %>% arrange(variable, condition)
+  stats_df = sumStats %>% gather("variable", "value", -setdiff(names(sumStats), c("auc", "stdWTW", "delta"))) %>%
+    group_by(variable, condition) %>% summarise(
+      median = round(median(value), 2),
+      IQR = round(IQR(value), 2),
+      pvalue = round(wilcox.test(value)$p.value, 3)
+    )
   
   contrast_df = data.frame(
     variable = c("auc", "delta", "stdWTW"),
-    pvalue = c(auc_contrast_p, delta_contrast_p, sigma_contrast_p)
+    pvalue = c(round(wilcox.test( sumStats[sumStats$condition == "HP", "auc"],
+                                  sumStats[sumStats$condition == "LP", "auc"],paired = T)$p.value, 3),
+               round(wilcox.test( sumStats[sumStats$condition == "HP", "delta"],
+                                  sumStats[sumStats$condition == "LP", "delta"],paired = T)$p.value, 3),
+               round(wilcox.test( sumStats[sumStats$condition == "HP", "stdWTW"],
+                                  sumStats[sumStats$condition == "LP", "stdWTW"],paired = T)$p.value, 3))
   )
   ################################################################
   ##              plot AUC in the two environments              ##
@@ -157,13 +138,7 @@ MFPlot = function(){
   ################################################################
   ##              plot delta AUC in the two environments        ##
   ################################################################
-  
-  df_delta = 
-    data.frame(
-      delta = c(MFResults$sub_auc_[,2] - MFResults$sub_auc_[,1], MFResults$sub_auc_[,4] - MFResults$sub_auc_[,3]),
-      condition = rep(c("LP", "HP"), each = nSub)
-    )
-  figDelta = df_delta %>% ggplot(aes(condition, delta)) + 
+  figDelta = sumStats %>% ggplot(aes(condition, delta)) + 
     geom_dotplot(binaxis='y', stackdir='center', aes(fill = condition)) + 
     stat_compare_means(comparisons = list(c("HP", "LP")),
                        aes(label = ..p.signif..), 
@@ -189,11 +164,13 @@ MFPlot = function(){
   #   xlim(c(-8,5)) + ylim(c(-8,5)) + myTheme +
   #   theme(plot.title = element_text(face = "bold", hjust = 0.5))
   
-  # wilcox.test(deltaWTW[sumStats$condition == "HP"])
-  # wilcox.test(deltaWTW[sumStats$condition == "LP"])
-  # cor.test(deltaWTW[sumStats$condition == "HP"], sumStats$auc[sumStats$condition == "HP"], method=c( "spearman"))
-  # cor.test(deltaWTW[sumStats$condition == "LP"], sumStats$auc[sumStats$condition == "LP"], method=c( "spearman"))
-  
+  ##################################################################
+  ##                     correlations among task measures        ##
+  ##################################################################
+  pairs(sumStats[, c("auc", "delta", "stdWTW")], condition = sumStats$condition, gap=0,
+                  lower.panel = my.reg.HP, upper.panel = my.reg.LP, nCmp = 1, lwd = 2) 
+  figCorr = recordPlot()
+  plot.new()
   ###################################################
   ##              plot survival curves            ##
   ##################################################
@@ -237,6 +214,7 @@ MFPlot = function(){
     "sigma" = figSigma,
     "delta" = figDelta,
     "curve" = figCurve,
+    "corr" = figCorr,
     "stats_df" = stats_df,
     "contrast_df" = contrast_df
   )

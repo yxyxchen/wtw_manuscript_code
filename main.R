@@ -45,7 +45,7 @@ ggsave(file.path("../figures/cmb", "exp.eps"), expCmb, width = 9, height = 9)
 ##                     model free analysis                     ##
 #################################################################
 outs_ = vector("list", length = nExp )
-for(i in 1 : 3){
+for(i in 3 : 3){
   outs = vector("list", length = nExp) # initialize the output 
   setwd(file.path(pwd, wds[i]))
   source(sprintf("exp%d_MFPlot.R", i))
@@ -55,7 +55,16 @@ for(i in 1 : 3){
 # assemble the figures
 setwd(pwd)
 figMF12 = ( outs_[[1]][['curve']] | outs_[[1]][['wtw']] | outs_[[1]][['auc']] | outs_[[1]][['delta']] | outs_[[1]][['sigma']]) / ( outs_[[2]][['curve']] | outs_[[2]][['wtw']] | outs_[[2]][['auc']] | outs_[[2]][['delta']] | outs_[[2]][['sigma']]) + plot_annotation(tag_levels = "a")
-ggsave(file.path("../figures/cmb","mf12.eps"), figMF12 , width = 20, height = 8)
+ggsave(file.path("../figures/cmb","mf12.pdf"), figMF12 , width = 20, height = 8)
+
+pdf("../figures/cmb/exp1_task_corr.pdf", width = 5, height = 5) 
+outs_[[1]][['corr']]
+dev.off()
+
+pdf("../figures/cmb/exp2_task_corr.pdf", width = 5, height = 5) 
+outs_[[2]][['corr']]
+dev.off()
+
 figMF3_upper = ( outs_[[3]][['curve']] | outs_[[3]][['wtw']] ) + plot_annotation(tag_levels = "a")
 ggsave(file.path("../figures/cmb","mf3_upper.eps"), figMF3_upper , width = 12, height = 4)
 
@@ -64,6 +73,14 @@ ggsave(file.path("../figures/cmb","mf3_lower.eps"), figMF3_lower , width = 12, h
 
 figMF3 = ( outs_[[3]][['curve']] | outs_[[3]][['wtw']] ) / ( outs_[[3]][['auc']] | outs_[[3]][['delta']] | outs_[[3]][['sigma']] ) + plot_annotation(tag_levels = "a")
 ggsave(file.path("../figures/cmb","mf3.eps"), figMF3 , width = 12, height = 8)
+
+pdf("../figures/cmb/exp3_task_corr1.pdf", width = 5, height = 5) 
+outs_[[3]][['corr1']]
+dev.off()
+
+pdf("../figures/cmb/exp3_task_corr2.pdf", width = 5, height = 5) 
+outs_[[3]][['corr2']]
+dev.off()
 ######
 source("wtw_exp1/exp1_taskTraitCorr.R")
 setwd("wtw_exp1")
@@ -143,7 +160,7 @@ ggsave(file.path("..", "figures", "cmb", "modelRep_example.eps"), figRepExample,
 # plot ovserved and model-generated AUC and sigma_WTW
 outs_ = vector("list", length = nExp )
 # sqerr_df_ = vector("list", length = nExp)
-for(i in 2 : nExp){
+for(i in 1 : nExp){
   setwd(file.path(pwd, wds[i])) # set the working directory
   source(sprintf("exp%d_expModelRep.R", i)) 
   source("subFxs/loadFxs.R")
@@ -159,8 +176,14 @@ for(i in 2 : nExp){
   outs_[[i]] = outs
 }
 
+# combine figWTW
 # combine figures together 
-for(i in 2 : nExp){
+setwd(pwd)
+figWTW = (outs_[[1]][[2]][['figWTW']] |outs_[[2]][[2]][['figWTW']] | outs_[[3]][[2]][['figWTW']]) + plot_annotation(tag_levels = "a")
+ggsave(file.path("..", "figures", "cmb", "rep_wtw_new.pdf"), figWTW, width = 15, height = 4 )
+
+# combine figures together 
+for(i in 1 : nExp){
   outs = outs_[[i]]
   figStats = (outs[[1]]$figStats | outs[[2]]$figStats | outs[[3]]$figStats | outs[[4]]$figStats | outs[[5]]$figStats | outs[[6]]$figStats)
   setwd(pwd)
@@ -169,7 +192,6 @@ for(i in 2 : nExp){
 
 # plot WTW
 for(i in 1 : nExp){
-  
   # all passcheck
   modelNames = c("QL1", "QL2", "RL1", "RL2", "naive", "omni")
   nModel = length(modelNames)
@@ -276,15 +298,13 @@ for(i in 1 : 3){
   setwd(file.path(pwd, wds[i])) # set the working directory
   source(sprintf("exp%d_expModelCmp.R", i)) 
   cmpOuts_[[i]] = expModelCmp()
-  full_waic_aves = full_waic_ %>% apply(2, mean)
-  full_waic_ses = full_waic_ %>% apply(2, function(x) sd(x) / sqrt(length(x)))
   waic_ave[i,] = cmpOuts_[[i]][['full_waic_aves']]
   waic_se[i,] = cmpOuts_[[i]][['full_waic_ses']]
   best_fit_4[i,] = as.numeric(cmpOuts_[[i]][['bestFit4']]$bestFitNum[1:4])
   best_fit_6[i,] = as.numeric(cmpOuts_[[i]][['bestFit6']]$bestFitNum[1:6])
 }
 
-
+round(best_fit_6 / apply(best_fit_6, MARGIN = 1, sum))
 ###################################################################################
 ##                     Parameter histograms and correlations                     ##
 ###################################################################################

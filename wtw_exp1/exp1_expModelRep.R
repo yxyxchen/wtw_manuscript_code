@@ -83,23 +83,35 @@ expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs =
     summarise(mu = mean(wtw),
               se = sd(wtw) / sqrt(length(wtw))) %>%
     mutate(ymin = mu - se,
-           ymax = mu + se) %>% ungroup()
+           ymax = mu + se,
+           color_group = paste0(type, condition)) %>% ungroup()
   
-    seg_df = data.frame(
-      x =  rep(1:2 * 60 * 7, 2),
-      condition = rep(c("HP", "LP"), each = 2)
+  
+    rect_df = data.frame(
+      xmin =  rep(0, 2),
+      xmax = rep(blockSec * 3, 2),
+      condition = rep(c("HP", "LP"), each = 3)
     )
-    # 
-    ggplot(plotdf, aes(time, mu, color = type))  + 
-    geom_line(aes(time, mu, color = type), alpha = 0.75) +
+
+    
+   figWTW = ggplot(plotdf, aes(time, mu, color = type)) +
+    geom_line(aes(time, mu, color = type)) +
       facet_grid(~condition) + myTheme +
     scale_color_manual(values = c("black", "#b2182b"))+
-    scale_fill_manual(values = c("#969696", "#fa9fb5")) + 
+    scale_fill_manual(values = conditionColorBacks) +
     theme(legend.position = "None") +
-    scale_x_continuous(breaks = 0:3 * 60 * 7, labels = 0:3 * 7) + 
-    xlab("Task time (min)") + ylab("WTW (s)") +
-      geom_segment(aes(x = x, xend = x), data = seg_df, y = 0, yend = 20,
-                   inherit.aes =  F, linetype = "dashed", color = "grey")
+    scale_x_continuous(breaks = 0:3 * 60 * 7, labels = 0:3 * 7) +
+    xlab("Task time (min)") + ylab("WTW (s)") + ylim(c(0, 20))
+   
+   # ggplot(plotdf, aes(time, mu, color = type))  + 
+   #   geom_line(aes(time, mu, color = color_group)) +
+   #   facet_grid(~condition) + myTheme +
+   #   scale_color_manual(values = c(conditionColors, "#41ab5d", "#c51b7d")) + 
+   #   theme(legend.position = "None") +
+   #   scale_x_continuous(breaks = 0:3 * 60 * 7, labels = 0:3 * 7) + 
+   #   xlab("Task time (min)") + ylab("WTW (s)") +
+   #   geom_segment(aes(x = x, xend = x), data = seg_df, y = 0, yend = 20,
+   #                inherit.aes =  F, linetype = "dashed", color = "grey")
   
       # geom_ribbon(aes(ymin=ymin, ymax=ymax, fill = type), color = NA, alpha = 0.5) 
   #################################################################
@@ -122,7 +134,7 @@ expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs =
     myTheme + theme(plot.title = element_text(face = "bold", hjust = 0.5)) +
     coord_fixed() + xlim(c(-20, 8)) + 
     ylim(c(-20, 8)) + scale_color_manual(values = conditionColors) +
-    theme(legend.position = "none")
+    theme(legend.position = "none") + ggtitle(expression(bold(AUC[end] - AUC[start]))) 
     
   # plot to compare average willingess to wait
   plotData = data.frame(id = ids, mu =  repOutputs$auc, std = repOutputs$stdWTW,

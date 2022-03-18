@@ -184,7 +184,7 @@ truncateTrials = function(data, startTidx, endTidx){
 ############# help functions to plot the correlation figure 
 my.reg <- function(x, y, digits = 2, prefix = "", use="pairwise.complete.obs", method = "kendall", cex.cor, nCmp = 1, ...) {
   points(x,y, pch=20, col = "grey")
-  abline(lm(y~x), col = "black") 
+  abline(lm(y~x), ...) 
   
   # position to put the correlation coefficient 
   usr <- par("usr")
@@ -221,6 +221,19 @@ my.reg <- function(x, y, digits = 2, prefix = "", use="pairwise.complete.obs", m
   text(rX, rY, txt, cex = 1)
   text(sigX, sigY, Signif, cex = 1.5, col=2)
 }
+
+my.reg.HP <- function(x, y, condition, digits = 2, prefix = "", use="pairwise.complete.obs", method = "kendall", cex.cor, nCmp = 1, ...) {
+  x = x[condition == "HP"]
+  y = y[condition == "HP"]
+  my.reg(x, y, digits = 2, prefix = "", use="pairwise.complete.obs", method = "kendall", cex.cor, nCmp = 1, col = conditionColors[1], ...)
+}
+
+my.reg.LP <- function(x, y, condition, digits = 2, prefix = "", use="pairwise.complete.obs", method = "kendall", cex.cor, nCmp = 1, ...) {
+  x = x[condition == "LP"]
+  y = y[condition == "LP"]
+  my.reg(x, y,digits = 2, prefix = "", use="pairwise.complete.obs", method = "kendall", cex.cor, nCmp = 1, col = conditionColors[2], ...)
+}
+
 my.panel.cor <- function(x, y, digits=2,  prefix="", use="pairwise.complete.obs", method = "Kendall", cex.cor, ...)
 {
   usr <- par("usr"); on.exit(par(usr))

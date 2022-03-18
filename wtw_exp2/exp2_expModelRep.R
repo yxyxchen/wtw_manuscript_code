@@ -53,9 +53,9 @@ expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs =
   
   ## AUCs and CIPs from simulated data 
   if(is.null(repOutputs)){
-    repOutputs =  modelRep(trialData, ids, nRep, T, modelName)
-    save(repOutputs, file = sprintf("../../genData/wtw_exp2/expModelRep/%s_trct.RData", modelName))
-    #load(file = sprintf("../../genData/wtw_exp2/expModelRep/%s_trct.RData", modelName))
+    #repOutputs =  modelRep(trialData, ids, nRep, T, modelName)
+    #save(repOutputs, file = sprintf("../../genData/wtw_exp2/expModelRep/%s_trct.RData", modelName))
+    load(file = sprintf("../../genData/wtw_exp2/expModelRep/%s_trct.RData", modelName))
   }
 
   ################ observed WTW vs model generated WTW ############
@@ -78,15 +78,31 @@ expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs =
     # plotdf$mu[plotdf$time %in% c((blockSec - max(delayMaxs)) : blockSec, (blockSec*2 - max(delayMaxs)) : (blockSec*2))] = NA
     # plotdf$ymin[plotdf$time %in% c((blockSec - max(delayMaxs)) : blockSec, (blockSec*2 - max(delayMaxs)) : (blockSec*2))]  = NA
     # plotdf$ymax[plotdf$time %in% c((blockSec - max(delayMaxs)) : blockSec, (blockSec*2 - max(delayMaxs)) : (blockSec*2))]  = NA
-  figWTW = ggplot(plotdf, aes(time, mu)) +
-    geom_ribbon(aes(ymin=ymin, ymax=ymax, fill = type), color = NA, alpha = 0.5)  + 
+  rectData = data.frame(
+    xmin = ((1:2) - 1) * blockSec,
+    xmax = (1:2) * blockSec,
+    condition = c("LP", "HP")
+  )
+  
+  figWTW = ggplot(plotdf, aes(time, mu))  +
+    geom_rect(aes(xmin = xmin, xmax = xmax, fill = condition),
+              data = rectData, ymin = 0, ymax = 16, alpha = 0.75, inherit.aes = F) +
     geom_line(aes(time, mu, color = type)) +
     myTheme +
     scale_color_manual(values = c("black", "#b2182b"))+
-    scale_fill_manual(values = c("#969696", "#fa9fb5")) + 
+    scale_fill_manual(values =  conditionColorBacks) +
     theme(legend.position = "None") +
-      scale_x_continuous(breaks = c(0, 300, 600, 900, 1200)) + 
-      xlab("Task time (s)") + ylab("WTW (s)")
+      scale_x_continuous(breaks = c(0, 300, 600, 900, 1200), labels = c(0, 300, 600, 900, 1200) / 60) +
+      xlab("Task time (min)") + ylab("WTW (s)") + 
+    scale_y_continuous(limits = c(0, 16.5), breaks = c(0, 8, 16), labels = c(0, 8, 16))
+  
+  # figWTW = ggplot(plotdf, aes(time, mu)) +
+  #   geom_line(aes(time, mu, linetype = type, color = condition)) +
+  #   myTheme +
+  #   scale_color_manual(values = conditionColors) + 
+  #   theme(legend.position = "None") +
+  #   scale_x_continuous(breaks = c(0, 300, 600, 900, 1200), labels = c(0, 300, 600, 900, 1200) / 60) + 
+  #   xlab("Task time (min)") + ylab("WTW (s)")
     
   ################### observed stats vs model generated stats ####################
   plotData = data.frame(id = sumStats$ID, auc =  repOutputs$auc, std = repOutputs$stdWTW,
@@ -105,7 +121,7 @@ expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs =
     scale_y_continuous(breaks = c(0, 16), limits = c(-1, 17)) +
     scale_color_manual(values = conditionColors) +
     theme(legend.position = "none")  + 
-    ggtitle(sprintf("%s, N = %d", modelName, sum(passCheck)))
+    ggtitle('AUC')
   
   ## plot to compare std willingess to wait
   stdFig = plotData %>%
@@ -118,7 +134,7 @@ expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs =
     scale_x_continuous(breaks = c(0, 7.5), limits = c(0, 7)) + 
     scale_y_continuous(breaks = c(0, 7.5), limits = c(0, 7)) +
     scale_color_manual(values = conditionColors) +
-    theme(legend.position = "none") 
+    theme(legend.position = "none") + ggtitle(expression(bold(sigma["WTW"])))
   
   ## plot to compare delta auc
   delta_df = data.frame(
@@ -138,11 +154,12 @@ expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs =
     myTheme + theme(plot.title = element_text(face = "bold", hjust = 0.5)) +
     coord_fixed() + xlim(c(-8, 8)) + 
     ylim(c(-8, 8)) + scale_color_manual(values = conditionColors) +
-    theme(legend.position = "none")
+    theme(legend.position = "none") + ggtitle(expression(bold(AUC[end] - AUC[start]))) 
 
  
   # combine figures 
-  figStats = (aucFig / deltaFig / stdFig)
+  figStats = (aucFig / deltaFig / stdFig)  +
+    plot_annotation(title = sprintf("%s, n = %d", modelName, sum(passCheck)), theme = theme(plot.title = element_text(hjust = 0.5, size = 20)))
   
   ################### calc variance explained ####################
   # summary(lm(plotData$auc[plotData$condition == "HP" & plotData$passCheck] ~ plotData$emp_auc[plotData$condition == "HP" & plotData$passCheck]))$r.squared

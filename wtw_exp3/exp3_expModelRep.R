@@ -57,8 +57,9 @@ expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs =
   
   # replicated data 
   if(is.null(repOutputs)){
-    repOutputs =  modelRep(trialData, ids, nRep, T, modelName)
-    save(repOutputs, file = sprintf("../../genData/wtw_exp3/expModelRep/%s_trct.RData", modelName))
+    #repOutputs =  modelRep(trialData, ids, nRep, T, modelName)
+    #save(repOutputs, file = sprintf("../../genData/wtw_exp3/expModelRep/%s_trct.RData", modelName))
+    load(file = sprintf("../../genData/wtw_exp3/expModelRep/%s_trct.RData", modelName))
   }
 
   ################ observed WTW vs model generated WTW ############
@@ -86,16 +87,24 @@ expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs =
   )
   figWTW = ggplot(plotdf, aes(time, mu)) +
     geom_rect(aes(xmin = xmin, xmax = xmax, fill = condition),
-              data = rectData, ymin = 0, ymax = 20, alpha = 0.75, inherit.aes = F) + 
-    facet_grid(~cbal) + 
+              data = rectData, ymin = 0, ymax = 20, alpha = 0.75, inherit.aes = F) +
+    facet_grid(~cbal) +
     geom_line(aes(time, mu, color = type))  +
     myTheme +
     scale_color_manual(values = c("black", "#b2182b"))+
     scale_fill_manual(values = c(conditionColorBacks))  +
-    scale_x_continuous(breaks = c(0, 10, 20)) + 
+    scale_x_continuous(breaks = c(0, 10, 20)) +
     xlab("Task time (s)") + ylab("WTW (s)") + ylim(c(0, 20)) +
-    theme(legend.position = "None") 
+    theme(legend.position = "None") + ylim(c(0, 20))
 
+  # figWTW = ggplot(plotdf, aes(time, mu)) + 
+  #   facet_grid(~cbal) + 
+  #   geom_line(aes(time, mu, color = condition, linetype = type))  +
+  #   myTheme +
+  #   scale_color_manual(values = conditionColors)+
+  #   scale_x_continuous(breaks = c(0, 10, 20)) + 
+  #   xlab("Task time (s)") + ylab("WTW (s)") + ylim(c(0, 20)) +
+  #   theme(legend.position = "None")  
   #################################################################
   ##      compare observed and replicated AUC and sigma_wtw      ##
   #################################################################

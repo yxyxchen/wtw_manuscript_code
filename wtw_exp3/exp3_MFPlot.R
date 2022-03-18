@@ -100,10 +100,6 @@ MFPlot = function(){
   ) 
   
     
-
-  
-  wilcox.test( blockStats[blockStats$condition == "HP" & blockStats$block == "Block3-4", "auc"],
-               blockStats[blockStats$condition == "LP" & blockStats$block == "Block3-4", "auc"], paired = T)  
   ###################################################################
   ##              plot AUC in the two environments             ##
   ###################################################################
@@ -114,15 +110,6 @@ MFPlot = function(){
     ylab("AUC (s)") + xlab("") + ylim(c(0, 32)) + 
     theme(legend.position = "None")
     
-  ###################################################################
-  ##              compare sigma_wtw in the two environments             ##
-  ###################################################################
-  wilcox.test( blockStats[blockStats$condition == "HP" & blockStats$block == "Block1-2", "stdWTW"],
-               blockStats[blockStats$condition == "LP" & blockStats$block == "Block1-2", "stdWTW"], paired = T)
-  
-  wilcox.test( blockStats[blockStats$condition == "HP" & blockStats$block == "Block3-4", "stdWTW"],
-               blockStats[blockStats$condition == "LP" & blockStats$block == "Block3-4", "stdWTW"], paired = T)  
-  
   ###################################################################
   ##              plot sigma_wtw in the two environments             ##
   ###################################################################
@@ -138,7 +125,7 @@ MFPlot = function(){
   ##              plot adaptation in the two environments             ##
   ###################################################################
   # plot sub_auc first I guess
-  figDelta = delta_df %>% ggdotplot(x = "block", y = "delta", fill = "condition") + 
+  figDelta = blockStats %>% ggdotplot(x = "block", y = "delta", fill = "condition") + 
     ggpubr::stat_compare_means(aes(group = condition, label = ..p.signif..),
                                method = "wilcox.test", paired = T,  label.y = 13) +
     scale_fill_manual(values = conditionColors) +
@@ -146,6 +133,19 @@ MFPlot = function(){
     xlab("")  + ylim(c(-15, 15)) +
     theme(legend.position = "None")
     
+  ##################################################################
+  ##                     correlations among task measures        ##
+  ##################################################################
+  pairs(blockStats[blockStats$block == "Block1-2", c("auc", "delta", "stdWTW")], 
+                   condition = blockStats$condition[blockStats$block == "Block1-2"], gap=0,
+                  lower.panel = my.reg.HP, upper.panel = my.reg.LP, nCmp = 1, lwd = 2, main = "Block1-2") 
+  figCorr1 = recordPlot()
+  plot.new()
+  pairs(blockStats[blockStats$block == "Block3-4", c("auc", "delta", "stdWTW")], 
+                   condition = blockStats$condition[blockStats$block == "Block3-4"], gap=0,
+                   lower.panel = my.reg.HP, upper.panel = my.reg.LP, nCmp = 1, lwd = 2, main = "Block3-4") 
+  figCorr2 = recordPlot()
+  plot.new()
   ###################################################################
   ##              plot  survival curves            ##
   ###################################################################
@@ -212,6 +212,8 @@ MFPlot = function(){
       "delta" = figDelta,
       "sigma" = figSigma,
       "curve" = figCurve,
+      "corr1" = figCorr1,
+      "corr2" = figCorr2,     
       "stats_df" = stats_df,
       "constrast_df" = contrast_df
     )

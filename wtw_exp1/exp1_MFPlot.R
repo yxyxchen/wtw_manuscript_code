@@ -64,15 +64,43 @@ MFPlot = function(){
     # geom_hline(aes(yintercept = optimWaitThresholds$HP), color = "red", size = 2, linetype = "dashed") +
     # geom_hline(aes(yintercept = optimWaitThresholds$LP), color = "red", size = 2, linetype = "dashed")
   
-  ###################################################################
-  ##              compare AUC in the two environments              ##
-  ###################################################################
-  MFResults = MFAnalysis(isTrct = T)
-  sumStats = MFResults[['sumStats']]
+  
+  
+  ############
+  ###########
   sumStats %>% group_by(condition) %>% summarise(median(auc),IQR(auc))
   wilcox.test(sumStats$auc[sumStats$condition == "HP"],
               sumStats$auc[sumStats$condition == "LP"])
   
+  
+  
+  ###################################################################
+  ##              compare stats in the two environments              ##
+  ###################################################################
+  MFResults = MFAnalysis(isTrct = T)
+  sumStats = MFResults[['sumStats']]
+  sumStats$delta = MFResults$sub_auc_[,6] - MFResults$sub_auc_[,1] 
+  
+  stats_df = sumStats %>% gather("variable", "value", -setdiff(names(sumStats), c("auc", "stdWTW", "delta"))) %>%
+    group_by(variable, condition) %>%
+    summarise(
+      median = round(median(value), 2),
+      IQR = round(IQR(value), 2),
+      p = round(wilcox.test(value)$p.value, 3)
+    )
+  
+  contrast_df = 
+    data.frame(
+      variable = c("auc", "delta", "stdWTW"),
+      pvalue = c(
+        round(wilcox.test( sumStats[sumStats$condition == "HP", "auc"],
+                           sumStats[sumStats$condition == "LP", "auc"],paired = F)$p.value, 3),
+        round(wilcox.test( sumStats[sumStats$condition == "HP", "delta"],
+                           sumStats[sumStats$condition == "LP", "delta"],paired = F)$p.value, 3),
+        round(wilcox.test( sumStats[sumStats$condition == "HP", "stdWTW"],
+                           sumStats[sumStats$condition == "LP", "stdWTW"],paired = F)$p.value, 3)
+      )
+    )
   ################################################################
   ##              plot AUC in the two environments              ##
   ################################################################
@@ -92,12 +120,7 @@ MFPlot = function(){
   ################################################################
   ##              plot delta AUC in the two environments              ##
   ################################################################
-  deltaWTW = MFResults$sub_auc_[,6] - MFResults$sub_auc_[,1]
-  figDelta = 
-  data.frame(
-    deltaWTW = deltaWTW,
-    condition = sumStats$condition
-    ) %>% ggplot(aes(condition, deltaWTW)) +
+  figDelta = sumStats %>% ggplot(aes(condition, delta)) +
     geom_dotplot(binaxis='y', stackdir='center', aes(fill = condition))  + 
     stat_compare_means(comparisons = list(c("HP", "LP")),
                        aes(label = ..p.signif..), label.x = 1.5, symnum.args= symnum.args,
@@ -111,20 +134,9 @@ MFPlot = function(){
     theme(plot.title = element_text(face = "bold", hjust = 0.5),
           legend.position =  "none") 
   
-  wilcox.test(deltaWTW[sumStats$condition == "HP"])
-  wilcox.test(deltaWTW[sumStats$condition == "LP"])
-  
-  ###################################################################
-  ##              compare sigma_wtw in the two environments        ##
-  ###################################################################
-  wilcox.test(sumStats$stdWTW[sumStats$condition == "HP"],
-              sumStats$stdWTW[sumStats$condition == "LP"])
-  
   ######################################################################
   ##              plot sigma_wtw in the two environments              ##
   ######################################################################
-  sumStats %>% group_by(condition) %>% summarise(median(stdWTW))
-  sumStats %>% group_by(condition) %>% summarise(median(stdWTW),IQR(stdWTW))
   figSigma = sumStats %>% ggplot(aes(condition, stdWTW))  +
     geom_dotplot(binaxis='y', stackdir='center', aes(fill = condition)) + 
     stat_compare_means(comparisons = list(c("HP", "LP")),
@@ -138,6 +150,14 @@ MFPlot = function(){
     scale_fill_manual(values = conditionColors) +
     theme(legend.position = "none") + xlab("")
 
+  ##################################################################
+  ##                     correlations among task measures        ##
+  ##################################################################
+  
+  pairs(sumStats[, c("auc", "delta", "stdWTW")], condition = sumStats$condition, gap=0,
+        lower.panel = my.reg.HP, upper.panel = my.reg.LP, nCmp = 1, lwd = 2) 
+  figCorr = recordPlot()
+  plot.new()
   ##################################################################
   ##                     plot survival curves                     ##
   ##################################################################
@@ -180,7 +200,10 @@ MFPlot = function(){
     "auc" = figAUC,
     "sigma" = figSigma,
     "delta" = figDelta,
-    "curve" = figCurve
+    "curve" = figCurve,
+    "corr" = figCorr,
+    "stats_df" = stats_df,
+    "contrast_df" = contrast_df
   )
   return(outputs)
 }
