@@ -120,7 +120,7 @@ expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs =
   # plot to compare delta wtw 
   delta_df = data.frame(
     delta =  repOutputs$sub_auc_[,6] - repOutputs$sub_auc_[,1],
-    emp_delta = MFResults$sub_auc_[,6] - MFResults$sub_auc_[,1],
+    emp_delta = esults$sub_auc_[,6] - MFResults$sub_auc_[,1],
     condition = sumStats$condition,
     passCheck = passCheck
   ) %>% filter(passCheck)

@@ -303,8 +303,7 @@ for(i in 1 : 3){
   best_fit_4[i,] = as.numeric(cmpOuts_[[i]][['bestFit4']]$bestFitNum[1:4])
   best_fit_6[i,] = as.numeric(cmpOuts_[[i]][['bestFit6']]$bestFitNum[1:6])
 }
-
-round(best_fit_6 / apply(best_fit_6, MARGIN = 1, sum))
+round(best_fit_6 / apply(best_fit_6, MARGIN = 1, sum) * 100)
 ###################################################################################
 ##                     Parameter histograms and correlations                     ##
 ###################################################################################
@@ -319,6 +318,12 @@ for(i in 1 : nExp){
 setwd(pwd)
 histPara = (outs_[[1]][["hist"]] / outs_[[2]][['hist']] / outs_[[3]][['hist']]) + plot_layout(heights = c(0.5, 0.5, 0.5))
 ggsave(file.path("../figures/cmb", "para_hist.eps"), histPara, width = 6, height = 6)
+
+
+paste(outs_[[1]]$para_summar$median, seq = "&", collapse = '')
+outs_[[3]]$optim_summary
+
+
 # figures for correlation analysis (with self-report measures and among parameters) are saved separately for each experiments
 # print results for optimism bias 
 outs_[[1]]$nuTest # whether nu < 1 in Exp.1

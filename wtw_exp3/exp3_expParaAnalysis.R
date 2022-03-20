@@ -32,22 +32,28 @@ expParaAnalysis = function(){
     "nu" =  scale_x_continuous(limits =  c(-0.5, 5.5), breaks = c(0, 5), labels = c(0, 5)),
     "tau" =  scale_x_continuous(limits =  c(-0.5, 22.5), breaks = c(0.1, 22), labels = c(0.1, 22)),
     "gamma" = scale_x_continuous(limits =  c(0.65, 1.05), breaks = c(0.7, 1), labels = c(0.7, 1)),
-    "eta" = scale_x_continuous(limits =  c(-0.5, 7), breaks = c(0, 6.5), labels = c(0, 6.5))
+    "eta" = scale_x_continuous(limits =  c(-0.5, 16), breaks = c(0, 15), labels = c(0, 15))
   )
   tmp$paraname = factor(tmp$paraname, levels = paraNames)
   priors = data.frame(
     paraname = paraNames,
     lower = c(0, 0, 0.1, 0.7, 0),
-    upper = c(0.3, 5, 22, 1, 6.5)
+    upper = c(0.3, 5, 22, 1, 15)
   )
   
   library(scales)
   library(facetscales)
-  hist = ggplot(tmp) + geom_histogram(aes(x=value),  bins = 20) +
+  hist = ggplot(tmp) + geom_histogram(aes(x=value),  bins = 15) +
     facet_grid_sc(cols = vars(paraname), scales = list(x = scales_x), labeller = label_parsed) + theme(legend.position = "none") + myTheme +
     geom_segment(data = priors, aes(x = lower, xend = upper, y = -0.5, yend = -0.5, color = "red")) + 
-    xlab("") + ylab("Count")
+    xlab("") + ylab("Count") +
+    geom_segment(x = 1, xend = 1, y = 0, yend  = 30, color = "black", linetype = "dashed")
   
+  para_summary =  tmp %>% group_by(paraname) %>% 
+    summarise(median = round(median(value), 3),
+              q1 = round(quantile(value, 0.25), 3),
+              q3 = round(quantile(value, 0.75), 3),
+              IQR = round(IQR(value), 3)) %>% ungroup()
   ################## plot correlations ####################
   plotData = expPara %>% filter(passCheck ) %>% select(c(paraNames)) %>%
     gather(key = "para", value = "value") %>%
@@ -61,13 +67,13 @@ expParaAnalysis = function(){
   
   
   ########## ptimism bias ########
-  nuTest = wilcox.test(expPara$nu[passCheck] - 1)
-  numOptim = sum(expPara$nu[passCheck] < 1)
+  optim_summary = expPara[passCheck,] %>%
+    summarise(nOptim = sum(nu < 1), nTotal = length(nu))
   ######## return outputs ##########
   outputs = list(
-    "nuTest" = nuTest,
     "hist" = hist,
-    "numOptim" = numOptim
+    "para_summary" = para_summary,
+    "optim_summary" = optim_summary
   )
   
   return(outputs)

@@ -14,7 +14,6 @@ expModelRepInd = function(){
   dir.create("../../genData/wtw_exp1")
   dir.create("../../genData/wtw_exp1/MFAnalysis")
   
-  
   # load experiment parameters
   load("expParas.RData")
   
@@ -25,23 +24,6 @@ expModelRepInd = function(){
   ids = hdrData$id[hdrData$stress == "no_stress"]  
   nSub = length(ids)                    # n
   cat('Analyzing data for',nSub,'subjects.\n')
-  
-  # a function to plot trial-wise behavior for each participant one by one
-  # for (sIdx in 1 : nSub) {
-  #   id = ids[sIdx]
-  #   thisTrialData = trialData[[id]] 
-  #   if(unique(thisTrialData$condition) == "LP"){
-  #     trctLine = blockSec - max(delayMaxs)
-  #     # truncate trials completed after tractline in each block
-  #     thisTrialData = thisTrialData %>% filter(trialStartTime <=  trctLine)
-  #     thisTrialData = block2session(thisTrialData)
-  #     # p = trialPlots(thisTrialData) + ylim(c(0, 40))
-  #     wtwTS(thisTrialData, tGrid, 20, plotWTW = T) 
-  #     print(id)
-  #     # ggsave("p26.eps", width = 8, height = 4)
-  #     readline(prompt="Press [enter] to continue")
-  #   }
-  # }
   
   # conduct wtw analysis for several example participants
   cut =1260
@@ -56,7 +38,7 @@ expModelRepInd = function(){
       # truncate trials completed after tractline in each block
       thisTrialData = thisTrialData %>% filter(trialStartTime <=  trctLine) 
       thisTrialData = block2session(thisTrialData)
-      thisTrialData = thisTrialData[thisTrialData$sellTime < cut,]
+      # thisTrialData = thisTrialData[thisTrialData$trialStartTime < cut,]
       # p = trialPlots(thisTrialData) + ylim(c(0, 40))
       outputs = wtwTS(thisTrialData, tGrid[1:cut], 20, plotWTW = F) 
       # outputs_[[i]] = outputs$timeWTW
@@ -66,6 +48,11 @@ expModelRepInd = function(){
     }
   }
   
+  
+  source("MFAnalysis.R")
+  MFResults = MFAnalysis(isTrct = T)
+  sumStats = MFResults$sumStats
+  sumStats$delta = MFResults$sub_auc_[,6] - MFResults$sub_auc_[,1]
   ############### plot empirical results of three example participants #######
   figEmp = data.frame(
     wtw = unlist(outputs_),
@@ -74,23 +61,10 @@ expModelRepInd = function(){
   ) %>% ggplot(aes(time, wtw,  color = sub)) + geom_line(size = 1) + geom_point() +
     scale_color_manual(values = c("#1f78b4", "#a6cee3", "#ff7f00")) +
     myTheme + scale_x_continuous(breaks = c(0, 420, 840, 1260), labels = c(0, 420, 840, 1260)/60) +
-    xlab("Task time (min)") + ylab("Willingness to wait (s)") +
+    xlab("Task time (min)") + ylab("WTW (s)") +
     theme(legend.position = "None") +
     geom_hline(aes(yintercept = 2.2), color = conditionColors[2], size = 1, linetype = "dashed") +
     ggtitle("Observed") + theme(plot.title = element_text(hjust = 0.5))
-  
-  # figEmp = data.frame(
-  #   wtw = unlist(outputs_),
-  #   time = rep(tGrid[1:cut], 3),
-  #   sub = rep(selectedIds, each = cut)
-  # ) %>% ggplot(aes(time, wtw,  color = sub)) + geom_line(size = 2) +
-  #   scale_color_manual(values = c("#1f78b4", "#a6cee3", "#ff7f00")) + 
-  #   myTheme + scale_x_continuous(breaks = c(0, 420, 840, 1260), labels = c(0, 420, 840, 1260)/60) +
-  #   xlab("Task time (min)") + ylab("Willingness to wait (s)") +
-  #   theme(legend.position = "None") + 
-  #   geom_hline(aes(yintercept = 2.2), color = conditionColors[2], size = 1, linetype = "dashed") +
-  #   ggtitle("Observed") + theme(plot.title = element_text(hjust = 0.5))
-  
   
   ############### replicate results using individual parameters#######
   ################# plot on trial level #######
@@ -98,9 +72,9 @@ expModelRepInd = function(){
   source("subFxs/modelRep.R")
   source('subFxs/helpFxs.R')
   source('exp1_expSchematics.R')
-  repOutputs = modelRep("QL2", trialData[c("11","20", "79")], c("11","20", "79"), nRep = 10, T)
-  timeWTW_ = repOutputs$timeWTW_
-  trialWTW_ = repOutputs$trialWTW_
+  load(file = sprintf("../../genData/wtw_exp1/expModelRep/%s_trct.RData", modelName))
+  timeWTW_ = repOutputs$timeWTW_[c("11","20", "79")]
+  trialWTW_ = repOutputs$trialWTW_[c("11","20", "79")]
   figModelInd = data.frame(
     time =  unlist(sellTimes_),
     wtw = unlist(trialWTW_),
@@ -109,47 +83,12 @@ expModelRepInd = function(){
     myTheme + scale_color_manual(values = c("#1f78b4", "#a6cee3", "#ff7f00")) +
     xlab("Task time (min)") + 
     scale_x_continuous(breaks = c(0, 420, 840, 1260), labels = c(0, 420, 840, 1260)/60) +
-    ylab("Willingness to wait (s)") +
+    ylab("WTW (s)") +
     theme(legend.position = "None") +
     geom_hline(aes(yintercept = 2.2), color = conditionColors[2], size = 1, linetype = "dashed") +
     ggtitle("Model-generated\nwith individually-fitted parameters") +
     theme(plot.title = element_text(hjust = 0.5))
-  ggsave(file.path("../figures/cmb","exp1_ind_rep.eps"), width = 4, height = 4)  
-  
-  # obs =  data.frame(
-  #   wtw = unlist(outputs_),
-  #   time = unlist(sellTimes_),
-  #   id = rep(selectedIds, sapply(sellTimes_, length))
-  # )
-  # obs[['type']] = "obs"
-  # rep = data.frame(
-  #   time =  unlist(sellTimes_),
-  #   wtw = unlist(trialWTW_),
-  #   id = rep(selectedIds, sapply(sellTimes_, length)))
-  # rep[['type']] = "rep"
-  # plotdf = rbind(obs, rep)
-  # plotdf %>% 
-  #   ggplot(aes(time, wtw, color = type)) +
-  #   geom_line() + myTheme +
-  #   geom_point() + facet_grid(id~.)
-      
-    
-  
-  
-  ######## plot with time #######
-  # data.frame(
-  #   time =  rep(tGrid, length(selectedIds)),
-  #   wtw = as.vector(timeWTW_),
-  #   id = rep(selectedIds, each = length(tGrid))
-  # ) %>% ggplot(aes(time, wtw, color = id)) + geom_line(size = 1) +
-  #   myTheme + scale_color_manual(values = c("#1f78b4", "#a6cee3", "#ff7f00")) +
-  #   xlab("Task time (min)") + 
-  #   scale_x_continuous(breaks = c(0, 420, 840, 1260), labels = c(0, 420, 840, 1260)/60) +
-  #   ylab("Willingness to wait (s)") +
-  #   theme(legend.position = "None") +
-  #   geom_hline(aes(yintercept = 2.2), color = conditionColors[2], size = 1, linetype = "dashed") +
-  #   ggtitle("Model-generated\nwith individually-fitted parameters") +
-  #   theme(plot.title = element_text(hjust = 0.5))
+
   
   ############### print parameters ##############
   paraNames = getParaNames("QL2")
@@ -159,20 +98,21 @@ expModelRepInd = function(){
   
   ############### resimulate with group average ############
   hdrData = hdrData[hdrData$stress == "no_stress",]
-  aveLPParas = as.numeric(apply(expPara[hdrData$condition == "LP",  1:5], mean, MARGIN = 2)) 
-  aveRepOutputs = modelRep("QL2", trialData[selectedIds], selectedIds, nRep = 10, T, aveLPParas) 
-  
+  indParas = expPara[expPara$id %in% selectedIds,]
+  indStats = sumStats[sumStats$id %in% selectedIds,]
+  aveParas = as.numeric(apply(expPara[,1:5], mean, MARGIN = 2)) 
+  aveRepOutputs = modelRep("QL2", trialData[selectedIds], selectedIds, nRep = 10, T, aveParas) 
   figModelGroup = data.frame(
-    time = rep(tGrid, length(selectedIds)),
-    wtw = as.vector(aveRepOutputs$timeWTW_),
-    id = rep(selectedIds, each = length(tGrid))
-  ) %>% ggplot(aes(time, wtw, color = id)) + geom_line(size = 2) +
+    time = unlist(sellTimes_),
+    wtw = unlist(aveRepOutputs$trialWTW_),
+    id = rep(selectedIds, sapply(sellTimes_, length))
+  ) %>% ggplot(aes(time, wtw, color = id)) + geom_line(size = 1) + geom_point() +
     myTheme + scale_color_manual(values = c("#1f78b4", "#a6cee3", "#ff7f00")) +
-    xlab("Simulation time (min)") + 
+    xlab("Task time (min)") + 
     scale_x_continuous(breaks = c(0, 420, 840, 1260), labels = c(0, 420, 840, 1260)/60) +
-    ylab("Willingness to wait (s)") +
+    ylab("WTW (s)") +
     theme(legend.position = "None") +
-    geom_hline(aes(yintercept = 2.2), color = conditionColors[2], linetype = "dashed", size = 1) +
+    geom_hline(aes(yintercept = 2.2), color = conditionColors[2], size = 1, linetype = "dashed") +
     ggtitle("Model-generated\nwith group-averaged parameters") +
     theme(plot.title = element_text(hjust = 0.5))
   
@@ -181,11 +121,11 @@ expModelRepInd = function(){
   outputs = list(
     "emp" = figEmp,
     "modelInd" = figModelInd,
-    "modelGroup" = figModelGroup
+    "modelGroup" = figModelGroup,
+    "indParas" = indParas,
+    "indStats" = indStats
   )
-  
   return(outputs)
-  
 }
 
 
