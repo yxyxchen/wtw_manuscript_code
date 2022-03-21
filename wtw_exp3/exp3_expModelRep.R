@@ -162,12 +162,19 @@ expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs =
     ylab("Model-generated (s)") + xlab("Observed (s)") + myTheme
    
   #################### calc % explained ######## 
-  summary(lm(emp_auc~auc, plotData[plotData$condition == "HP",]))$r.squared
-  summary(lm(emp_auc~auc, plotData[plotData$condition == "LP",]))$r.squared
-  summary(lm(emp_std~std, plotData[plotData$condition == "HP",]))$r.squared
-  summary(lm(emp_std~std, plotData[plotData$condition == "LP",]))$r.squared
-  summary(lm(emp_delta~delta, delta_df[delta_df$condition == "HP",]))$r.squared
-  summary(lm(emp_delta~delta, delta_df[delta_df$condition == "LP",]))$r.squared
+ r2_df = data.frame(
+   variable = rep(c("auc", "delta", "stdWTW"), each = 2),
+   condition = rep(c("HP", "LP"), 3),
+   r2 = round(c(
+     summary(lm(emp_auc~auc, plotData[plotData$condition == "HP",]))$r.squared,
+     summary(lm(emp_auc~auc, plotData[plotData$condition == "LP",]))$r.squared,
+     summary(lm(emp_delta~delta, delta_df[delta_df$condition == "HP",]))$r.squared,
+     summary(lm(emp_delta~delta, delta_df[delta_df$condition == "LP",]))$r.squared,
+     summary(lm(emp_std~std, plotData[plotData$condition == "HP",]))$r.squared,
+     summary(lm(emp_std~std, plotData[plotData$condition == "LP",]))$r.squared
+   ) * 100, 2)
+ )
+
   
   # combind
   figStats = aucFig / deltaFig / stdFig +
@@ -176,7 +183,7 @@ expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs =
   
   ################# return figure outputs ###############
   # outputs = list("rep" = rep, "example" = example)
-  outputs = list('figWTW' = figWTW, 'figStats' = figStats)
+  outputs = list('figWTW' = figWTW, 'figStats' = figStats, "r2_df" = r2_df)
   return(outputs)
 }
 

@@ -103,24 +103,13 @@ expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs =
     scale_x_continuous(breaks = 0:3 * 60 * 7, labels = 0:3 * 7) +
     xlab("Task time (min)") + ylab("WTW (s)") + ylim(c(0, 20))
    
-   # ggplot(plotdf, aes(time, mu, color = type))  + 
-   #   geom_line(aes(time, mu, color = color_group)) +
-   #   facet_grid(~condition) + myTheme +
-   #   scale_color_manual(values = c(conditionColors, "#41ab5d", "#c51b7d")) + 
-   #   theme(legend.position = "None") +
-   #   scale_x_continuous(breaks = 0:3 * 60 * 7, labels = 0:3 * 7) + 
-   #   xlab("Task time (min)") + ylab("WTW (s)") +
-   #   geom_segment(aes(x = x, xend = x), data = seg_df, y = 0, yend = 20,
-   #                inherit.aes =  F, linetype = "dashed", color = "grey")
-  
-      # geom_ribbon(aes(ymin=ymin, ymax=ymax, fill = type), color = NA, alpha = 0.5) 
   #################################################################
   ##      compare observed and replicated AUC and sigma_wtw      ##
   #################################################################
   # plot to compare delta wtw 
   delta_df = data.frame(
     delta =  repOutputs$sub_auc_[,6] - repOutputs$sub_auc_[,1],
-    emp_delta = esults$sub_auc_[,6] - MFResults$sub_auc_[,1],
+    emp_delta = MFResults$sub_auc_[,6] - MFResults$sub_auc_[,1],
     condition = sumStats$condition,
     passCheck = passCheck
   ) %>% filter(passCheck)
@@ -153,8 +142,6 @@ expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs =
   scale_color_manual(values = conditionColors) +
     theme(legend.position = "none") + 
     ggtitle("AUC")
-  summary(lm(empMu~mu, plotData[plotData$passCheck & plotData$condition == "HP",]))$r.squared
-  summary(lm(empMu~mu, plotData[plotData$passCheck & plotData$condition == "LP",]))$r.squared
 
   # plot to compare std willingess to wait
   stdFig = plotData %>%
@@ -174,6 +161,20 @@ expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs =
   figStats = aucFig / deltaFig / stdFig +
     plot_annotation(title = sprintf("%s, n = %d", modelName, sum(passCheck)), theme = theme(plot.title = element_text(hjust = 0.5, size = 20)))
   
+  ########### portion explained 
+  r2_df = data.frame(
+    variable = rep(c("auc", "delta", "stdWTW"), each = 2),
+    condition = rep(c("HP", "LP"), 3),
+    r2 = round(c(
+    summary(lm(empMu~mu, plotData[plotData$passCheck & plotData$condition == "HP",]))$r.squared,
+    summary(lm(empMu~mu, plotData[plotData$passCheck & plotData$condition == "LP",]))$r.squared,
+    summary(lm(delta~emp_delta, delta_df[delta_df$passCheck & delta_df$condition == "HP",]))$r.squared,
+    summary(lm(delta~emp_delta, delta_df[delta_df$passCheck & delta_df$condition == "LP",]))$r.squared,
+    summary(lm(empStd~std, plotData[plotData$passCheck & plotData$condition == "HP",]))$r.squared,
+    summary(lm(empStd~std, plotData[plotData$passCheck & plotData$condition == "LP",]))$r.squared
+    ) * 100, 2)
+  )
+
   ################# return figure outputs ###############
   # outputs = list("rep" = rep, "example" = example)
   repTimeWTW_ = repOutputs$timeWTW_
@@ -185,7 +186,7 @@ expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs =
     condition = rep(sumStats$condition, each = length(tGrid)),
     passCheck = rep(passCheck, each = length(tGrid))
   )
-  outputs = list('figWTW' = figWTW, 'figStats' = figStats)
+  outputs = list('figWTW' = figWTW, 'figStats' = figStats, "r2_df" = r2_df)
   return(outputs)
   
 }

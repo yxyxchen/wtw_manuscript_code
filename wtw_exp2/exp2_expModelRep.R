@@ -75,9 +75,6 @@ expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs =
     mutate(ymin = mu - se,
           ymax = mu + se) 
   
-    # plotdf$mu[plotdf$time %in% c((blockSec - max(delayMaxs)) : blockSec, (blockSec*2 - max(delayMaxs)) : (blockSec*2))] = NA
-    # plotdf$ymin[plotdf$time %in% c((blockSec - max(delayMaxs)) : blockSec, (blockSec*2 - max(delayMaxs)) : (blockSec*2))]  = NA
-    # plotdf$ymax[plotdf$time %in% c((blockSec - max(delayMaxs)) : blockSec, (blockSec*2 - max(delayMaxs)) : (blockSec*2))]  = NA
   rectData = data.frame(
     xmin = ((1:2) - 1) * blockSec,
     xmax = (1:2) * blockSec,
@@ -96,13 +93,6 @@ expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs =
       xlab("Task time (min)") + ylab("WTW (s)") + 
     scale_y_continuous(limits = c(0, 16.5), breaks = c(0, 8, 16), labels = c(0, 8, 16))
   
-  # figWTW = ggplot(plotdf, aes(time, mu)) +
-  #   geom_line(aes(time, mu, linetype = type, color = condition)) +
-  #   myTheme +
-  #   scale_color_manual(values = conditionColors) + 
-  #   theme(legend.position = "None") +
-  #   scale_x_continuous(breaks = c(0, 300, 600, 900, 1200), labels = c(0, 300, 600, 900, 1200) / 60) + 
-  #   xlab("Task time (min)") + ylab("WTW (s)")
     
   ################### observed stats vs model generated stats ####################
   plotData = data.frame(id = sumStats$ID, auc =  repOutputs$auc, std = repOutputs$stdWTW,
@@ -162,12 +152,22 @@ expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs =
     plot_annotation(title = sprintf("%s, n = %d", modelName, sum(passCheck)), theme = theme(plot.title = element_text(hjust = 0.5, size = 20)))
   
   ################### calc variance explained ####################
-  # summary(lm(plotData$auc[plotData$condition == "HP" & plotData$passCheck] ~ plotData$emp_auc[plotData$condition == "HP" & plotData$passCheck]))$r.squared
-  # summary(lm(plotData$std[plotData$condition == "HP" & plotData$passCheck] ~ plotData$emp_std[plotData$condition == "HP" & plotData$passCheck]))$r.squared
-  # summary(lm(delta_df$delta[passCheck] ~ delta_df$emp_delta[passCheck]))$r.squared
-  # summary(lm(delta_df$delta[passCheck] ~ delta_df$emp_delta[passCheck]))$r.squared
   
-  outputs = list('figWTW' = figWTW, 'figStats' = figStats)
+  r2_df = data.frame(
+    variable = rep(c("auc", "delta", "stdWTW"), each = 2),
+    condition = rep(c("HP", "LP"), 3),
+    r2 = round(c(
+      summary(lm(plotData$auc[plotData$condition == "HP"] ~ plotData$emp_auc[plotData$condition == "HP"]))$r.squared,
+      summary(lm(plotData$auc[plotData$condition == "LP"] ~ plotData$emp_auc[plotData$condition == "LP"]))$r.squared,
+      summary(lm(delta_df$delta[delta_df$condition == "HP"] ~ delta_df$emp_delta[delta_df$condition == "HP"]))$r.squared,
+      summary(lm(delta_df$delta[delta_df$condition == "LP"] ~ delta_df$emp_delta[delta_df$condition == "LP"]))$r.squared,
+      summary(lm(plotData$std[plotData$condition == "HP"] ~ plotData$emp_std[plotData$condition == "HP"]))$r.squared,
+      summary(lm(plotData$std[plotData$condition == "LP"] ~ plotData$emp_std[plotData$condition == "LP"]))$r.squared
+    ) * 100, 2)
+  )
+
+  
+  outputs = list('figWTW' = figWTW, 'figStats' = figStats, "r2_df" = r2_df)
   return(outputs)
 
 }

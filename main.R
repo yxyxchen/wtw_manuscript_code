@@ -157,6 +157,9 @@ ggsave(file.path("..", "figures", "cmb", "modelRep_example.eps"), figRepExample,
 ###############################################################################
 ##                       qualitative model comparison                       ##
 ##############################################################################
+MFResults_ = list()
+MFResults = MFAnalysis(isTrct = T)
+MFResults_[[i]] = MFResults
 # plot ovserved and model-generated AUC and sigma_WTW
 outs_ = vector("list", length = nExp )
 # sqerr_df_ = vector("list", length = nExp)
@@ -166,21 +169,29 @@ for(i in 1 : nExp){
   source("subFxs/loadFxs.R")
   source("MFAnalysis.R")
   allData = loadAllData() # load all the data 
-  MFResults = MFAnalysis(isTrct = T)
   outs = vector("list", length = nModel) # initialize the output 
   for(j in 1 : nModel){
     model = models[j]
-    output = expModelRep(model, allData, MFResults)
+    output = expModelRep(model, allData, MFResults_[[i]])
     outs[[j]] = output
   }
   outs_[[i]] = outs
 }
+
 
 # combine figWTW
 # combine figures together 
 setwd(pwd)
 figWTW = (outs_[[1]][[2]][['figWTW']] |outs_[[2]][[2]][['figWTW']] | outs_[[3]][[2]][['figWTW']]) + plot_annotation(tag_levels = "a")
 ggsave(file.path("..", "figures", "cmb", "rep_wtw_new.pdf"), figWTW, width = 15, height = 4 )
+
+# combine QL2 results 
+setwd(pwd)
+figQL2 = (outs_[[1]][[2]]$figStat | outs[[2]]$figStat | outs[[3]]$figStat) + plot_annotation(tag_levels = "a")
+ggsave(file.path("..", "figures", "cmb", "figQL2.pdf"), figQL2, width = 12, height = 12)
+
+# look at variance 
+cbind(outs_[[1]][[2]]$r2_df, outs_[[2]][[2]]$r2_df, outs_[[3]][[2]]$r2_df)
 
 # combine figures together 
 for(i in 1 : nExp){
@@ -321,7 +332,9 @@ ggsave(file.path("../figures/cmb", "para_hist.eps"), histPara, width = 6, height
 
 
 paste(outs_[[1]]$para_summar$median, seq = "&", collapse = '')
-outs_[[3]]$optim_summary
+
+ 
+outs_[[2]]$optim_summary
 
 
 # figures for correlation analysis (with self-report measures and among parameters) are saved separately for each experiments
@@ -375,5 +388,10 @@ outs_[[1]]$nPass
 outs_[[2]]$nPass
 outs_[[3]]$nPass
 
-
-
+########### individual participants ##########
+setwd("wtw_exp1")
+source("exp1_expModelRepInd.R")
+outs = expModelRepInd()
+figInd = (outs$emp | outs$modelInd | outs$modelGroup) + plot_annotation(tag_levels = "a")
+setwd(pwd)
+ggsave(file.path("../figures/cmb", "figInd.eps"), figInd, width = 15, height = 4)
