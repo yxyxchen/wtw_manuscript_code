@@ -1,4 +1,4 @@
-expModelRepGroup() = function{
+expModelRepGroup = function(){
   # load experiment parameters
   load('expParas.RData')
   # load packages and sub functions 
@@ -82,7 +82,8 @@ expModelRepGroup() = function{
     scale_color_manual(values = c("#f4a582", "#b2182b", "#4393c3", "#2166ac", "black"))  +
     xlab("Task time (min)") + 
     scale_x_continuous(breaks = 0 : 3 * 7 * 60, labels = 0 : 3 * 7) + 
-    ylab("WTW (s)") 
+    ylab("WTW (s)") + theme(legend.position =  "None")
+  
   return(figWTW)
 }
 
