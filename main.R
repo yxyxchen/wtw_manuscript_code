@@ -8,6 +8,7 @@ library(ggplot2)
 library(lattice)
 library(extrafont)
 library(patchwork)
+library(figpatch)
 # extrafont::font_import()
 
 
@@ -158,8 +159,12 @@ ggsave(file.path("..", "figures", "cmb", "modelRep_example.eps"), figRepExample,
 ##                       qualitative model comparison                       ##
 ##############################################################################
 MFResults_ = list()
-MFResults = MFAnalysis(isTrct = T)
-MFResults_[[i]] = MFResults
+for(i in 1 : nExp){
+  setwd(file.path(pwd, wds[i]))
+  source("MFAnalysis.R")
+  MFResults = MFAnalysis(isTrct = T)
+  MFResults_[[i]] = MFResults
+}
 # plot ovserved and model-generated AUC and sigma_WTW
 outs_ = vector("list", length = nExp )
 # sqerr_df_ = vector("list", length = nExp)
@@ -167,7 +172,7 @@ for(i in 1 : nExp){
   setwd(file.path(pwd, wds[i])) # set the working directory
   source(sprintf("exp%d_expModelRep.R", i)) 
   source("subFxs/loadFxs.R")
-  source("MFAnalysis.R")
+
   allData = loadAllData() # load all the data 
   outs = vector("list", length = nModel) # initialize the output 
   for(j in 1 : nModel){
@@ -395,3 +400,19 @@ outs = expModelRepInd()
 figInd = (outs$emp | outs$modelInd | outs$modelGroup) + plot_annotation(tag_levels = "a")
 setwd(pwd)
 ggsave(file.path("../figures/cmb", "figInd.eps"), figInd, width = 15, height = 4)
+
+##### combine correlation figures ####3
+outs = list()
+for(i in 1 : nExp){
+  path = system.file(
+    "../figures/cmb", 
+    sprintf("exp%d_corr.pdf", i), 
+    package = "figpatch", 
+    mustWork = TRUE)
+  img = fig(path)
+  outs[[i]] = img
+}
+pat <- patchwork::wrap_plots(outs[[1]], outs[[2]], outs[[3]])
+
+
+
