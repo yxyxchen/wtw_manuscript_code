@@ -402,14 +402,11 @@ setwd(pwd)
 ggsave(file.path("../figures/cmb", "figInd.eps"), figInd, width = 15, height = 4)
 
 ##### combine correlation figures ####3
+library("figpatch")
 outs = list()
 for(i in 1 : nExp){
-  path = system.file(
-    "../figures/cmb", 
-    sprintf("exp%d_corr.pdf", i), 
-    package = "figpatch", 
-    mustWork = TRUE)
-  img = fig(path)
+  this_path = system.file("../figures/cmb", sprintf("exp%d_corr.pdf", i))
+  img = fig(this_path)
   outs[[i]] = img
 }
 pat <- patchwork::wrap_plots(outs[[1]], outs[[2]], outs[[3]])
