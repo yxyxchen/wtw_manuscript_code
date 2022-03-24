@@ -206,102 +206,15 @@ for(i in 1 : nExp){
   ggsave(file.path("..", "figures", "cmb", sprintf("modelRep_exp%d.eps", i)), figStats, width = 4 * 6, height = 3 * 4 )
 }
 
-# plot WTW
-for(i in 1 : nExp){
-  # all passcheck
-  modelNames = c("QL1", "QL2", "RL1", "RL2", "naive", "omni")
-  nModel = length(modelNames)
-  passCheck_ = matrix(NA, nrow = nSub, ncol = nModel)
-  for(k in 1 : nModel){
-    modelName = modelNames[k]
-    paraNames = getParaNames(modelName)
-    expPara = loadExpPara(paraNames, sprintf("../../genData/wtw_exp1/expModelFit/%s", modelName))
-    passCheck_[,k] = checkFit(paraNames, expPara)
-  }
-  passCheck = apply(passCheck_, MARGIN = 1, all)
-  
-  # emp MF 
-  MFResults = MFAnalysis(isTrct = T)
-  plotdf = data.frame(
-    wtw = unlist(MFResults$timeWTW_),
-    time = rep(tGrid, nSub),
-    condition = rep(sumStats$condition, each = length(tGrid)),
-    passCheck = rep(passCheck, each = length(tGrid)),
-    type = "emp"
-  ) %>% filter(passCheck)  %>%
-    group_by(condition, time, type) %>% 
-    summarise(mu = mean(wtw),
-              se = sd(wtw) / sqrt(length(wtw))) %>%
-    mutate(ymin = mu - se,
-           ymax = mu + se) %>% ungroup()
-  # plotdf %>% ggplot(aes(time, mu)) + facet_grid(~condition) + geom_line()
-
-  for(j in 1 : nModel){
-    # aasdads
-    model = models[j]
-    load(file = sprintf("../../genData/wtw_exp%d/expModelRep/%s_trct.RData", i, model))
-    added_data = data.frame(
-      wtw = as.vector(repOutputs$timeWTW_),
-      time = rep(tGrid, nSub),
-      condition = rep(sumStats$condition, each = length(tGrid)),
-      passCheck = rep(passCheck, each = length(tGrid)),
-      type = model
-    ) %>% filter(passCheck)  %>%
-      group_by(condition, time, type) %>% 
-      summarise(mu = mean(wtw),
-                se = sd(wtw) / sqrt(length(wtw))) %>%
-      mutate(ymin = mu - se,
-             ymax = mu + se) %>% ungroup()
-  
-    plotdf = rbind(plotdf, added_data)
-  }
-  if(i == 1){
-     plotdf %>%
-      filter(type %in% c("QL1", "QL2", "RL1", "RL2", "emp")) %>%
-      mutate(type = factor(type, levels = c("QL1", "QL2", "RL1", "RL2", "emp"))) %>%
-      ggplot(aes(time, mu, color = type)) +
-      geom_line() + myTheme +
-      scale_color_manual(values = c("#d6604d", "#b2182b", "#4393c3", "#2166ac", "black")) + 
-      facet_grid(~condition) + xlab("Task time (min)") + 
-      scale_x_continuous(breaks = 0 : 3 * 7 * 60, labels = 0 : 3 * 7) + 
-      ylab("WTW (s)") 
-  }else{
-    figWTW = plotdf %>%
-      filter(type %in% c("QL1", "QL2", "RL1", "RL2", "emp")) %>%
-      mutate(type = factor(type, levels = c("QL1", "QL2", "RL1", "RL2", "emp"))) %>%
-      ggplot(aes(time, mu, color = type)) +
-      geom_line() + myTheme +
-      scale_color_manual(values = c("#d6604d", "#b2182b", "#4393c3", "#2166ac", "black"))  + xlab("Task time (min)") + 
-      scale_x_continuous(breaks = 0 : 2 * 10 * 60, labels = 0 : 2 * 10) + 
-      ylab("WTW (s)") 
-  }
+figWTW_ = list()
+for(i in 2 : nExp){
+  setwd(file.path(pwd, wds[i]))
+  source(sprintf("exp%d_expModelRepGroup.R", i))
+  figWTW_[[i]]= expModelRepGroup()
 }
-
-
-  
-
-plotdf %>% 
-  filter(type %in% c("QL1", "QL2", "RL2", "emp")) %>%
-  mutate(type = factor(type, levels = c("QL1", "QL2", "RL1", "RL2", "emp"))) %>%
-  ggplot(aes(time, mu, color = type)) +
-  geom_line() +
-  facet_grid(~condition)
-
-# assemble the figures 
-i = 2
-(figs_[[i]][[1]]$figWTW | figs_[[i]][[2]]$ | figs_[[i]][[3]] | figs_[[i]][[4]] | figs_[[i]][[5]] | figs_[[i]][[6]])
-figs_[[i]][[j]]$figWTW
-# assemble the figures 
 setwd(pwd)
-for(i in 1 : nExp){
-  figRep = (figs_[[i]][[1]] | figs_[[i]][[2]] | figs_[[i]][[3]] | figs_[[i]][[4]] | figs_[[i]][[5]] | figs_[[i]][[6]])
-  ggsave(file.path("../figures/cmb", sprintf("exp%s_modelRep.eps", i)), figRep, width = 24, height = 8)
-}
-for(i in 1 : nExp){
-  figRep = (figs_[[i]][[2]] | figs_[[i]][[5]] | figs_[[i]][[6]])
-  ggsave(file.path("../figures/cmb", sprintf("exp%s_modelRep_simple.eps", i)), figRep, width = 12, height = 8)
-}
-
+figWTW_all = (figWTW_[[1]] | figWTW_[[2]] | figWTW_[[3]])
+ggsave(file.path("..", "figures", "cmb", "figWTW_all.pdf"), figWTW_all, width = 15, height = 4)
 ###############################################################################
 ##                       quantitative model comparison                       ##
 ##############################################################################
@@ -402,6 +315,7 @@ setwd(pwd)
 ggsave(file.path("../figures/cmb", "figInd.eps"), figInd, width = 15, height = 4)
 
 ##### combine correlation figures ####3
+<<<<<<< HEAD
 library("figpatch")
 outs = list()
 for(i in 1 : nExp){
@@ -410,6 +324,19 @@ for(i in 1 : nExp){
   outs[[i]] = img
 }
 pat <- patchwork::wrap_plots(outs[[1]], outs[[2]], outs[[3]])
+=======
+# outs = list()
+# for(i in 1 : nExp){
+#   path = system.file(
+#     "../figures/cmb", 
+#     sprintf("exp%d_corr.pdf", i), 
+#     package = "figpatch", 
+#     mustWork = TRUE)
+#   img = fig(path)
+#   outs[[i]] = img
+# }
+# pat <- patchwork::wrap_plots(outs[[1]], outs[[2]], outs[[3]])
+>>>>>>> 0d0327201e52cc0e24643c57c04a4dd6c832f30f
 
 
 

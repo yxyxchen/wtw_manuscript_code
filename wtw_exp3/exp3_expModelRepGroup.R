@@ -1,3 +1,4 @@
+expModelRepGroup = function(){
 # load experiment parameters
 load('expParas.RData')
 
@@ -73,21 +74,14 @@ for(j in 1 : nModel){
   plotdf = rbind(plotdf, added_data)
 }
 
-plotdf %>%
+figWTW = plotdf %>%
   filter(type %in% c("QL1", "QL2", "RL1", "RL2", "emp")) %>%
   mutate(type = factor(type, levels = c("QL1", "QL2", "RL1", "RL2", "emp"))) %>%
   ggplot(aes(time, mu, color = type)) +
-  geom_line() + myTheme +
+  geom_line(alpha = 0.75, size = 1) + myTheme +
   scale_color_manual(values = c("#d6604d", "#b2182b", "#4393c3", "#2166ac", "black"))  + xlab("Task time (min)") + 
   scale_x_continuous(breaks = 0 : 2 * 10 * 60, labels = 0 : 2 * 10) + 
-  ylab("WTW (s)") + facet_grid(.~cbal)
+  ylab("WTW (s)") + facet_grid(.~cbal) + theme(legend.position =  "None")
 
-
-plotdf %>%
-  filter(type %in% c("QL2", "emp")) %>%
-  mutate(type = factor(type, levels = c("QL1", "QL2", "RL1", "RL2", "emp"))) %>%
-  ggplot(aes(time, mu, color = type)) +
-  geom_line() + myTheme +
-  scale_color_manual(values = c("#d6604d", "#b2182b", "#4393c3", "#2166ac", "black"))  + xlab("Task time (min)") + 
-  scale_x_continuous(breaks = 0 : 2 * 10 * 60, labels = 0 : 2 * 10) + 
-  ylab("WTW (s)") 
+return(figWTW)
+}

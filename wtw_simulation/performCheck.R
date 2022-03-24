@@ -35,13 +35,6 @@ performCheck = function(){
     list("HP" = c(0.75), "LP" = c(0.75)), # naive p = 0.75
     list("HP" = c(1), "LP" = c(1)) # naive p = 0.75
   )
-  # paras_ = list(
-  #   list("HP" = c(0.2, 15, 0.9, 6), "LP" = c(0.2, 15, 0.9, 6)), # "QL2"
-  #   list("HP" = c(0.05, 5, 10, 0.04), "LP" = c(0.05, 5, 10, 0.04)), # "RL2"
-  #   list("HP" = c(5), "LP" = c(5)), # omni
-  #   list("HP" = c(0.75), "LP" = c(0.75)), # naive p = 0.75
-  #   list("HP" = c(1), "LP" = c(1)) # naive p = 0.75
-  # )
   
   # simulate and plot 
   figs_ = vector(mode = "list", length = length(modelName_))
