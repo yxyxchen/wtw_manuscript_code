@@ -1,6 +1,7 @@
 simPostHoc = function(modelName, paraLabels, paraSamples_, delays_){
   # default settings 
   smallReward = 0
+  
   iti = 2
   
   # random seed
@@ -21,6 +22,7 @@ simPostHoc = function(modelName, paraLabels, paraSamples_, delays_){
   source("subFxs/helpFxs.R") 
   source("subFxs/loadFxs.R") # 
   source("subFxs/analysisFxs.R") 
+  source("subFxs/averageRes.R")
   
   # get the generative model 
   source(sprintf("./subFxs/simModels/default/%s.R", modelName))
@@ -37,33 +39,42 @@ simPostHoc = function(modelName, paraLabels, paraSamples_, delays_){
   }else{
     nRep = 10
   }
-  duration = 120 * 60
+  duration = 240 * 60
   
   # boundaries of analyses windows
   lower_boundaries = c(0, 4 * 60, 8 * 60, 12 * 60, duration - 4 * 60)
   upper_boundaries = lower_boundaries + 4 * 60
-  
+  nBreak = length(lower_boundaries)
+  cutValues = c(
+    "#cccccc",
+    "#969696",
+    "#636363",
+    "#252525"
+  )
   ######################### simulate with multiple parameter combinations #####################
   # loop over conditions
 
   for(condition in conditions){
     paraSamples_ = 
       list("HP" = data.frame(
-        alpha = seq(0.05, 0.1, length.out = nCut),
+        alpha = seq(0.01, 0.05, length.out = nCut),
         nu = c(0.25, 0.5, 1, 2),
         tau = exp(seq(log(0.5), log(8), length.out = nCut)),
-        gamma = seq(0.85, 0.99, length.out = nCut),
+        gamma = c(0.80, 0.88, 0.95, 0.98),
         prior = seq(0, 1, length.out = nCut)
       ), "LP" = data.frame(
-        alpha = seq(0.05, 0.1, length.out = nCut),
+        alpha = seq(0.01, 0.05, length.out = nCut),
         nu = c(0.25, 0.5, 1, 2),
         tau = exp(seq(log(0.5), log(8), length.out = nCut)),
-        gamma = seq(0.85, 0.99, length.out = nCut),
+        gamma = c(0.80, 0.88, 0.95, 0.98),
         prior = seq(2, 6, length.out = nCut)
       ))
+    default_paras = as.numeric(paraSamples[3, ])
+    # default_paras = c(0.01, 1, 5, 0.85, 1)
+    default_paras = c(0.01, 1, 5, 0.85, 4)
     # generate parameter combinations 
     paraSamples = paraSamples_[[condition]]
-    paraCombs = t(matrix(rep(as.numeric(paraSamples[3, ]), nCut * nPara), nrow = nPara))
+    paraCombs = t(matrix(rep(default_paras, nCut * nPara), nrow = nPara))
     for(pIdx in 1 : nPara){
       paraCombs[(nCut * (pIdx - 1) + 1) : (nCut * pIdx) ,pIdx] = paraSamples[,pIdx] 
     }
@@ -101,6 +112,28 @@ simPostHoc = function(modelName, paraLabels, paraSamples_, delays_){
       longterm_rv_[,i] = aveRes$wait_minus_quit_[,nBreak]
       longterm_quit_[i] = aveRes$quit_[nBreak]
     }
+    # plot
+    auc_df = data.frame(
+      auc = as.vector(sub_auc_),
+      time = 1 : nBreak,
+      parameter = factor(rep(paraLabels, each = nBreak * nCut), levels = paraLabels),
+      rank = rep(factor(1 : nCut), each = nBreak)
+    )
+    auc_df %>% ggplot(aes(time, auc, color = rank)) + facet_grid(~parameter) +
+      geom_line() + 
+      scale_color_manual(values = cutValues) +
+      ylim(c(0, min(delayMaxs)))
+    
+    longterm_rv_df = data.frame(
+      rv = as.vector(longterm_rv_),
+      time = 1 : nStep,
+      parameter = factor(rep(paraLabels, each = nCut * nStep), levels = paraLabels),
+      rank = rep(rep(factor(1 : nCut), each = nStep), nPara)
+    )
+    
+    longterm_rv_df %>% filter(time < nStep) %>% ggplot(aes(time, rv, color = rank)) + facet_grid(~parameter) +
+      geom_line()
+    
     # combine data 
     shortterm_rv_df = data.frame(
       rv = as.vector(shortterm_rv_),
@@ -108,18 +141,10 @@ simPostHoc = function(modelName, paraLabels, paraSamples_, delays_){
       parameter = factor(rep(paraLabels, each = nCut * nStep), levels = paraLabels),
       rank = rep(factor(1 : nCut), each = nStep)
     )
-    longterm_rv_df = data.frame(
-      rv = as.vector(longterm_rv_),
-      time = 1 : nStep,
-      parameter = factor(rep(paraLabels, each = nCut * nStep), levels = paraLabels),
-      rank = rep(factor(1 : nCut), each = nStep)
-    )
-    auc_df = data.frame(
-      auc = as.vector(sub_auc_),
-      time = 1 : nBreak,
-      parameter = factor(rep(paraLabels, each = nBreak * nCut), levels = paraLabels),
-      rank = rep(factor(1 : nCut), each = nBreak)
-    )
+    shortterm_rv_df %>% filter(time < nStep) %>% ggplot(aes(time, rv, color = rank)) + facet_grid(~parameter) +
+      geom_line()
+    
+
     shortterm_quit_df = data.frame(
       quit = as.vector(shortterm_quit_),
       parameter = factor(rep(paraLabels, each = nCut), levels = paraLabels),
@@ -137,26 +162,15 @@ simPostHoc = function(modelName, paraLabels, paraSamples_, delays_){
     longterm_quit_df %>% ggplot(aes(rank, quit)) + facet_grid(~parameter) + 
       geom_point()
     
-    shortterm_rv_df %>% filter(time < nStep) %>% ggplot(aes(time, rv, color = rank)) + facet_grid(~parameter) +
-      geom_line()
+
+
     
-    longterm_rv_df %>% filter(time < nStep) %>% ggplot(aes(time, rv, color = rank)) + facet_grid(~parameter) +
-      geom_line()
-    
-    auc_df %>% ggplot(aes(time, auc, color = rank)) + facet_grid(~parameter) +
-      geom_line() + 
-      scale_color_manual(values = cutValues) +
-       ylim(c(0, min(delayMaxs)))
+
     
 
   
   # plot AUC and CIP
-  cutValues = c(
-    "#cccccc",
-    "#969696",
-    "#636363",
-    "#252525"
-  )
+
   
   sumDf = rbind(HPSumDf, LPSumDf)
   #  

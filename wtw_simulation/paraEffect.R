@@ -19,8 +19,8 @@ paraEffect = function(){
   delays_ = vector(mode = "list", length = nRep)
   for(i in 1 : nRep){
     delays_[[i]] = list(
-      HP = replicate(120 * 60  / 2, drawSample("HP")),
-      LP = replicate(120 * 60  / 2, drawSample("LP"))
+      HP = replicate(240 * 60  / 2, drawSample("HP")),
+      LP = replicate(240 * 60  / 2, drawSample("LP"))
     )
   }
   

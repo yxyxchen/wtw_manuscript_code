@@ -249,9 +249,15 @@ histPara = (outs_[[1]][["hist"]] / outs_[[2]][['hist']] / outs_[[3]][['hist']]) 
 ggsave(file.path("../figures/cmb", "para_hist.eps"), histPara, width = 6, height = 6)
 
 
-paste(outs_[[1]]$para_summar$median, seq = "&", collapse = '')
+
+for(i in 1 : nExp){
+  outs = outs_[[i]]
+  print(paste(paste0(outs$para_summar$median, " [", outs$para_summar$q1, "-", outs$para_summar$q3, "]"), seq = "&", collapse = ''))
+}
 
  
+paste(outs_[[1]]$para_summar$q1, seq = "&", collapse = '')
+
 outs_[[2]]$optim_summary
 
 
