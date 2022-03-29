@@ -57,21 +57,21 @@ simPostHoc = function(modelName, paraLabels, paraSamples_, delays_){
   for(condition in conditions){
     paraSamples_ = 
       list("HP" = data.frame(
-        alpha = seq(0.01, 0.05, length.out = nCut),
-        nu = c(0.25, 0.5, 1, 2),
-        tau = exp(seq(log(0.5), log(8), length.out = nCut)),
-        gamma = c(0.80, 0.88, 0.95, 0.98),
-        prior = seq(0, 1, length.out = nCut)
+        alpha = c(0.000692, 0.00882, 0.0408, 0.0952),
+        nu = c(0.0153, 1.26, 2.23, 2.98),
+        tau = c(0.464, 2.17, 3.10, 5.88),
+        gamma = c(0.780, 0.841, 0.903, 0.968),
+        prior = c(0.924, 2.81, 5.13, 10.4)
       ), "LP" = data.frame(
-        alpha = seq(0.01, 0.05, length.out = nCut),
-        nu = c(0.25, 0.5, 1, 2),
-        tau = exp(seq(log(0.5), log(8), length.out = nCut)),
-        gamma = c(0.80, 0.88, 0.95, 0.98),
-        prior = seq(2, 6, length.out = nCut)
+        alpha = c(0.000692, 0.00882, 0.0408, 0.0952),
+        nu = c(0.0153, 1.26, 2.23, 2.98),
+        tau = c(0.464, 2.17, 3.10, 5.88),
+        gamma = c(0.780, 0.841, 0.903, 0.968),
+        prior = c(0.924, 2.81, 5.13, 10.4)
       ))
-    default_paras = as.numeric(paraSamples[3, ])
+    default_paras = as.numeric(paraSamples[2, ])
     # default_paras = c(0.01, 1, 5, 0.85, 1)
-    default_paras = c(0.01, 1, 5, 0.85, 4)
+    # default_paras = c(0.01, 1, 5, 0.85, 4)
     # generate parameter combinations 
     paraSamples = paraSamples_[[condition]]
     paraCombs = t(matrix(rep(default_paras, nCut * nPara), nrow = nPara))
@@ -152,15 +152,8 @@ simPostHoc = function(modelName, paraLabels, paraSamples_, delays_){
     )
     shortterm_quit_df %>% ggplot(aes(rank, quit)) + facet_grid(~parameter) + 
       geom_point()
+  }
     
-    longterm_quit_df = data.frame(
-      quit = as.vector(longterm_quit_),
-      parameter = factor(rep(paraLabels, each = nCut), levels = paraLabels),
-      rank = factor(1 : nCut)
-    )
-    
-    longterm_quit_df %>% ggplot(aes(rank, quit)) + facet_grid(~parameter) + 
-      geom_point()
     
 
 

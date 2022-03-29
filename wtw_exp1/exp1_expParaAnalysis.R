@@ -44,6 +44,12 @@ expParaAnalysis = function(){
   
   tmp = gather(plotData, key = 'paraname', value = 'value', -"condition")
   tmp$paraname = factor(tmp$paraname, levels = paraNames)
+  tmp %>% group_by(paraname) %>%
+    summarise(q1 = quantile(value, 0.2),
+              q2 = quantile(value, 0.4),
+              q3 = quantile(value, 0.6),
+              q4 = quantile(value, 0.8),
+              q5 = quantile(value, 1.0))
   scales_x <- list(
     'alpha' = scale_x_continuous(limits =  c(-0.05, 0.35), breaks = c(0,  0.3), labels = c(0,  0.3)),
     "nu" =  scale_x_continuous(limits =  c(-0.5, 5.5), breaks = c(0, 5), labels = c(0, 5)),
