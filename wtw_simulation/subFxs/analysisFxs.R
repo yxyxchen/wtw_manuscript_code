@@ -34,7 +34,20 @@ trialPlots <- function(thisTrialData) {
   return(p)
 }
 
-
+model_based_kmsc = function(wait_minus_quit, tau, tMax){
+  nStep = length(wait_minus_quit)
+  pWait =  1 /(1  + exp(-wait_minus_quit* tau))
+  pSurvival = cumprod(pWait)
+  # calc AUC
+  kmT = seq(0, nStep - 1)
+  kmF = c(1, pSurvival[1: (nStep-1)])
+  keepIdx = kmT<=tMax
+  kmT <- kmT[keepIdx]
+  kmF <- kmF[keepIdx]
+  # calculate auc
+  auc <- sum(diff(kmT) * head(kmF,-1))
+  return(list(kmT=kmT, kmF=kmF, auc=auc))
+}
 # using kaplan-meier survival analysis to measure:
 # average WTW (area under the curve)
 # std WTW

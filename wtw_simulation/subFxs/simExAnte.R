@@ -62,18 +62,21 @@ simExAnte = function(modelName, modelLabel, paras, delays_ = list()){
   
   # 
   # average the results across simulations
-  aveRes = averageRes(HPSim_, LPSim_)
+  recorded_timepoints = c(0, 4 * 60, 8 * 60, 12 * 60, 16 * 60, duration)
+  nRecord = length(recorded_timepoints)
+  aveResHP = averageRes(HPSim_, recorded_timepoints, paras$HP)
+  aveResLP = averageRes(LPSim_, recorded_timepoints, paras$LP)
   
-
   condData = data.frame(
     condition = conditions,
-    asymAUC = c(aveRes$asymHPauc$mu, aveRes$asymLPauc$mu),
+    asymAUC = c(aveResHP$sub_auc_[nRecord], aveResLP$sub_auc_[nRecord]),
     optim = unlist(normResults$optimWaitThresholds)
   )
+  
   figAUC = data.frame(
-    mu = c(aveRes$HPaucs$mu, aveRes$LPaucs$mu),
-    condition = c(rep("HP", nBreaks - 1), rep("LP", nBreaks - 1)),
-    t = rep(chunkMids, 2) / 60
+    mu = c(aveResHP$sub_auc_[1 : (nRecord-1)], aveResLP$sub_auc_[1 : (nRecord - 1)]),
+    condition = c(rep("HP", nRecord - 1), rep("LP", nRecord - 1)),
+    t = rep(recorded_timepoints[1 : (nRecord - 1)], 2) / 60
   ) %>% 
     ggplot(aes(t, mu, color = condition)) + geom_point() + geom_line() +
     myTheme + scale_color_manual(values = conditionColors) +

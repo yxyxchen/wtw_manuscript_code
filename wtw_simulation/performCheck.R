@@ -14,8 +14,8 @@ performCheck = function(){
   load("expParas.RData")
   
   # model names
-  modelName_ = c("QL1", "RL1", "omni", "naive", "naive")
-  modelLabel_ = c("QL1", "RL1", "omni", "naive75", "naive1")
+  modelName_ = c("QL1", "RL1")
+  modelLabel_ = c("QL1", "RL1")
   
   # it is good to use different seqs acoss simulations yet keep them the same across models
   nSim = 10
@@ -29,11 +29,8 @@ performCheck = function(){
   }
   # simulation parameters 
   paras_ = list(
-    list("HP" = c(0.05, 5, 0.85, 6), "LP" = c(0.05, 5, 0.85, 6)), # "QL2"
-    list("HP" = c(0.05, 5, 10, 0.04), "LP" = c(0.05, 5, 10, 0.04)), # "RL2"
-    list("HP" = c(5), "LP" = c(5)), # omni
-    list("HP" = c(0.75), "LP" = c(0.75)), # naive p = 0.75
-    list("HP" = c(1), "LP" = c(1)) # naive p = 0.75
+    list("HP" = c(0.01, 2, 0.85, 3), "LP" = c(0.01, 2, 0.85, 3)), 
+    list("HP" = c(0.01, 2, 3, 0.005), "LP" = c(0.01, 2, 3, 0.005))
   )
   
   # simulate and plot 

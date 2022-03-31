@@ -69,11 +69,12 @@ simPostHoc = function(modelName, paraLabels, paraSamples_, delays_){
         gamma = c(0.780, 0.841, 0.903, 0.968),
         prior = c(0.924, 2.81, 5.13, 10.4)
       ))
-    default_paras = as.numeric(paraSamples[2, ])
+
     # default_paras = c(0.01, 1, 5, 0.85, 1)
     # default_paras = c(0.01, 1, 5, 0.85, 4)
     # generate parameter combinations 
     paraSamples = paraSamples_[[condition]]
+    default_paras = as.numeric(paraSamples[2, ])
     paraCombs = t(matrix(rep(default_paras, nCut * nPara), nrow = nPara))
     for(pIdx in 1 : nPara){
       paraCombs[(nCut * (pIdx - 1) + 1) : (nCut * pIdx) ,pIdx] = paraSamples[,pIdx] 
@@ -103,7 +104,8 @@ simPostHoc = function(modelName, paraLabels, paraSamples_, delays_){
           sim_[[j]] = simModel(paras, condition, duration, normResults)
         }
       }
-      aveRes = averageRes(sim_, lower_boundaries, upper_boundaries)
+      aveRes = averageRes(sim_, recorded_timepoints, paras)
+      
       sub_auc_[,i] = aveRes$sub_auc_
       shortterm_rv_[,i] = aveRes$wait_minus_quit_[,nRecord - 1]
       shortterm_wait_[,i] = aveRes$wait_[, nRecord - 1]
