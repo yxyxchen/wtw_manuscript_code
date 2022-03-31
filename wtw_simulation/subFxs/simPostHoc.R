@@ -50,6 +50,7 @@ simPostHoc = function(modelName, paraLabels, paraSamples_, delays_){
     "#636363",
     "#252525"
   )
+  nCut = length(cutValues)
   
   ######################### simulate with multiple parameter combinations #####################
   # loop over conditions

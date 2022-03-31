@@ -17,12 +17,12 @@ paraEffect = function(){
   nRep = 10
   set.seed(123)
   delays_ = vector(mode = "list", length = nRep)
-  HP_seq = replicate(240 * 60  / 2, drawSample("HP"))
-  LP_seq = replicate(240 * 60  / 2, drawSample("LP"))
+  # HP_seq = replicate(240 * 60  / 2, drawSample("HP"))
+  # LP_seq = replicate(240 * 60  / 2, drawSample("LP"))
   for(i in 1 : nRep){
     delays_[[i]] = list(
-      # HP = replicate(240 * 60  / 2, drawSample("HP")),
-      # LP = replicate(240 * 60  / 2, drawSample("LP")),
+      HP = replicate(240 * 60  / 2, drawSample("HP")),
+      LP = replicate(240 * 60  / 2, drawSample("LP")),
       HP = HP_seq,
       LP = LP_seq
     )
