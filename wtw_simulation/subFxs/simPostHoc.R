@@ -39,21 +39,20 @@ simPostHoc = function(modelName, paraLabels, paraSamples_, delays_){
   }else{
     nRep = 10
   }
-  duration = 240 * 60
+  duration = 120 * 60
   
   # boundaries of analyses windows
-  lower_boundaries = c(0, 4 * 60, 8 * 60, 12 * 60, duration - 4 * 60)
-  upper_boundaries = lower_boundaries + 4 * 60
-  nBreak = length(lower_boundaries)
+  recorded_timepoints = c(0, 4 * 60, 8 * 60, 12 * 60, 16 * 60, duration)
+  nRecord = length(recorded_timepoints)
   cutValues = c(
     "#cccccc",
     "#969696",
     "#636363",
     "#252525"
   )
+  
   ######################### simulate with multiple parameter combinations #####################
   # loop over conditions
-
   for(condition in conditions){
     paraSamples_ = 
       list("HP" = data.frame(
@@ -80,7 +79,7 @@ simPostHoc = function(modelName, paraLabels, paraSamples_, delays_){
     }
     nComb = nrow(paraCombs)
     # initialize outputs
-    sub_auc_ = matrix(NA, nrow = nBreak, ncol = nComb)
+    sub_auc_ = matrix(NA, nrow = nRecord, ncol = nComb)
     if(condition == "HP"){
       nStep = delayMaxs[1] + 1
     }else{
@@ -105,19 +104,19 @@ simPostHoc = function(modelName, paraLabels, paraSamples_, delays_){
       }
       aveRes = averageRes(sim_, lower_boundaries, upper_boundaries)
       sub_auc_[,i] = aveRes$sub_auc_
-      shortterm_rv_[,i] = aveRes$wait_minus_quit_[,nBreak - 1]
-      shortterm_wait_[,i] = aveRes$wait_[, nBreak - 1]
-      shortterm_quit_[i] = aveRes$quit_[nBreak-1]
-      longterm_wait_[,i] = aveRes$wait_[, nBreak]
-      longterm_rv_[,i] = aveRes$wait_minus_quit_[,nBreak]
-      longterm_quit_[i] = aveRes$quit_[nBreak]
+      shortterm_rv_[,i] = aveRes$wait_minus_quit_[,nRecord - 1]
+      shortterm_wait_[,i] = aveRes$wait_[, nRecord - 1]
+      shortterm_quit_[i] = aveRes$quit_[nRecord-1]
+      longterm_wait_[,i] = aveRes$wait_[, nRecord]
+      longterm_rv_[,i] = aveRes$wait_minus_quit_[,nRecord]
+      longterm_quit_[i] = aveRes$quit_[nRecord]
     }
     # plot
     auc_df = data.frame(
       auc = as.vector(sub_auc_),
-      time = 1 : nBreak,
-      parameter = factor(rep(paraLabels, each = nBreak * nCut), levels = paraLabels),
-      rank = rep(factor(1 : nCut), each = nBreak)
+      time = 1 : nRecord,
+      parameter = factor(rep(paraLabels, each = nRecord * nCut), levels = paraLabels),
+      rank = rep(factor(1 : nCut), each = nRecord)
     )
     auc_df %>% ggplot(aes(time, auc, color = rank)) + facet_grid(~parameter) +
       geom_line() + 
