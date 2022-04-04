@@ -16,7 +16,6 @@ expModelRepGroup = function(){
   source("subFxs/analysisFxs.R") 
   source("subFxs/modelRep.R")
   
-  
   allData = loadAllData()
   hdrData = allData$hdrData 
   trialData = allData$trialData       

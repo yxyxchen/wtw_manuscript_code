@@ -1,5 +1,5 @@
 # average simualtion results over multiple repetitions 
-averageRes = function(sim_, recorded_timepoints, paras){
+averageRes = function(sim_, recorded_timepoints, tau){
   # load experiment parameters
   load('expParas.RData')
   source(file.path("subFxs", "analysisFxs.R"))
@@ -9,7 +9,6 @@ averageRes = function(sim_, recorded_timepoints, paras){
   stepSec = 1 # 
   nStep = length(sim_[[1]]$Qwaits_[,1]) # number of time steps, since here we assume the interval is [ , ) yet in we need to include the end point at t = 20
   nRecord = length(recorded_timepoints) # number of analysis time windows 
-  tau = paras[2] # inverse temperature 
   
   # initialize the outputs
   # wait_reps = array(dim = c(nStep, nRecord, nRep))

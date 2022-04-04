@@ -4,10 +4,6 @@ simExAnte = function(modelName, modelLabel, paras, delays_ = list()){
   # default settings 
   smallReward = 0 
   iti = 2
-  chunkBreaks = c(0, 4, 8, 12, 16) * 60
-  nBreaks = length(chunkBreaks)
-  chunkMids = (head(chunkBreaks, -1) + tail(chunkBreaks, -1)) / 2
-  nBreak = length(chunkBreaks)
   stepSec = 1
   nHPStep = delayMaxs[1] / stepSec + 1 # since here we assume the interval is [ , ) yet in we need to include the end point at t = 20
   nLPStep = delayMaxs[2] / stepSec + 1 
@@ -64,8 +60,8 @@ simExAnte = function(modelName, modelLabel, paras, delays_ = list()){
   # average the results across simulations
   recorded_timepoints = c(0, 4 * 60, 8 * 60, 12 * 60, 16 * 60, duration)
   nRecord = length(recorded_timepoints)
-  aveResHP = averageRes(HPSim_, recorded_timepoints, paras$HP)
-  aveResLP = averageRes(LPSim_, recorded_timepoints, paras$LP)
+  aveResHP = averageRes(HPSim_, recorded_timepoints, paras$HP[2])
+  aveResLP = averageRes(LPSim_, recorded_timepoints, paras$LP[2])
   
   condData = data.frame(
     condition = conditions,
@@ -80,10 +76,10 @@ simExAnte = function(modelName, modelLabel, paras, delays_ = list()){
   ) %>% 
     ggplot(aes(t, mu, color = condition)) + geom_point() + geom_line() +
     myTheme + scale_color_manual(values = conditionColors) +
-    scale_x_continuous(breaks = c(chunkBreaks / 60, 20),
-                       labels = c(chunkBreaks / 60, 120),
+    scale_x_continuous(breaks = c(recorded_timepoints[1 : (nRecord - 1)] / 60, 20),
+                       labels = c(recorded_timepoints[1 : (nRecord - 1)] / 60, 120),
                        limits = c(0,22)) +
-    xlab("Simulation time (s)") +
+    xlab("Simulation time (min)") +
     ylab("AUC (s)") + theme(legend.position = "none")  + ylim(c(0, 20)) + 
     geom_hline(aes(yintercept = optim, color = condition), linetype = "dashed", data = condData) +
     geom_point(aes(y = asymAUC, color = condition), x = 20, shape = 8, data = condData) +
@@ -97,30 +93,30 @@ simExAnte = function(modelName, modelLabel, paras, delays_ = list()){
   
   if(modelName == "QL1" || modelName == "RL1"){
     condData = data.frame(
-      rvWait = c(aveRes$asymHPRvQwaits$mu, aveRes$asymLPRvQwaits$mu),
-      t = c(1 : nHPStep - 1, 1 : nLPStep - 1),
-      condition = c(rep("HP", nHPStep), rep("LP", nLPStep))
-    ) %>%  filter(condition == "LP" | (condition == "HP" & t < 19.9))
+      rvWait = c(aveResHP$wait_minus_quit_[1 : (nHPStep - 1), nRecord], aveResLP$wait_minus_quit_[1 : (nLPStep - 1), nRecord]),
+      t = c(1 : (nHPStep - 1), 1 : (nLPStep - 1)),
+      condition = c(rep("HP", nHPStep - 1), rep("LP", nLPStep - 1))
+    ) 
     # I also want to plot pSurvice
     
-    figRV = data.frame(
-      rvWait = c(as.vector(aveRes$HPRvQwaits$mu), as.vector(aveRes$LPRvQwaits$mu)),
-      t = c(rep(1 : nHPStep - 1, nBreaks), rep(1 : nLPStep - 1, nBreaks)),
-      taskTime = c(rep(chunkBreaks, each = nHPStep), rep(chunkBreaks, each = nLPStep)),
-      condition = c(rep("HP", nBreaks * nHPStep), rep("LP", nBreaks * nLPStep))
-    ) %>% filter(taskTime < chunkBreaks[nBreak]) %>%
-      filter(condition == "LP" | (condition == "HP" & t < 19.9)) %>%
-      mutate(color = factor(c(rep(1 : (nBreak - 1), each = nHPStep - 1), rep((1 : (nBreak - 1)) + (nBreak - 1), each = nLPStep)))) %>%
+  figRV = data.frame(
+      rvWait = c(as.vector(aveResHP$wait_minus_quit_[1 : (nHPStep - 1), 1 : (nRecord - 1)]),
+                 as.vector(aveResLP$wait_minus_quit_[1 : (nLPStep - 1), 1 : (nRecord - 1)])),
+      t = c(rep(1 : (nHPStep - 1) - 1, nRecord - 1), rep(1 : (nLPStep - 1) - 1, nRecord - 1)),
+      taskTime = c(rep(1 : (nRecord - 1), each = nHPStep - 1), rep(1 : (nRecord - 1), each = nLPStep - 1)),
+      condition = c(rep("HP", (nRecord - 1) * (nHPStep - 1)), rep("LP", (nRecord - 1) * (nLPStep - 1)))
+    ) %>%
+      mutate(color = factor(c(rep(1 : (nRecord - 1), each = nHPStep - 1), rep(1 : (nRecord - 1) + (nRecord - 1), each = nLPStep - 1)))) %>%
       ggplot(aes(t, rvWait, color = color)) + geom_point() + geom_line() +
-      facet_grid(~condition) +
-      scale_color_manual(values = c("#c7e9c0", "#41ab5d", "#006d2c", "#00441b",
-                                    "#bcbddc", "#807dba", "#6a51a3", "#3f007d")) +
+      facet_wrap(. ~ condition, scales="free_y") +
+      scale_color_manual(values = c("#c7e9c0", "#41ab5d", "#238b45",  "#006d2c", "#00441b", 
+                                    "#bcbddc", "#807dba", "#6a51a3", "#3f007d", "#4d004b")) +
       geom_point(aes(t, rvWait), inherit.aes = F, data = condData) +
       geom_line(aes(t, rvWait), inherit.aes = F, data = condData) + 
       ylab("Relative value of waiting") + xlab("Elapsed time (s)") + myTheme +
       theme(legend.position = "None",
             plot.title = element_text(hjust = 0.5)) +
-      ggtitle(modelLabel) + ylim(-2, 12) 
+      ggtitle(modelLabel) 
   }else if(modelName == "omni"){
     for(condition in conditions){
       delayMax = ifelse(condition == "HP", delayMaxs[1], delayMaxs[2])
@@ -157,6 +153,7 @@ simExAnte = function(modelName, modelLabel, paras, delays_ = list()){
   if(modelName == "QL1"){
     set.seed(123)
     paras = c(0.1, 3.5, 0.70, 2)
+    # paras =  c(0.01, 5, 0.85, 1.5)
     exampleSim = simModel(paras, "HP", duration, normResults, delays_[[3]]$HP)
     exampleQwaits = exampleSim$Qwaits_
     exampleGs = exampleSim$Gs_
