@@ -55,6 +55,8 @@ simPostHoc = function(modelName, paraLabels, paraSamples_, delays_){
   
   ######################### simulate with multiple parameter combinations #####################
   # loop over conditions
+  auc_df_ = list()
+  asym_df_ = list()
   for(condition in conditions){
     # default_paras = c(0.01, 1, 5, 0.85, 1)
     # default_paras = c(0.01, 1, 5, 0.85, 4)
@@ -94,17 +96,19 @@ simPostHoc = function(modelName, paraLabels, paraSamples_, delays_){
       sub_auc_[,i] = aveRes$sub_auc_
     }
     # plot
-    auc_df = data.frame(
+    auc_df_[[condition]] = data.frame(
       auc = as.vector(sub_auc_[1 : (nRecord - 1),]),
       time = recorded_timepoints[1 : (nRecord - 1)] / 60,
       parameter = factor(rep(paraLabels, each = (nRecord - 1) * nCut), levels = paraLabels),
-      rank = rep(factor(1 : nCut), each = (nRecord - 1))
+      rank = rep(factor(1 : nCut), each = (nRecord - 1)),
+      condition = condition
     )
-    asym_df = data.frame(
+    asym_df_[[condition]] = data.frame(
       auc = as.vector(sub_auc_[nRecord,]),
       time = 20,
       parameter = factor(rep(paraLabels, each = nCut), levels = paraLabels),
-      rank = factor(1 : nCut)
+      rank = factor(1 : nCut),
+      condition = condition
     )
     # I understand that the behavior can look wierd ...
     # auc_df = data.frame(
@@ -118,24 +122,20 @@ simPostHoc = function(modelName, paraLabels, paraSamples_, delays_){
     #   geom_point(aes(time, auc, color = rank), data = asym_df, inherit.aes = F, shape=8) +
     #   scale_color_manual(values = cutValues) +
     #   ylim(c(0, min(delayMaxs))) + myTheme 
-    
-    fig = auc_df %>% ggplot(aes(time, auc, color = rank)) +
-      facet_grid(~parameter) + geom_line() + 
-      geom_point() +
-      scale_color_manual(values = cutValues) +
-      ylim(c(0, min(delayMaxs))) + myTheme +
-      xlab("Task time (min)") + ylab("AUC (s)") +
-      scale_x_continuous(breaks = recorded_timepoints[1 : (nRecord - 1)] / 60)
-    return(fig)
   }
+  auc_df = rbind(auc_df_[["HP"]], auc_df_[["LP"]])
+  asym_df = rbind(asym_df_[["HP"]], asym_df_[["LP"]])
+  
+  auc_df %>% ggplot(aes(time, auc, color = rank)) +
+    facet_grid(condition~parameter) + geom_line() + 
+    geom_point() +
+    scale_color_manual(values = cutValues) +
+    ylim(c(0, min(delayMaxs))) + myTheme +
+    xlab("Task time (min)") + ylab("AUC (s)") +
+    scale_x_continuous(breaks = recorded_timepoints[1 : (nRecord - 1)] / 60) + 
+    geom_point(aes(x = time, y = auc, color = rank), data = asym_df, inherit.aes = F, shape = 8)
     
-    
-
-
-    
-
-    
-
+  return(fig)
   
   
   

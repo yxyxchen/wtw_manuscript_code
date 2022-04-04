@@ -100,10 +100,12 @@ figs_ = performCheck()
 setwd(pwd)
 figAUC = (figs_[[1]][['learn']] | figs_[[2]]['learn'])
 ggsave(file.path("..", "figures", "cmb", "exante_learn_curve.eps"), figAUC, width = 6, height = 3)
-figRV = (figs_[[1]][['rv']] | figs_[[2]]['rv']) + ylim(-2, 8) + plot_annotation(tag_levels = "a")
-ggsave(file.path("..", "figures", "cmb", "exante_rv.eps"), figRV, width = 8, height = 3)
+figRV = (figs_[[1]][['rv']] | figs_[[2]]['rv']) + plot_annotation(tag_levels = "a")
+ggsave(file.path("..", "figures", "cmb", "exante_rv.eps"), figRV, width = 8, height = 4.5)
+
 figSnippet = (plot_spacer() | figs_[[1]][["Gs_"]][1] | figs_[[1]][["Gs_"]][2] | figs_[[1]][["Gs_"]][3]) / 
   (figs_[[1]][["values_"]][[1]] | figs_[[1]][["values_"]][[2]] | figs_[[1]][["values_"]][[3]] | figs_[[1]][["values_"]][[4]])
+
 ggsave(file.path("..", "figures", "cmb", "exante_snippet.eps"), figSnippet , width = 12, height = 6)
 figPrior = figs_[[1]][["prior"]]
 ggsave(file.path("..", "figures", "cmb", "prior.eps"), figPrior, width = 5, height = 5)
@@ -321,7 +323,6 @@ setwd(pwd)
 ggsave(file.path("../figures/cmb", "figInd.eps"), figInd, width = 15, height = 4)
 
 ##### combine correlation figures ####3
-<<<<<<< HEAD
 library("figpatch")
 outs = list()
 for(i in 1 : nExp){
@@ -330,19 +331,7 @@ for(i in 1 : nExp){
   outs[[i]] = img
 }
 pat <- patchwork::wrap_plots(outs[[1]], outs[[2]], outs[[3]])
-=======
-# outs = list()
-# for(i in 1 : nExp){
-#   path = system.file(
-#     "../figures/cmb", 
-#     sprintf("exp%d_corr.pdf", i), 
-#     package = "figpatch", 
-#     mustWork = TRUE)
-#   img = fig(path)
-#   outs[[i]] = img
-# }
-# pat <- patchwork::wrap_plots(outs[[1]], outs[[2]], outs[[3]])
->>>>>>> 0d0327201e52cc0e24643c57c04a4dd6c832f30f
+
 
 
 

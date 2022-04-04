@@ -41,9 +41,10 @@ expParaAnalysis = function(){
   #################################################################
   expPara$condition = condition
   plotData = expPara %>% filter(passCheck) %>% select(c(paraNames, "condition")) 
-  
   tmp = gather(plotData, key = 'paraname', value = 'value', -"condition")
   tmp$paraname = factor(tmp$paraname, levels = paraNames)
+  tmp %>% group_by(condition, paraname) %>% summarise( mu = median(value), q1 = quantile(value, 0.25))
+  tmp %>% ggplot(aes(value)) + geom_histogram() +  facet_wrap(paraname~condition, scale = "free")
   tmp %>% group_by(paraname) %>%
     summarise(q1 = quantile(value, 0.1),
               q2 = quantile(value, 0.3),

@@ -27,10 +27,11 @@ performCheck = function(){
       LP = replicate(120 * 60  / 2, drawSample("LP"))
     )
   }
+  
   # simulation parameters 
   paras_ = list(
-    list("HP" = c(0.01, 2, 0.85, 5), "LP" = c(0.01, 2, 0.85, 5)), 
-    list("HP" = c(0.01, 2, 5, 0.005), "LP" = c(0.01, 2, 5, 0.005))
+    list("HP" = c(0.005, 2.5, 0.85, 2.5), "LP" = c(0.005, 2.5, 0.85, 2.5)), 
+    list("HP" = c(0.005, 2.5, 2.5, 0.003), "LP" = c(0.005, 2.5, 2.5, 0.003))
   )
   
   # simulate and plot 
@@ -43,7 +44,14 @@ performCheck = function(){
     figs_[[i]] = outs
   }
   
-  return(figs_)
+  figs_[[1]]$learn
+  figs_[[1]]$rv
+  figs_[[1]]$rv_asym
   
+  figs_[[2]]$learn
+  figs_[[2]]$rv
+  figs_[[2]]$rv_asym
+  return(figs_)
+  # basially maintained a wtw level 
 }
 
