@@ -29,8 +29,8 @@ performCheck = function(){
   }
   # simulation parameters 
   paras_ = list(
-    list("HP" = c(0.01, 2, 0.85, 3), "LP" = c(0.01, 2, 0.85, 3)), 
-    list("HP" = c(0.01, 2, 3, 0.005), "LP" = c(0.01, 2, 3, 0.005))
+    list("HP" = c(0.01, 2, 0.85, 5), "LP" = c(0.01, 2, 0.85, 5)), 
+    list("HP" = c(0.01, 2, 5, 0.005), "LP" = c(0.01, 2, 5, 0.005))
   )
   
   # simulate and plot 
