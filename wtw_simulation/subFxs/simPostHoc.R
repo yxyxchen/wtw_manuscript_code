@@ -1,4 +1,4 @@
-simPostHoc = function(modelName, paraLabels, paraSamples_, delays_){
+simPostHoc = function(modelName, paraLabels, paraSamples_, delays_ = NULL){
   # default settings 
   smallReward = 0
   
@@ -46,10 +46,10 @@ simPostHoc = function(modelName, paraLabels, paraSamples_, delays_){
   nRecord = length(recorded_timepoints)
   cutValues = c(
     "#cccccc",
-    "#969696",
+    # "#969696",
     "#737373",
-    "#525252",
-    "#252525"
+    # "#525252",
+    "#000000"
   )
   nCut = length(cutValues)
   
@@ -57,12 +57,14 @@ simPostHoc = function(modelName, paraLabels, paraSamples_, delays_){
   # loop over conditions
   auc_df_ = list()
   asym_df_ = list()
+  longterm_df_ = list()
+  shortterm_df_ = list()
   for(condition in conditions){
     # default_paras = c(0.01, 1, 5, 0.85, 1)
     # default_paras = c(0.01, 1, 5, 0.85, 4)
     # generate parameter combinations 
     paraSamples = paraSamples_[[condition]]
-    default_paras = as.numeric(paraSamples[3, ])
+    default_paras = as.numeric(paraSamples[2, ])
     paraCombs = t(matrix(rep(default_paras, nCut * nPara), nrow = nPara))
     for(pIdx in 1 : nPara){
       paraCombs[(nCut * (pIdx - 1) + 1) : (nCut * pIdx) ,pIdx] = paraSamples[,pIdx] 
@@ -75,12 +77,9 @@ simPostHoc = function(modelName, paraLabels, paraSamples_, delays_){
     }else{
       nStep = delayMaxs[2] + 1
     }
-    # shortterm_rv_ = matrix(NA, nrow = nStep, ncol = nComb)
-    # shortterm_quit_ =  vector( length = nComb)
-    # shortterm_wait_ = matrix(NA, nrow = nStep, ncol = nComb)
-    # longterm_rv_ = matrix(NA, nrow = nStep, ncol = nComb)
-    # longterm_quit_ =  vector( length = nComb)
-    # longterm_wait_ = matrix(NA, nrow = nStep, ncol = nComb)
+    
+    shortterm_rv_ = matrix(NA, nrow = nStep, ncol = nComb)
+    longterm_rv_ = matrix(NA, nrow = nStep, ncol = nComb)
     # loop over combinations 
     for(i in 1 : nComb){
       paras = paraCombs[i,]
@@ -94,6 +93,8 @@ simPostHoc = function(modelName, paraLabels, paraSamples_, delays_){
       }
       aveRes = averageRes(sim_, recorded_timepoints, paras[3])
       sub_auc_[,i] = aveRes$sub_auc_
+      shortterm_rv_[,i] = aveRes$wait_minus_quit_[,5]
+      longterm_rv_[,i] = aveRes$wait_minus_quit_[,6]
     }
     # plot
     auc_df_[[condition]] = data.frame(
@@ -108,6 +109,20 @@ simPostHoc = function(modelName, paraLabels, paraSamples_, delays_){
       time = 20,
       parameter = factor(rep(paraLabels, each = nCut), levels = paraLabels),
       rank = factor(1 : nCut),
+      condition = condition
+    )
+    longterm_df_[[condition]] = data.frame(
+      rv = as.vector(longterm_rv_[1:(nStep - 1),]),
+      time = (1 : (nStep - 1) - 1),
+      rank = rep(factor(1 : nCut), each = (nStep - 1)),
+      parameter = factor(rep(paraLabels, each =  (nStep - 1) * nCut), levels = paraLabels),
+      condition = condition
+    )
+    shortterm_df_[[condition]] = data.frame(
+      rv = as.vector(shortterm_rv_[1:(nStep - 1),]),
+      time = (1 : (nStep - 1) - 1),
+      rank = rep(factor(1 : nCut), each = (nStep - 1)),
+      parameter = factor(rep(paraLabels, each =  (nStep - 1) * nCut), levels = paraLabels),
       condition = condition
     )
     # I understand that the behavior can look wierd ...
@@ -125,18 +140,31 @@ simPostHoc = function(modelName, paraLabels, paraSamples_, delays_){
   }
   auc_df = rbind(auc_df_[["HP"]], auc_df_[["LP"]])
   asym_df = rbind(asym_df_[["HP"]], asym_df_[["LP"]])
-  
-  auc_df %>% ggplot(aes(time, auc, color = rank)) +
+  shortterm_df = rbind(shortterm_df_[["HP"]], shortterm_df_[["LP"]])
+  longterm_df = rbind(longterm_df_[["HP"]], longterm_df_[["LP"]])
+  figAUC = auc_df %>% ggplot(aes(time, auc, color = rank)) +
     facet_grid(condition~parameter) + geom_line() + 
     geom_point() +
     scale_color_manual(values = cutValues) +
     ylim(c(0, min(delayMaxs))) + myTheme +
     xlab("Task time (min)") + ylab("AUC (s)") +
-    scale_x_continuous(breaks = recorded_timepoints[1 : (nRecord - 1)] / 60) + 
-    geom_point(aes(x = time, y = auc, color = rank), data = asym_df, inherit.aes = F, shape = 8)
-    
-  return(fig)
+    scale_x_continuous(breaks = recorded_timepoints[1 : (nRecord - 1)] / 60) 
   
+  # figfig_RV_shortterm = shortterm_df %>% ggplot(aes(time, rv, color = rank)) +
+  #   facet_grid(condition~parameter) + geom_line() + 
+  #   geom_point() +
+  #   scale_color_manual(values = cutValues) + myTheme +
+  #   ylab("Relative value of waiting") + 
+  #   xlab("Elapsed time (s)") + ggtitle("After 16 mins")
+  # 
+  # figfig_RV_longterm = longterm_df %>% ggplot(aes(time, rv, color = rank)) +
+  #   facet_grid(condition~parameter) + geom_line() + 
+  #   geom_point() +
+  #   scale_color_manual(values = cutValues) + myTheme + 
+  #   ylab("Relative value of waiting") + 
+  #   xlab("Elapsed time (s)") + ggtitle("After 1 hour")
+  
+  return(figAUC)
   
   
 }

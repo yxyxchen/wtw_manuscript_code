@@ -46,11 +46,9 @@ expParaAnalysis = function(){
   tmp %>% group_by(condition, paraname) %>% summarise( mu = median(value), q1 = quantile(value, 0.25))
   tmp %>% ggplot(aes(value)) + geom_histogram() +  facet_wrap(paraname~condition, scale = "free")
   tmp %>% group_by(paraname) %>%
-    summarise(q1 = quantile(value, 0.1),
-              q2 = quantile(value, 0.3),
+    summarise(q1 = quantile(value, 0.2),
               q3 = quantile(value, 0.5),
-              q4 = quantile(value, 0.7),
-              q5 = quantile(value, 0.9))
+              q5 = quantile(value, 0.8))
   scales_x <- list(
     'alpha' = scale_x_continuous(limits =  c(-0.05, 0.35), breaks = c(0,  0.3), labels = c(0,  0.3)),
     "nu" =  scale_x_continuous(limits =  c(-0.5, 5.5), breaks = c(0, 5), labels = c(0, 5)),
