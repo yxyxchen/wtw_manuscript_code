@@ -102,7 +102,6 @@ figAUC = (figs_[[1]][['learn']] | figs_[[2]]['learn'])
 ggsave(file.path("..", "figures", "cmb", "exante_learn_curve.eps"), figAUC, width = 6, height = 3)
 figRV = (figs_[[1]][['rv']] | figs_[[2]]['rv']) + plot_annotation(tag_levels = "a")
 ggsave(file.path("..", "figures", "cmb", "exante_rv.eps"), figRV, width = 8, height = 4.5)
-
 figSnippet = (plot_spacer() | figs_[[1]][["Gs_"]][1] | figs_[[1]][["Gs_"]][2] | figs_[[1]][["Gs_"]][3]) / 
   (figs_[[1]][["values_"]][[1]] | figs_[[1]][["values_"]][[2]] | figs_[[1]][["values_"]][[3]] | figs_[[1]][["values_"]][[4]])
 

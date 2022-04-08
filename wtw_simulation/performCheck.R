@@ -44,6 +44,8 @@ performCheck = function(){
     figs_[[i]] = outs
   }
   
+  # plot optimal behavior
+  
   return(figs_)
 
 }
