@@ -100,8 +100,21 @@ figs_ = performCheck()
 setwd(pwd)
 figAUC = (figs_[[1]][['learn']] | figs_[[2]]['learn'])
 ggsave(file.path("..", "figures", "cmb", "exante_learn_curve.eps"), figAUC, width = 6, height = 3)
-figRV = (figs_[[1]][['rv']] | figs_[[2]]['rv']) + plot_annotation(tag_levels = "a")
-ggsave(file.path("..", "figures", "cmb", "exante_rv.eps"), figRV, width = 8, height = 4.5)
+
+normResults = expSchematics(smallReward, iti)
+
+figNetReturn = data.frame(
+  net_return = unlist(normResults$subjectValues),
+  time = c(seq(0, delayMaxs[1], by = 0.1), seq(0, delayMaxs[2], by = 0.1)),
+  condition = rep(c("HP", "LP"), as.numeric(sapply(normResults$subjectValues, length)))
+) %>% filter(time < 20) %>%
+  ggplot(aes(time, net_return, color = condition)) + geom_point() +
+  facet_grid(~condition) + scale_color_manual(values = conditionColors) + 
+  xlab("Elapsed time (s)") + ylab("Net return of waiting (¢)") + myTheme + 
+  theme(legend.position = "None") + ggtitle("Normative solution")
+figRV = (figNetReturn | figs_[[1]][['rv']] | figs_[[2]]['rv']) + plot_annotation(tag_levels = "a")
+ggsave(file.path("..", "figures", "cmb", "exante_rv.eps"), figRV, width = 12, height = 4.5)
+
 figSnippet = (plot_spacer() | figs_[[1]][["Gs_"]][1] | figs_[[1]][["Gs_"]][2] | figs_[[1]][["Gs_"]][3]) / 
   (figs_[[1]][["values_"]][[1]] | figs_[[1]][["values_"]][[2]] | figs_[[1]][["values_"]][[3]] | figs_[[1]][["values_"]][[4]])
 

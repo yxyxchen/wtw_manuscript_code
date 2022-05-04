@@ -16,7 +16,7 @@ expModelCmp = function(){
   nSub = length(ids) 
   
   # check fit
-  modelNames = c("QL1", "QL2", "RL1", "RL2", "naive", "omni")
+  modelNames = c("QL1", "QL2", "RL1", "RL2", "naive")
   nModel = length(modelNames)
   passCheck_ = matrix(NA, nrow = nSub, ncol = nModel)
   for(i in 1 : nModel){
@@ -46,6 +46,15 @@ expModelCmp = function(){
   full_waic_aves = round(full_waic_ %>% apply(2, mean), 2)
   full_waic_ses = round(full_waic_ %>% apply(2, function(x) sd(x) / sqrt(length(x))), 2)
   
+  allPass = apply(passCheck_, 1, sum) == nModel
+  bestFitNums = sapply(1 : nModel, function(i) sum(apply(waic_[allPass,], 1, which.min) == i))
+  bestFitDf = data.frame(
+    modelName = factor(modelNames, levels = modelNames),
+    bestFitNum = as.vector(bestFitNums)
+  )
+  bestFitDf5 = bestFitDf ;
+  bestFitDf5$modelName = as.character(bestFitDf5$modelName); bestFitDf6[nrow(bestFitDf5) + 1, ] = c("all", sum(allPass))
+  
   # reduced_waic_ = waic_[apply(passCheck_[,1:4], MARGIN = 1, all), 1 : 4] 
   # reduced_waic_aves = reduced_waic_ %>% apply(2, mean)
   # reduced_waic_ses = reduced_waic_ %>% apply(2, function(x) sd(x) / sqrt(length(x)))
@@ -53,112 +62,40 @@ expModelCmp = function(){
   #################################################################
   ##                 figures with only RL models                 ##
   #################################################################
-  modelColors = c(
-    "#a6cee3",
-    "#1f78b4",
-    "#b2df8a",
-    "#33a02c"
-  )
+  # modelColors = c(
+  #   "#a6cee3",
+  #   "#1f78b4",
+  #   "#b2df8a",
+  #   "#33a02c"
+  # )
   # num of best explained participants 
-  allPass = apply(passCheck_[,1:4], 1, sum) == 4
-  bestFitNums = sapply(1 : 4, function(i) sum(apply(waic_[allPass, 1 : 4], 1, which.min) == i))
-  bestFitDf = data.frame(
-    modelName = factor(c("QL1", "QL2", "RL1", "RL2"), levels = c("QL1", "QL2", "RL1", "RL2")),
-    bestFitNum = as.vector(bestFitNums)
-  )
-  # save for the output
-  bestFitDf4 = bestFitDf ; bestFitDf4$modelName = as.character(bestFitDf4$modelName); bestFitDf4[nrow(bestFitDf4) + 1, ] = c("all", sum(allPass))
-  fig4pie = data.frame(
-    modelName = factor(c("QL1", "QL2", "RL1", "RL2"), levels = c("QL1", "QL2", "RL1", "RL2")),
-    bestFitNum = as.vector(bestFitNums)
-  ) %>% arrange(desc(modelName)) %>%
-    mutate(prop = bestFitNum / sum(bestFitNum) *100) %>%
-    mutate(ypos = cumsum(prop)- 0.5*prop) %>%
-    ggplot(aes(x = "", y = prop, fill = modelName)) +
-    geom_bar(width = 1, stat = "identity") + coord_polar("y", start = 0) +
-    scale_fill_manual(values = modelColors) + xlab("") + ylab("") +
-    theme(legend.position = 'none',
-          panel.grid.major = element_blank(),
-          panel.background = element_rect(fill = "white"),
-          panel.grid.minor = element_blank(),
-          axis.text=element_text(size=0, face = "bold"),
-          axis.title=element_text(size= 20, face = "bold"),
-          plot.title = element_text(hjust = 0.5, face = "bold")) +
-    ggtitle(sprintf("Exp.1, N = %d", sum(allPass))) 
+  # allPass = apply(passCheck_[,1:4], 1, sum) == 4
+  # bestFitNums = sapply(1 : 4, function(i) sum(apply(waic_[allPass, 1 : 4], 1, which.min) == i))
+  # bestFitDf = data.frame(
+  #   modelName = factor(c("QL1", "QL2", "RL1", "RL2"), levels = c("QL1", "QL2", "RL1", "RL2")),
+  #   bestFitNum = as.vector(bestFitNums)
+  # )
+  # # save for the output
+  # bestFitDf4 = bestFitDf ; bestFitDf4$modelName = as.character(bestFitDf4$modelName); bestFitDf4[nrow(bestFitDf4) + 1, ] = c("all", sum(allPass))
 
-  # waic
-  waic_[!allPass,] = NA
-  fig4WAIC = data.frame(
-    modelName = c("QL1", "QL2", "RL1", "RL2", "naive", "omni"),
-    mu = apply(waic_, 2, mean, na.rm = T),
-    se = apply(waic_, 2, sd, na.rm = T) / sqrt(apply(waic_, 2, function(x) sum(!is.na(x))))
-  ) %>% mutate(modelName = factor(modelName, levels = c("QL1", "QL2", "RL1", "RL2", "naive", "omni"))) %>%
-    filter(modelName %in% c("QL1", "QL2", "RL1", "RL2")) %>% ggplot(aes(modelName, mu, fill = modelName)) + geom_bar(stat = "identity") +
-    geom_errorbar(aes(ymin = mu - se, ymax = mu + se), width = 0.4) +
-    myTheme + xlab("") + ylab("WAIC") +
-    scale_fill_manual(values = modelColors) + theme(legend.position = "none") +
-    ylim(c(0, 400))
-  
   ##################################################################
   ##                 figures with all six models                  ##
   ##################################################################
   # calcualted num best fit
-  modelColors = c(
-    "#a6cee3",
-    "#1f78b4",
-    "#b2df8a",
-    "#33a02c",
-    "#fb9a99",
-    "#e31a1c"
-  )
-  allPass = apply(passCheck_, 1, sum) == nModel
-  bestFitNums = sapply(1 : nModel, function(i) sum(apply(waic_[allPass,], 1, which.min) == i))
-  bestFitDf = data.frame(
-    modelName = factor(modelNames, levels = modelNames),
-    bestFitNum = as.vector(bestFitNums)
-  )
-  bestFitDf6 = bestFitDf ; bestFitDf6$modelName = as.character(bestFitDf6$modelName); bestFitDf6[nrow(bestFitDf6) + 1, ] = c("all", sum(allPass))
+  # modelColors = c(
+  #   "#a6cee3",
+  #   "#1f78b4",
+  #   "#b2df8a",
+  #   "#33a02c",
+  #   "#fb9a99",
+  #   "#e31a1c"
+  # )
+
   
-  fig6pie = data.frame(
-    modelName = factor(modelNames, levels = modelNames),
-    modelLabel = factor(c("QL1", "QL2", "RL1", "RL2", "naive", "omni"), levels = c("QL1", "QL2", "RL1", "RL2", "naive", "omni")),
-    bestFitNum = as.vector(bestFitNums)
-  ) %>% arrange(desc(modelName)) %>%
-    mutate(prop = bestFitNum / sum(bestFitNum) *100) %>%
-    mutate(ypos = cumsum(prop)- 0.5*prop) %>%
-    ggplot(aes(x = "", y = prop, fill = modelName)) +
-    geom_bar(width = 1, stat = "identity") + coord_polar("y", start = 0) +
-    scale_fill_manual(values = modelColors) + xlab("") + ylab("") +
-    theme(legend.position = 'none',
-          plot.title = element_text(hjust = 0.5, face = "bold"),
-          panel.grid.major = element_blank(),
-          panel.background = element_rect(fill = "white"),
-          panel.grid.minor = element_blank(),
-          axis.text=element_text(size=0, face = "bold"),
-          axis.title=element_text(size= 20, face = "bold"))  +
-    ggtitle(sprintf("Exp.1, N = %d", sum(allPass))) 
-  
-  # plot WAIC
-  waic_[!allPass,] = NA
-  fig6WAIC = data.frame(
-    modelName = c("QL1", "QL2", "RL1", "RL2", "naive", "omni"),
-    mu = apply(waic_, 2, mean, na.rm = T),
-    se = apply(waic_, 2, sd, na.rm = T) / sqrt(apply(waic_, 2, function(x) sum(!is.na(x))))
-  ) %>% mutate(modelName = factor(modelName, levels = c("QL1", "QL2", "RL1", "RL2", "naive", "omni"))) %>%
-    ggplot(aes(modelName, mu, fill = modelName)) + geom_bar(stat = "identity") +
-    geom_errorbar(aes(ymin = mu - se, ymax = mu + se), width = 0.4) +
-    myTheme + xlab("") + ylab("WAIC") +
-    scale_fill_manual(values = modelColors) + theme(legend.position = "none") +
-    ylim(c(0, 650))
   
   ############# return outputs #############
   outputs = list(
-    "4pie" = fig4pie,
-    "4waic" = fig4WAIC,
-    "6pie" = fig6pie,
-    "6waic" = fig6WAIC,
-    "bestFit4" = bestFitDf4,
-    "bestFit6" = bestFitDf6,
+    "bestFit6" = bestFitDf5,
     "full_waic_aves" = full_waic_aves,
     "full_waic_ses" = full_waic_ses
   )
