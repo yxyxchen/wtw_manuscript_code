@@ -51,13 +51,12 @@ paraEffect = function(){
   )
   
   # loop over models
-  figs = vector(mode = "list", length = length(modelName_))
+  figs_ = vector(mode = "list", length = length(modelName_))
   for(i in 1 : length(modelName_)){
     modelName = modelName_[1]
     paraLabels = paraLabels_[[i]]
     paraSamples_ = paraSamples_options_[[i]]
-    # figs[[i]] = simPostHoc(modelName, paraLabels, paraSamples_)
     figs_[[i]] =simPostHoc(modelName, paraLabels, paraSamples_, delays_)
   }
-  return(figs)
+  return(figs_)
 }

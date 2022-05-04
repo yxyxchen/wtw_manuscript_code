@@ -44,11 +44,6 @@ expParaAnalysis = function(){
   tmp = gather(plotData, key = 'paraname', value = 'value', -"condition")
   tmp$paraname = factor(tmp$paraname, levels = paraNames)
   tmp %>% group_by(condition, paraname) %>% summarise( mu = median(value), q1 = quantile(value, 0.25))
-  tmp %>% ggplot(aes(value)) + geom_histogram() +  facet_wrap(paraname~condition, scale = "free")
-  tmp %>% group_by(paraname) %>%
-    summarise(q1 = quantile(value, 0.2),
-              q3 = quantile(value, 0.5),
-              q5 = quantile(value, 0.8))
   scales_x <- list(
     'alpha' = scale_x_continuous(limits =  c(-0.05, 0.35), breaks = c(0,  0.3), labels = c(0,  0.3)),
     "nu" =  scale_x_continuous(limits =  c(-0.5, 5.5), breaks = c(0, 5), labels = c(0, 5)),
@@ -70,8 +65,7 @@ expParaAnalysis = function(){
     facet_grid_sc(cols = vars(paraname), scales = list(x = scales_x), labeller = label_parsed) +
     scale_fill_manual(values = conditionColors) + theme(legend.position = "none") + myTheme +
     geom_segment(data = priors, aes(x = lower, xend = upper, y = -0.5, yend = -0.5, color = "red")) + 
-    xlab("") + ylab("Count") + 
-    geom_segment(x = 1, xend = 1, y = 0, yend  = 30, color = "black", linetype = "dashed")
+    xlab("") + ylab("Count") 
   
   para_summary = tmp %>% group_by(paraname) %>% 
     summarise(median = round(median(value), 3),
@@ -85,40 +79,12 @@ expParaAnalysis = function(){
   pairs(plotData[passCheck,1:5], condition = plotData$condition[passCheck], gap=0, lower.panel = my.reg.HP, upper.panel = my.reg.LP, main= "Exp.1") 
   dev.off()
   
-  #################################################################
-  ##                        optimism bias                        ##
-  #################################################################
-  # nuHPTest = wilcox.test(expPara$nu[passCheck & condition == "HP"] - 1)
-  # nuLPTest = wilcox.test(expPara$nu[passCheck & condition == "LP"] - 1)
-  # nuTest = wilcox.test(expPara$nu[passCheck] - 1)
-  # numOptim = sum(expPara$nu[passCheck] < 1)
-  optim_summary = expPara[passCheck,] %>% group_by(condition) %>%
-    summarise(nOptim = sum(nu < 1), nTotal = length(nu))
   
-  ##################################################################
-  ##             correlations with personality traits             ##
-  ##################################################################
-  # load and merge trait data
-  personality = read.csv("data/hdrData.csv")
-  personality = personality[personality$id %in% expPara$id,]
-  personality$id = expPara$id
-  traits = c("BDI","IUS","DoG","BIS.11", "STAI_T", "PSS") #BIS_11 trait anxiety 
-  nTrait = length(traits)
-  expPara = merge(x= expPara,y = personality[,c(traits, "id")], by="id",all.x=TRUE)
-  
-  # plot
-  # I am not a big fan of this figure
-  pdf("../../figures/cmb/exp1_trait_corr.pdf", width = 13.5, height = 13.5) 
-  pairs(expPara[passCheck, c(paraNames, traits)], condition = expPara$condition[passCheck], gap=0, lower.panel = my.reg.HP, upper.panel = my.reg.LP, main= "Exp.1", nCmp = length(traits)) 
-  dev.off()
-  
-
   
   ############### return outputs #############
   outputs = list(
     "hist" = hist,
-    "para_summar" = para_summary,
-    "optim_summary" = optim_summary
+    "para_summar" = para_summary
   )
   return(outputs)
 }

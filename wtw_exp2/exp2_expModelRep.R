@@ -84,6 +84,7 @@ expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs =
   figWTW = ggplot(plotdf, aes(time, mu))  +
     geom_rect(aes(xmin = xmin, xmax = xmax, fill = condition),
               data = rectData, ymin = 0, ymax = 16, alpha = 0.75, inherit.aes = F) +
+    geom_segment(x = blockSec, xend = blockSec, y = 0, yend = 16, color = "#878787", linetype = "dashed") +
     geom_line(aes(time, mu, color = type)) +
     myTheme +
     scale_color_manual(values = c("black", "#b2182b"))+

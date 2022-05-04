@@ -47,8 +47,7 @@ expParaAnalysis = function(){
   hist = ggplot(tmp) + geom_histogram(aes(x=value),  bins = 15) +
     facet_grid_sc(cols = vars(paraname), scales = list(x = scales_x), labeller = label_parsed) + theme(legend.position = "none") + myTheme +
     geom_segment(data = priors, aes(x = lower, xend = upper, y = -0.5, yend = -0.5, color = "red")) + 
-    xlab("") + ylab("Count") + 
-    geom_segment(x = 1, xend = 1, y = 0, yend  = 30, color = "black", linetype = "dashed")
+    xlab("") + ylab("Count") 
   
   para_summary =  tmp %>% group_by(paraname) %>% 
     summarise(median = round(median(value), 3),

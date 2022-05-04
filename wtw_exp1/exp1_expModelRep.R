@@ -87,21 +87,17 @@ expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs =
            color_group = paste0(type, condition)) %>% ungroup()
   
   
-    rect_df = data.frame(
-      xmin =  rep(0, 2),
-      xmax = rep(blockSec * 3, 2),
-      condition = rep(c("HP", "LP"), each = 3)
-    )
-
-    
    figWTW = ggplot(plotdf, aes(time, mu, color = type)) +
+     geom_rect(aes(fill = condition), xmin = 0, xmax = blockSec * 3 , ymin = 0, ymax = 20, color = NA) + 
+     geom_segment(x = blockSec, xend = blockSec, y = 0, yend = 20, color = "#878787", linetype = "dashed") + 
+     geom_segment(x = blockSec * 2, xend = blockSec * 2, y = 0, yend = 20, color = "#878787", linetype = "dashed") +
     geom_line(aes(time, mu, color = type)) +
       facet_grid(~condition) + myTheme +
     scale_color_manual(values = c("black", "#b2182b"))+
     scale_fill_manual(values = conditionColorBacks) +
     theme(legend.position = "None") +
     scale_x_continuous(breaks = 0:3 * 60 * 7, labels = 0:3 * 7) +
-    xlab("Task time (min)") + ylab("WTW (s)") + ylim(c(0, 20))
+    xlab("Task time (min)") + ylab("WTW (s)") + ylim(c(0, 20)) 
    
   #################################################################
   ##      compare observed and replicated AUC and sigma_wtw      ##

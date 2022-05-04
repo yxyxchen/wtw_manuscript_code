@@ -49,7 +49,8 @@ plotdf = data.frame(
 ) %>% filter(passCheck)  %>%
   group_by(cbal, time, type) %>% 
   summarise(mu = mean(wtw),
-            se = sd(wtw) / sqrt(length(wtw))) %>%
+            se = sd(wtw) / sqrt(length(wtw)),
+            condition = condition) %>%
   mutate(ymin = mu - se,
          ymax = mu + se) %>% ungroup()
 # plotdf %>% ggplot(aes(time, mu)) + facet_grid(~condition) + geom_line()
@@ -67,21 +68,34 @@ for(j in 1 : nModel){
   ) %>% filter(passCheck)  %>%
     group_by(cbal, time, type) %>% 
     summarise(mu = mean(wtw),
-              se = sd(wtw) / sqrt(length(wtw))) %>%
+              se = sd(wtw) / sqrt(length(wtw)),
+              condition = condition) %>%
     mutate(ymin = mu - se,
            ymax = mu + se) %>% ungroup()
   
   plotdf = rbind(plotdf, added_data)
 }
 
+rectData = data.frame(
+  xmin = rep(((1:2) - 1) * blockSec, 2) ,
+  xmax = rep(1:2 * blockSec, 2) ,
+  condition = c("HP", "LP", "LP", "HP"),
+  cbal = c("HP first", "HP first", "LP first", "LP first")
+)
+
 figWTW = plotdf %>%
   filter(type %in% c("QL1", "QL2", "RL1", "RL2", "emp")) %>%
-  mutate(type = factor(type, levels = c("QL1", "QL2", "RL1", "RL2", "emp"))) %>%
+  mutate(type = factor(type, levels = c("QL1", "QL2", "RL1", "RL2", "emp")),
+         cbal = ifelse(cbal == 1, "HP first", "LP first")) %>%
   ggplot(aes(time, mu, color = type)) +
+  geom_rect(aes(xmin = xmin, xmax = xmax, fill = condition),
+            data = rectData, ymin = 0, ymax = 20, alpha = 0.75, inherit.aes = F)  + 
+  geom_segment(x = blockSec, xend = blockSec, y = 0, yend = 20, color = "#878787", linetype = "dashed") +
   geom_line(alpha = 0.75, size = 1) + myTheme +
   scale_color_manual(values = c("#d6604d", "#b2182b", "#4393c3", "#2166ac", "black"))  + xlab("Task time (min)") + 
   scale_x_continuous(breaks = 0 : 2 * 10 * 60, labels = 0 : 2 * 10) + 
-  ylab("WTW (s)") + facet_grid(.~cbal) + theme(legend.position =  "None")
+  ylab("WTW (s)") + facet_grid(.~cbal) + theme(legend.position =  "None") +
+  ylim(c(0, 20)) + scale_fill_manual(values = conditionColorBacks)
 
 return(figWTW)
 }
