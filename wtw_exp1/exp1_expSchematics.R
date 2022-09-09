@@ -44,8 +44,6 @@ expSchematics = function(smallReward, iti, isPlot){
   meanRewardDelays = list('HP' = HP, 'LP' = LP)
   
   # rewardRates given different policies
-  ## might be different from the values used in expParas.R, 
-  ## which are calcuated with a higher temporal resoluation
   HP = (tokenValue * rewardDelayCDFs$HP + smallReward * (1 - rewardDelayCDFs$HP)) /
     ((meanRewardDelays$HP * rewardDelayCDFs$HP + time[['HP']] * (1 - rewardDelayCDFs$HP)) + iti)
   LP = (tokenValue * rewardDelayCDFs$LP + smallReward * (1 - rewardDelayCDFs$LP))/

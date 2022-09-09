@@ -72,14 +72,23 @@ expModelRepGroup = function(){
     plotdf = rbind(plotdf, added_data)
   }
   
+  rectData = data.frame(
+    xmin = ((1:2) - 1) * blockSec,
+    xmax = (1:2) * blockSec,
+    condition = c("LP", "HP")
+  )
   figWTW = plotdf %>%
     filter(type %in% c("QL1", "QL2", "RL1", "RL2", "emp")) %>%
     mutate(type = factor(type, levels = c("QL1", "QL2", "RL1", "RL2", "emp"))) %>%
     ggplot(aes(time, mu, color = type)) +
-    geom_line(alpha = 0.75, size = 1) + myTheme +
+    geom_rect(aes(xmin = xmin, xmax = xmax, fill = condition),
+              data = rectData, ymin = 0, ymax = 16, alpha = 0.75, inherit.aes = F) +
+    geom_segment(x = blockSec, xend = blockSec, y = 0, yend = 16, color = "#878787", linetype = "dashed") +
+    geom_line(alpha = 0.65, size = 1) + myTheme +
     scale_color_manual(values = c("#d6604d", "#b2182b", "#4393c3", "#2166ac", "black"))  + xlab("Task time (min)") + 
     scale_x_continuous(breaks = 0 : 2 * 10 * 60, labels = 0 : 2 * 10) + 
-    ylab("WTW (s)") + theme(legend.position =  "None")
+    ylab("WTW (s)") + theme(legend.position =  "None") +
+    ylim(c(0, 16)) + scale_fill_manual(values = conditionColorBacks)
   
   return(figWTW)
 }

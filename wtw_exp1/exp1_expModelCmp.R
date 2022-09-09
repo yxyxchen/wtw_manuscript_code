@@ -52,8 +52,7 @@ expModelCmp = function(){
     modelName = factor(modelNames, levels = modelNames),
     bestFitNum = as.vector(bestFitNums)
   )
-  bestFitDf5 = bestFitDf ;
-  bestFitDf5$modelName = as.character(bestFitDf5$modelName); bestFitDf6[nrow(bestFitDf5) + 1, ] = c("all", sum(allPass))
+  bestFitDf$modelName = as.character(bestFitDf$modelName); bestFitDf[nrow(bestFitDf) + 1, ] = c("all", sum(allPass))
   
   # reduced_waic_ = waic_[apply(passCheck_[,1:4], MARGIN = 1, all), 1 : 4] 
   # reduced_waic_aves = reduced_waic_ %>% apply(2, mean)
@@ -95,7 +94,7 @@ expModelCmp = function(){
   
   ############# return outputs #############
   outputs = list(
-    "bestFit6" = bestFitDf5,
+    "bestFit" = bestFitDf,
     "full_waic_aves" = full_waic_aves,
     "full_waic_ses" = full_waic_ses
   )

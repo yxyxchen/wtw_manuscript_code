@@ -77,11 +77,15 @@ expModelRepGroup = function(){
     filter(type %in% c("QL1", "QL2", "RL1", "RL2", "emp")) %>%
     mutate(type = factor(type, levels = c("QL1", "QL2", "RL1", "RL2", "emp"))) %>%
     ggplot(aes(time, mu, color = type)) +
-    geom_line(alpha = 0.75, size = 1) + myTheme +   facet_grid(~condition) +
+    geom_rect(aes(fill = condition), xmin = 0, xmax = blockSec * 3 , ymin = 0, ymax = 20, color = NA)  +
+    geom_segment(x = blockSec, xend = blockSec, y = 0, yend = 20, color = "#878787", linetype = "dashed") + 
+    geom_segment(x = blockSec * 2, xend = blockSec * 2, y = 0, yend = 20, color = "#878787", linetype = "dashed") +
+    geom_line(alpha = 0.65, size = 1) + myTheme +   facet_grid(~condition) +
     scale_color_manual(values = c("#f4a582", "#b2182b", "#4393c3", "#2166ac", "black"))  +
     xlab("Task time (min)") + 
     scale_x_continuous(breaks = 0 : 3 * 7 * 60, labels = 0 : 3 * 7) + 
-    ylab("WTW (s)") + theme(legend.position =  "None")
+    ylab("WTW (s)") + theme(legend.position =  "None") +
+    scale_fill_manual(values = conditionColorBacks) + ylim(c(0, 20))
   
   return(figWTW)
 }

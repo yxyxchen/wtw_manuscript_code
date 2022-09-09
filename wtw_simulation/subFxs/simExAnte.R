@@ -91,51 +91,12 @@ simExAnte = function(modelName, modelLabel, paras, delays_ = list()){
   ##                     plot value functions                     ##
   ##################################################################
   
-  if(modelName == "QL1" || modelName == "RL1"){
-    condData = data.frame(
+
+  condData = data.frame(
       rv = c(aveResHP$wait_minus_quit_[1 : (nHPStep - 1), nRecord], aveResLP$wait_minus_quit_[1 : (nLPStep - 1), nRecord]),
       t = c(1 : (nHPStep - 1) - 1, 1 : (nLPStep - 1)) - 1,
       condition = c(rep("HP", nHPStep - 1), rep("LP", nLPStep - 1))
     ) 
-    # calc optimal relative values
-    # Nts_ = list()
-    # for(condition in c("HP", "LP")){
-    #   delayMax = ifelse(condition == "HP", delayMaxs[1], delayMaxs[2])
-    #   tWaits = seq(0, delayMax - 1, by = 1) # decision time points
-    #   Nts = rep(NA, length(tWaits))  # subjective values at decision time points 
-    #   Nts[1] = as.numeric(normResults$optimRewardRates[condition]) * iti # calculate the initial subjective value 
-    #   thisValue = normResults$subjectValues[[condition]] 
-    #   thisTime = normResults$time[[condition]]
-    #   for(i in 2 : length(tWaits)){
-    #     Nts[i] = thisValue[which.min(abs(thisTime - tWaits[i]))] 
-    #   }
-    #   Nts_[[condition]] = Nts
-    # }
-    # 
-    # optimData = data.frame(
-    #   rv =  c(Nts_[["HP"]], Nts_[["LP"]]),
-    #   t = c(1 : (nHPStep - 1) - 1, 1 : (nLPStep - 1)- 1),
-    #   condition = c(rep("HP", nHPStep - 1), rep("LP", nLPStep - 1))
-    # )
-    # I also want to plot pSurvice
-    
-  # figRV = data.frame(
-  #     rvWait = c(as.vector(aveResHP$wait_minus_quit_[1 : (nHPStep - 1), 1 : (nRecord - 1)]),
-  #                as.vector(aveResLP$wait_minus_quit_[1 : (nLPStep - 1), 1 : (nRecord - 1)])),
-  #     t = c(rep(1 : (nHPStep - 1) - 1, nRecord - 1), rep(1 : (nLPStep - 1) - 1, nRecord - 1)),
-  #     taskTime = c(rep(1 : (nRecord - 1), each = nHPStep - 1), rep(1 : (nRecord - 1), each = nLPStep - 1)),
-  #     condition = c(rep("HP", (nRecord - 1) * (nHPStep - 1)), rep("LP", (nRecord - 1) * (nLPStep - 1)))
-  #   ) %>%
-  #     mutate(color = factor(c(rep(1 : (nRecord - 1), each = nHPStep - 1), rep(1 : (nRecord - 1) + (nRecord - 1), each = nLPStep - 1)))) %>%
-  #     ggplot(aes(t, rvWait, color = color)) + geom_point() + geom_line() +
-  #     facet_grid(. ~ condition) +
-  #     scale_color_manual(values = c("#c7e9c0", "#41ab5d", "#238b45",  "#006d2c", "#00441b", 
-  #                                   "#bcbddc", "#807dba", "#6a51a3", "#3f007d", "#4d004b"))  + 
-  #     ylab("Relative value of waiting") + xlab("Elapsed time (s)") + myTheme +
-  #     theme(legend.position = "None",
-  #           plot.title = element_text(hjust = 0.5)) +
-  #     ggtitle(modelLabel) 
-  # 
   figRV = data.frame(
       rvWait = c(as.vector(aveResHP$wait_minus_quit_[1 : (nHPStep - 1), 1 : (nRecord - 1)]),
                  as.vector(aveResLP$wait_minus_quit_[1 : (nLPStep - 1), 1 : (nRecord - 1)])),
@@ -155,42 +116,7 @@ simExAnte = function(modelName, modelLabel, paras, delays_ = list()){
       theme(legend.position = "None",
             plot.title = element_text(hjust = 0.5)) +
       ggtitle(modelLabel) + scale_x_continuous(breaks = c(0, 5, 10, 15, 20), limits = c(0, 20))
-    
-  # asym data 
-  figRV_asym = condData %>% filter( t< 20) %>%  ggplot(aes(t, rv, color = condition)) + geom_point( ) + geom_line( ) +
-    scale_color_manual(values = conditionColors) + facet_grid(~condition) + 
-    theme(legend.position = "None", plot.title = element_text(hjust = 0.5)) +
-    ggtitle(modelLabel) + myTheme + 
-    ylab("Relative value of waiting") + xlab("Elapsed time (s)")
-  
-  }else if(modelName == "omni"){
-    for(condition in conditions){
-      delayMax = ifelse(condition == "HP", delayMaxs[1], delayMaxs[2])
-      tWaits = seq(0, delayMax, by = 1) # decision time points
-      Nts = rep(NA, length(tWaits))  # subjective values HP
-      Nts[1] = as.numeric(normResults$optimRewardRates[condition]) * iti # calculate the initial subjective value 
-      thisValue = normResults$subjectValues[[condition]] 
-      thisTime = normResults$time[[condition]]
-      for(i in 2 : length(tWaits)){
-        Nts[i] = thisValue[which.min(abs(thisTime - tWaits[i]))] 
-      }
-      if(condition == "HP"){
-        Nts_ = Nts
-      }else{
-        Nts_ = c(Nts_, Nts)
-      }
-    }
-    figRV = data.frame(
-      Nt = Nts_, 
-      time = c(seq(0, delayMaxs[1], by = stepSec), seq(0, delayMaxs[2], by = stepSec)),
-      condition = c(rep("HP", delayMaxs[1] + 1), rep("LP", delayMaxs[2] + 1))
-    ) %>% ggplot(aes(time, Nt, color = condition)) + geom_point() + 
-      facet_grid(~condition) + 
-      scale_color_manual(values = conditionColors) + myTheme +
-      theme(legend.position = "None", plot.title = element_text(hjust = 0.5)) +
-      ylab('Relative value of waiting') + 
-      xlab("Elapsed time (s)") + ggtitle(modelLabel) + ylim(-2, 12)
-  }
+
  
   
   #################################################################
@@ -223,7 +149,7 @@ simExAnte = function(modelName, modelLabel, paras, delays_ = list()){
         ) %>% ggplot(aes(time, value, color = factor(type))) + 
           geom_rect(xmin = -3, xmax = exampleTs[i-1], ymin = 4, ymax = 8, fill ='#fee0d2', color = NA) + 
           geom_point(size = 4) +
-          myTheme + ylab('Action value') + xlab("t") +
+          myTheme + ylab('Action value') + xlab("Elapsed time t (s)") +
           ylim(c(4, 8)) + scale_x_continuous(breaks = c(-2, seq(0, min(delayMaxs), by = 5)), limits = c(-3, 21)) +
           geom_vline(xintercept = exampleTs[i-1], color =  '#fc9272', linetype = "dashed", size = 1) +
           scale_color_manual(values = c("#d7191c", "#2c7bb6")) +
@@ -235,7 +161,7 @@ simExAnte = function(modelName, modelLabel, paras, delays_ = list()){
           type = c(0, rep(1, min(delayMaxs) + 2)),
           Qwait = c(exampleV[i], NA, as.vector(exampleQwaits[,i]))
         ) %>% ggplot(aes(time, Qwait, color = factor(type))) + geom_point(size = 4) +
-          myTheme + ylab('Action value')  + xlab("t") +
+          myTheme + ylab('Action value')  + xlab("Elapsed time t (s)") +
           ylim(c(4, 8)) + scale_x_continuous(breaks = c(-2, seq(0, min(delayMaxs), by = 5)), limits = c(-3, 21)) +
           scale_color_manual(values = c("#d7191c", "#2c7bb6")) +
           theme(legend.position =  "None",  panel.grid.major.y = element_line(color = "grey",
@@ -254,7 +180,7 @@ simExAnte = function(modelName, modelLabel, paras, delays_ = list()){
         G = c(G[1] * paras[3] ^ 2, NA,  G),
         type = c(0, rep(1, min(delayMaxs) + 2))
       ) %>% ggplot(aes(time, G, color = factor(type))) + geom_point(size = 4) +
-        myTheme  + ylab('Feedback signal') + xlab("t") +
+        myTheme  + ylab('Feedback signal') + xlab("Elpased time t (s)") +
         scale_x_continuous(limits = c(-3, 21), breaks = c(-2, seq(0, min(delayMaxs), by = 5))) +
         ylim(0, 15) +
         geom_vline(xintercept = exampleTs[i], color =  '#fc9272', linetype = "dashed", inherit.axis = F, size = 1) +
@@ -276,7 +202,7 @@ simExAnte = function(modelName, modelLabel, paras, delays_ = list()){
       type = c(0, rep(1, length(tWaits)),rep(2, length(tWaits)) ),
       action_value = c(V, Qwaits_prior_equal_1, Qwaits_prior_equal_2)
     ) %>% ggplot(aes(time, action_value, color = factor(type))) + geom_point(size = 10) +
-      myTheme + ylab('Initial action value')  + xlab("t") +
+      myTheme + ylab('Initial action value')  + xlab("Elapsed time t") +
       ylim(c(4.5, 8)) + scale_x_continuous(breaks = c(-2, seq(0, min(delayMaxs), by = 5)), limits = c(-3, 21)) +
       scale_color_manual(values = c("#d7191c", "#2c7bb6", "#9ecae1")) +
       theme(legend.position =  "None")
@@ -288,7 +214,6 @@ simExAnte = function(modelName, modelLabel, paras, delays_ = list()){
   
   if(modelName %in% c("QL1", "RL1", "omni")){
     outputs[["rv"]] = figRV
-    outputs[["rv_asym"]] = figRV_asym
   }
   
   if(modelName == "QL1"){

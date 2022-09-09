@@ -46,22 +46,6 @@ MFPlot = function(){
   plotData$min[plotData$time %in% (1:2 * blockSec - 1)] = NA
   plotData$max[plotData$time %in% (1:2 * blockSec - 1)] = NA
   
-  # plot
-  # plotData %>%
-  #   ggplot(aes(time, mu))  + 
-  #   geom_rect(data = colorData, aes(xmin = xmin, xmax = xmax, fill = condition),
-  #             ymin = 0, ymax = 20, inherit.aes = F, alpha = 0.7) + 
-  #   geom_rect(data = greyData, aes(xmin = xmin, xmax = xmax), ymin = 0, ymax = 20,
-  #             color = "red", inherit.aes = F, fill = NA) +
-  #   geom_ribbon(aes(ymin=min, ymax=max),  color = NA, fill = "#878787") +
-  #   geom_line(size = 0.5) +
-  #   xlab("Task time (min)") + ylab("WTW (s)") + 
-  #   scale_y_continuous(breaks = c(0, 8, 16), limits = c(0, 17)) +
-  #   myTheme + scale_x_continuous(breaks = c(0, 600, 1200), labels = c(0, 600, 1200) / 60 ) +
-  #   theme(plot.title = element_text(face = "bold", hjust = 0.5, color = themeColor)) +
-  #   scale_color_manual(values = conditionColors) +
-  #   scale_fill_manual(values = c("#e6f5d0", "#c2a5cf")) +
-  #   theme(legend.position = "none")
   
   figWTW = plotData %>%
     ggplot(aes(time, mu, color = condition, fill = condition))  +
@@ -77,7 +61,7 @@ MFPlot = function(){
     theme(legend.position = "none")
   
   ################################################################
-  ##              compare stats in the two environments              ##
+  ##              compare stats in the two environments         ##
   ################################################################
   MFResults = MFAnalysis(isTrct = T)
   sumStats = MFResults[['sumStats']]
@@ -104,7 +88,7 @@ MFPlot = function(){
   ################################################################
   ##              plot AUC in the two environments              ##
   ################################################################
- figAUC = sumStats %>% ggplot(aes(condition, auc)) +
+  figAUC = sumStats %>% ggplot(aes(condition, auc)) +
     geom_dotplot(binaxis='y', stackdir='center', aes(fill = condition)) + 
     stat_compare_means(comparisons = list(c("HP", "LP")),
                        aes(label = ..p.signif..), 
@@ -151,24 +135,12 @@ MFPlot = function(){
     scale_fill_manual(values = conditionColors) +
     theme(legend.position = "none") + xlab("")
 
-  # figDelta = data.frame(
-  #   delta_HP =  HP_end_vs_start,
-  #   delta_LP = LP_end_vs_start 
-  # ) %>% ggplot(aes(delta_LP, delta_HP)) + 
-  #   geom_point(size = 5, shape = 21, stroke =1) +
-  #   geom_abline(slope = 1, intercept = 0) + 
-  #   ggtitle(expression(bold(paste(AUC[end] - AUC[start], " (s)")))) + 
-  #   xlab("LP") +
-  #   ylab("HP") + 
-  #   annotate("text", x = 2, y = -4, label = sprintf('p = %0.3f*', wTest$p.value)) +
-  #   xlim(c(-8,5)) + ylim(c(-8,5)) + myTheme +
-  #   theme(plot.title = element_text(face = "bold", hjust = 0.5))
   
   ##################################################################
   ##                     correlations among task measures        ##
   ##################################################################
   pairs(sumStats[, c("auc", "delta", "stdWTW")], condition = sumStats$condition, gap=0,
-                  lower.panel = my.reg.HP, upper.panel = my.reg.LP, nCmp = 1, lwd = 2) 
+                  lower.panel = my.reg.HP, upper.panel = my.reg.LP, nCmp = 1, lwd = 2, main="Exp.2") 
   figCorr = recordPlot()
   plot.new()
   ###################################################

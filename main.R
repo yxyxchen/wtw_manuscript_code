@@ -46,17 +46,25 @@ ggsave(file.path("../figures/cmb", "exp.eps"), expCmb, width = 9, height = 9)
 ##                     model free analysis                     ##
 #################################################################
 outs_ = vector("list", length = nExp )
-for(i in 3 : 3){
+for(i in 1 : 3){
   outs = vector("list", length = nExp) # initialize the output 
   setwd(file.path(pwd, wds[i]))
   source(sprintf("exp%d_MFPlot.R", i))
   outs = MFPlot()
   outs_[[i]] = outs
 }
-# assemble the figures
+# plot behavioral results 
 setwd(pwd)
 figMF12 = ( outs_[[1]][['curve']] | outs_[[1]][['wtw']] | outs_[[1]][['auc']] | outs_[[1]][['delta']] | outs_[[1]][['sigma']]) / ( outs_[[2]][['curve']] | outs_[[2]][['wtw']] | outs_[[2]][['auc']] | outs_[[2]][['delta']] | outs_[[2]][['sigma']]) + plot_annotation(tag_levels = "a")
 ggsave(file.path("../figures/cmb","mf12.pdf"), figMF12 , width = 20, height = 8)
+
+figMF3 = ( outs_[[3]][['curve']] | outs_[[3]][['wtw']] ) / ( outs_[[3]][['auc']] | outs_[[3]][['delta']] | outs_[[3]][['sigma']] ) + plot_annotation(tag_levels = "a")
+ggsave(file.path("../figures/cmb","mf3.eps"), figMF3 , width = 12, height = 8)
+
+# plot correlations among task measures
+pdf("../figures/cmb/exp3_task_corr1.pdf", width = 5, height = 5) 
+outs_[[3]][['corr1']]
+dev.off()
 
 pdf("../figures/cmb/exp1_task_corr.pdf", width = 5, height = 5) 
 outs_[[1]][['corr']]
@@ -66,29 +74,18 @@ pdf("../figures/cmb/exp2_task_corr.pdf", width = 5, height = 5)
 outs_[[2]][['corr']]
 dev.off()
 
-figMF3_upper = ( outs_[[3]][['curve']] | outs_[[3]][['wtw']] ) + plot_annotation(tag_levels = "a")
-ggsave(file.path("../figures/cmb","mf3_upper.eps"), figMF3_upper , width = 12, height = 4)
-
-figMF3_lower = ( outs_[[3]][['auc']] | outs_[[3]][['delta']] | outs_[[3]][['sigma']] ) + plot_annotation(tag_levels = "a")
-ggsave(file.path("../figures/cmb","mf3_lower.eps"), figMF3_lower , width = 12, height = 4)
-
-figMF3 = ( outs_[[3]][['curve']] | outs_[[3]][['wtw']] ) / ( outs_[[3]][['auc']] | outs_[[3]][['delta']] | outs_[[3]][['sigma']] ) + plot_annotation(tag_levels = "a")
-ggsave(file.path("../figures/cmb","mf3.eps"), figMF3 , width = 12, height = 8)
-
-pdf("../figures/cmb/exp3_task_corr1.pdf", width = 5, height = 5) 
-outs_[[3]][['corr1']]
-dev.off()
-
 pdf("../figures/cmb/exp3_task_corr2.pdf", width = 5, height = 5) 
 outs_[[3]][['corr2']]
 dev.off()
-######
+
+# plot correlations among task measures and self-report measures
 source("wtw_exp1/exp1_taskTraitCorr.R")
 setwd("wtw_exp1")
 figs = taskTraitCorr()
 figTaskTrait = figs[['figTraitAUC']] / figs[['figTraitDelta']] / figs[['figTraitSigma']] + plot_annotation(tag_levels = "a")
 setwd(pwd)
 ggsave(file.path("../figures/cmb","exp1_task_trait.pdf"), figTaskTrait, width = 12, height = 15)
+
 ##################################################################
 ##                 Performance check simulation                 ##
 ##################################################################
@@ -96,13 +93,13 @@ setwd("./wtw_simulation")
 load("expParas.RData")
 source("performCheck.R")
 figs_ = performCheck()
-# assemble the figures
+# plot AUC 
 setwd(pwd)
 figAUC = (figs_[[1]][['learn']] | figs_[[2]]['learn'])
 ggsave(file.path("..", "figures", "cmb", "exante_learn_curve.eps"), figAUC, width = 6, height = 3)
 
+# plot the relative value of waiting and the net return of waiting 
 normResults = expSchematics(smallReward, iti)
-
 figNetReturn = data.frame(
   net_return = unlist(normResults$subjectValues),
   time = c(seq(0, delayMaxs[1], by = 0.1), seq(0, delayMaxs[2], by = 0.1)),
@@ -115,9 +112,8 @@ figNetReturn = data.frame(
 figRV = (figNetReturn | figs_[[1]][['rv']] | figs_[[2]]['rv']) + plot_annotation(tag_levels = "a")
 ggsave(file.path("..", "figures", "cmb", "exante_rv.eps"), figRV, width = 12, height = 4.5)
 
-figSnippet = (plot_spacer() | figs_[[1]][["Gs_"]][1] | figs_[[1]][["Gs_"]][2] | figs_[[1]][["Gs_"]][3]) / 
-  (figs_[[1]][["values_"]][[1]] | figs_[[1]][["values_"]][[2]] | figs_[[1]][["values_"]][[3]] | figs_[[1]][["values_"]][[4]])
 
+figSnippet = (plot_spacer() | figs_[[1]][["Gs_"]][1] | figs_[[1]][["Gs_"]][2] | figs_[[1]][["Gs_"]][3]) / (figs_[[1]][["values_"]][[1]] | figs_[[1]][["values_"]][[2]] | figs_[[1]][["values_"]][[3]] | figs_[[1]][["values_"]][[4]]) 
 ggsave(file.path("..", "figures", "cmb", "exante_snippet.eps"), figSnippet , width = 12, height = 6)
 figPrior = figs_[[1]][["prior"]]
 ggsave(file.path("..", "figures", "cmb", "prior.eps"), figPrior, width = 5, height = 5)
@@ -130,8 +126,8 @@ source("paraEffect.R")
 figs_ = paraEffect()
 # assemble figures
 setwd(pwd)
-figPostHoc = (figs_[[1]] + theme(legend.position = "None")) + xlab("Simulation time (min)")
-ggsave(file.path("..", "figures", "cmb", "posthoc_para_effect.eps"), figPostHoc , width = 9, height = 4)
+figPostHoc = figs_[[1]]  
+ggsave(file.path("..", "figures", "cmb", "posthoc_para_effect.eps"), figPostHoc , width = 8, height = 4)
 
 
 ###################################################################
@@ -198,8 +194,7 @@ for(i in 1 : nExp){
 }
 
 
-# combine figWTW
-# combine figures together 
+# plot WTW timecourses
 setwd(pwd)
 figWTW = (outs_[[1]][[2]][['figWTW']] |outs_[[2]][[2]][['figWTW']] | outs_[[3]][[2]][['figWTW']]) + plot_annotation(tag_levels = "a")
 ggsave(file.path("..", "figures", "cmb", "rep_wtw_new.pdf"), figWTW, width = 15, height = 4 )
@@ -221,7 +216,7 @@ for(i in 1 : nExp){
 }
 
 figWTW_ = list()
-for(i in 2 : nExp){
+for(i in 1 : nExp){
   setwd(file.path(pwd, wds[i]))
   source(sprintf("exp%d_expModelRepGroup.R", i))
   figWTW_[[i]]= expModelRepGroup()
@@ -229,24 +224,23 @@ for(i in 2 : nExp){
 setwd(pwd)
 figWTW_all = (figWTW_[[1]] | figWTW_[[2]] | figWTW_[[3]])
 ggsave(file.path("..", "figures", "cmb", "figWTW_all.pdf"), figWTW_all, width = 15, height = 4)
+
 ###############################################################################
 ##                       quantitative model comparison                       ##
 ##############################################################################
 cmpOuts_ = vector("list", length = nExp)
-waic_ave = matrix(NA, 3, 6) 
-waic_se = matrix(NA, 3, 6)  
-best_fit_4 = matrix(NA, 3, 4) 
-best_fit_6 = matrix(NA, 3, 6) 
+waic_ave = matrix(NA, 3, 5) 
+waic_se = matrix(NA, 3, 5)  
+best_fit = matrix(NA, 3, 5) 
 for(i in 1 : 3){
   setwd(file.path(pwd, wds[i])) # set the working directory
   source(sprintf("exp%d_expModelCmp.R", i)) 
   cmpOuts_[[i]] = expModelCmp()
   waic_ave[i,] = cmpOuts_[[i]][['full_waic_aves']]
   waic_se[i,] = cmpOuts_[[i]][['full_waic_ses']]
-  best_fit_4[i,] = as.numeric(cmpOuts_[[i]][['bestFit4']]$bestFitNum[1:4])
-  best_fit_6[i,] = as.numeric(cmpOuts_[[i]][['bestFit6']]$bestFitNum[1:6])
+  best_fit[i,] = as.numeric(cmpOuts_[[i]][['bestFit']]$bestFitNum[1:5])
 }
-round(best_fit_6 / apply(best_fit_6, MARGIN = 1, sum) * 100)
+round(best_fit / apply(best_fit, MARGIN = 1, sum) * 100)
 ###################################################################################
 ##                     Parameter histograms and correlations                     ##
 ###################################################################################

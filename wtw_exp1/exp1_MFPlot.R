@@ -64,14 +64,7 @@ MFPlot = function(){
     # geom_hline(aes(yintercept = optimWaitThresholds$HP), color = "red", size = 2, linetype = "dashed") +
     # geom_hline(aes(yintercept = optimWaitThresholds$LP), color = "red", size = 2, linetype = "dashed")
   
-  
-  
-  ############
-  ###########
-  sumStats %>% group_by(condition) %>% summarise(median(auc),IQR(auc))
-  wilcox.test(sumStats$auc[sumStats$condition == "HP"],
-              sumStats$auc[sumStats$condition == "LP"])
-  
+
   
   
   ###################################################################
@@ -153,9 +146,8 @@ MFPlot = function(){
   ##################################################################
   ##                     correlations among task measures        ##
   ##################################################################
-  
   pairs(sumStats[, c("auc", "delta", "stdWTW")], condition = sumStats$condition, gap=0,
-        lower.panel = my.reg.HP, upper.panel = my.reg.LP, nCmp = 1, lwd = 2) 
+        lower.panel = my.reg.HP, upper.panel = my.reg.LP, nCmp = 1, lwd = 2, main="Exp.1") 
   figCorr = recordPlot()
   plot.new()
   ##################################################################

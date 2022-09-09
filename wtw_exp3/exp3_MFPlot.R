@@ -138,12 +138,12 @@ MFPlot = function(){
   ##################################################################
   pairs(blockStats[blockStats$block == "Block1-2", c("auc", "delta", "stdWTW")], 
                    condition = blockStats$condition[blockStats$block == "Block1-2"], gap=0,
-                  lower.panel = my.reg.HP, upper.panel = my.reg.LP, nCmp = 1, lwd = 2, main = "Block1-2") 
+                  lower.panel = my.reg.HP, upper.panel = my.reg.LP, nCmp = 1, lwd = 2, main = "Exp.3, Block1-2") 
   figCorr1 = recordPlot()
   plot.new()
   pairs(blockStats[blockStats$block == "Block3-4", c("auc", "delta", "stdWTW")], 
                    condition = blockStats$condition[blockStats$block == "Block3-4"], gap=0,
-                   lower.panel = my.reg.HP, upper.panel = my.reg.LP, nCmp = 1, lwd = 2, main = "Block3-4") 
+                   lower.panel = my.reg.HP, upper.panel = my.reg.LP, nCmp = 1, lwd = 2, main = "Exp.3, Block3-4") 
   figCorr2 = recordPlot()
   plot.new()
   ###################################################################

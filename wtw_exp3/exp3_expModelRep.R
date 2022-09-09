@@ -87,24 +87,17 @@ expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs =
   )
   figWTW = ggplot(plotdf, aes(time, mu)) +
     geom_rect(aes(xmin = xmin, xmax = xmax, fill = condition),
-              data = rectData, ymin = 0, ymax = 20, alpha = 0.75, inherit.aes = F) +
+              data = rectData, ymin = 0, ymax = 20, alpha = 0.75, inherit.aes = F)  + 
+    geom_segment(x = blockMin, xend = blockMin, y = 0, yend = 20, color = "#878787", linetype = "dashed") +
     facet_grid(~cbal) +
     geom_line(aes(time, mu, color = type))  +
     myTheme +
     scale_color_manual(values = c("black", "#b2182b"))+
     scale_fill_manual(values = c(conditionColorBacks))  +
     scale_x_continuous(breaks = c(0, 10, 20)) +
-    xlab("Task time (s)") + ylab("WTW (s)") + ylim(c(0, 20)) +
-    theme(legend.position = "None") + ylim(c(0, 20))
-
-  # figWTW = ggplot(plotdf, aes(time, mu)) + 
-  #   facet_grid(~cbal) + 
-  #   geom_line(aes(time, mu, color = condition, linetype = type))  +
-  #   myTheme +
-  #   scale_color_manual(values = conditionColors)+
-  #   scale_x_continuous(breaks = c(0, 10, 20)) + 
-  #   xlab("Task time (s)") + ylab("WTW (s)") + ylim(c(0, 20)) +
-  #   theme(legend.position = "None")  
+    xlab("Task time (min)") + ylab("WTW (s)") + ylim(c(0, 20)) +
+    theme(legend.position = "None") 
+  
   #################################################################
   ##      compare observed and replicated AUC and sigma_wtw      ##
   #################################################################
