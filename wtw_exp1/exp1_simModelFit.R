@@ -1,4 +1,4 @@
-simModelFit = function(encodeModel, decodeModel, isFirstFit, batchIdx = NULL, parallel = False){
+simModelFit = function(encodeModel, decodeModel, isFirstFit, batchIdx = NULL, parallel = FALSE){
   # generate output directories
   dir.create("../../genData/wtw_exp1")
   dir.create("../../genData/wtw_exp1/simModelFit")
@@ -34,7 +34,7 @@ simModelFit = function(encodeModel, decodeModel, isFirstFit, batchIdx = NULL, pa
       if(batchIdx == 1){
         trialData = trialData[1 : 30]
       }else if(batchIdx == 2){
-        trialData = trialData[31 : 60]
+        trialData = trialData[31 : length(trialData)]
       }
     }
   }
@@ -65,3 +65,7 @@ simModelFit = function(encodeModel, decodeModel, isFirstFit, batchIdx = NULL, pa
   modelFitGroup(decodeModel, trialData, config, outputDir, parallel = parallel, isTrct = F)
 }
 
+if (sys.nframe() == 0){
+  args = commandArgs(trailingOnly = T)
+  simModelFit(args[1], args[2], as.logical(args[3]), as.numeric(args[4]))
+}

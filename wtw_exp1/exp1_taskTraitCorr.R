@@ -16,6 +16,7 @@ taskTraitCorr = function(){
   hdrData = allData$hdrData        
   trialData = allData$trialData       
   condition = hdrData$condition[hdrData$stress == "no_stress"]
+  ids = hdrData$id[hdrData$stress == "no_stress"]  
   MFResults = MFAnalysis(isTrct = T)
   sumStats = MFResults[['sumStats']]
   
@@ -24,8 +25,7 @@ taskTraitCorr = function(){
   ##################################################################
   # load and merge trait data
   personality = read.csv("data/hdrData.csv")
-  personality = personality[personality$id %in% expPara$id,]
-  personality$id = expPara$id
+  personality = personality[personality$id %in% ids,]
   traits = c("BDI","IUS","DoG","BIS.11", "STAI_T", "PSS") #BIS_11 trait anxiety 
   nTrait = length(traits)
   sumStats$BDI = personality$BDI

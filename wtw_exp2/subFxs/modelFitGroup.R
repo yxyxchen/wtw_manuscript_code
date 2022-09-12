@@ -41,13 +41,13 @@ modelFitGroup = function(modelName, trialData, config, outputDir, parallel,  isT
   nSub = length(ids)                    
   
   # parallel compuation settings
-  nCore = as.numeric(Sys.getenv("NSLOTS")) # settings for SCC
-  if(is.na(nCore)) nCore = 1 # settings for SCC
+  # nCore = as.numeric(Sys.getenv("NSLOTS")) # settings for SCC
+  # if(is.na(nCore)) nCore = 1 # settings for SCC
   if(parallel){
     nCore = parallel::detectCores() -1 # settings for the local PC
     registerDoMC(nCore) # settings for the local PC
   }
-  print(sprintf("Model fitting using %d cores", nCore))
+  # print(sprintf("Model fitting using %d cores", nCore))
   
   foreach(i = 1 : nSub) %dopar% {
       id = ids[[i]]

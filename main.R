@@ -9,7 +9,6 @@ library(lattice)
 library(extrafont)
 library(patchwork)
 library(figpatch)
-# extrafont::font_import()
 
 
 # settings 
@@ -22,7 +21,7 @@ nModel = length(models)
 iti = 2 # inter-trial interval in seconds 
 smallReward = 0 # initial token value
 
-# create the output fir 
+# create the output directories
 dir.create("../figures")
 dir.create("../genData")
 dir.create("../figures/cmb")
@@ -99,16 +98,13 @@ figAUC = (figs_[[1]][['learn']] | figs_[[2]]['learn'])
 ggsave(file.path("..", "figures", "cmb", "exante_learn_curve.eps"), figAUC, width = 6, height = 3)
 
 # plot the relative value of waiting and the net return of waiting 
-normResults = expSchematics(smallReward, iti)
-figNetReturn = data.frame(
-  net_return = unlist(normResults$subjectValues),
-  time = c(seq(0, delayMaxs[1], by = 0.1), seq(0, delayMaxs[2], by = 0.1)),
-  condition = rep(c("HP", "LP"), as.numeric(sapply(normResults$subjectValues, length)))
-) %>% filter(time < 20) %>%
-  ggplot(aes(time, net_return, color = condition)) + geom_point() +
-  facet_grid(~condition) + scale_color_manual(values = conditionColors) + 
+setwd("./wtw_exp1")
+source(sprintf("exp%d_expSchematics.R", 1))
+normResults = expSchematics(smallReward, iti, T)
+figNetReturn = normResults$figs$sv + xlim(c(0, 20)) +
   xlab("Elapsed time (s)") + ylab("Net return of waiting (¢)") + myTheme + 
   theme(legend.position = "None") + ggtitle("Normative solution")
+setwd(pwd)
 figRV = (figNetReturn | figs_[[1]][['rv']] | figs_[[2]]['rv']) + plot_annotation(tag_levels = "a")
 ggsave(file.path("..", "figures", "cmb", "exante_rv.eps"), figRV, width = 12, height = 4.5)
 
@@ -136,7 +132,7 @@ ggsave(file.path("..", "figures", "cmb", "posthoc_para_effect.eps"), figPostHoc 
 ## Warnings: this model fitting process can take hours. 
 ## To save time, you can directly download the outputs from the link below and move to the next step:
 ## https://www.dropbox.com/sh/a2yqj3f21fkzj3r/AADly4VA7SMeaBWY5Nkeo83Ga?dl=0
-parallel = F # When run on a local PC, you can use set this variabel to true to turn on parallel computing
+parallel = F # When running on a local PC, you can use set this variabel to true to turn on parallel computing
 for(i in 1 : nExp){
   setwd(file.path(pwd, wds[i]))
   source(sprintf("exp%d_expModelFit.R", i))
@@ -154,19 +150,9 @@ for(i in 1 : nExp){
   }
 }
 
-#####################################################################################
-##                 Observed vs Model-generated, example participants               ##
-#####################################################################################
-setwd('./wtw_exp1')
-source("exp1_expModelRepInd.R")
-figs_ = expModelRepInd()
-setwd(pwd)
-figRepExample = figs_[['emp']] | figs_[['modelInd']] | figs_[['modelGroup']]
-ggsave(file.path("..", "figures", "cmb", "modelRep_example.eps"), figRepExample, width = 14, height = 4)
-
 
 ###############################################################################
-##                       qualitative model comparison                       ##
+##                       Posterior Predictive Check                         ##
 ##############################################################################
 MFResults_ = list()
 for(i in 1 : nExp){
@@ -175,7 +161,7 @@ for(i in 1 : nExp){
   MFResults = MFAnalysis(isTrct = T)
   MFResults_[[i]] = MFResults
 }
-# plot ovserved and model-generated AUC and sigma_WTW
+# resimulate the RL variants with individually fitted parameters
 outs_ = vector("list", length = nExp )
 # sqerr_df_ = vector("list", length = nExp)
 for(i in 1 : nExp){
@@ -194,20 +180,20 @@ for(i in 1 : nExp){
 }
 
 
-# plot WTW timecourses
+# plot model-generated and observed WTW timecourses for QL2
 setwd(pwd)
 figWTW = (outs_[[1]][[2]][['figWTW']] |outs_[[2]][[2]][['figWTW']] | outs_[[3]][[2]][['figWTW']]) + plot_annotation(tag_levels = "a")
 ggsave(file.path("..", "figures", "cmb", "rep_wtw_new.pdf"), figWTW, width = 15, height = 4 )
 
-# combine QL2 results 
+# plot model-generated and observed task measures for QL2
 setwd(pwd)
 figQL2 = (outs_[[1]][[2]]$figStat | outs[[2]]$figStat | outs[[3]]$figStat) + plot_annotation(tag_levels = "a")
 ggsave(file.path("..", "figures", "cmb", "figQL2.pdf"), figQL2, width = 12, height = 12)
 
-# look at variance 
+# variance explained in each task measure for QL2
 cbind(outs_[[1]][[2]]$r2_df, outs_[[2]][[2]]$r2_df, outs_[[3]][[2]]$r2_df)
 
-# combine figures together 
+# plot model-generated and observed task measures for all RL variants
 for(i in 1 : nExp){
   outs = outs_[[i]]
   figStats = (outs[[1]]$figStats | outs[[2]]$figStats | outs[[3]]$figStats | outs[[4]]$figStats | outs[[5]]$figStats | outs[[6]]$figStats)
@@ -215,6 +201,7 @@ for(i in 1 : nExp){
   ggsave(file.path("..", "figures", "cmb", sprintf("modelRep_exp%d.eps", i)), figStats, width = 4 * 6, height = 3 * 4 )
 }
 
+# plot model-generated and observed WTW timecourses for all RL variants
 figWTW_ = list()
 for(i in 1 : nExp){
   setwd(file.path(pwd, wds[i]))
@@ -224,6 +211,17 @@ for(i in 1 : nExp){
 setwd(pwd)
 figWTW_all = (figWTW_[[1]] | figWTW_[[2]] | figWTW_[[3]])
 ggsave(file.path("..", "figures", "cmb", "figWTW_all.pdf"), figWTW_all, width = 15, height = 4)
+
+#####################################################################################
+##                 Observed vs Model-generated, example participants               ##
+#####################################################################################
+setwd('./wtw_exp1')
+source("exp1_expModelRepInd.R")
+figs_ = expModelRepInd()
+setwd(pwd)
+figRepExample = figs_[['emp']] | figs_[['modelInd']] | figs_[['modelGroup']]
+ggsave(file.path("..", "figures", "cmb", "modelRep_example.eps"), figRepExample, width = 14, height = 4)
+
 
 ###############################################################################
 ##                       quantitative model comparison                       ##
@@ -257,26 +255,11 @@ histPara = (outs_[[1]][["hist"]] / outs_[[2]][['hist']] / outs_[[3]][['hist']]) 
 ggsave(file.path("../figures/cmb", "para_hist.eps"), histPara, width = 6, height = 6)
 
 
-
 for(i in 1 : nExp){
   outs = outs_[[i]]
   print(paste(paste0(outs$para_summar$median, " [", outs$para_summar$q1, "-", outs$para_summar$q3, "]"), seq = "&", collapse = ''))
 }
 
- 
-paste(outs_[[1]]$para_summar$q1, seq = "&", collapse = '')
-
-outs_[[2]]$optim_summary
-
-
-# figures for correlation analysis (with self-report measures and among parameters) are saved separately for each experiments
-# print results for optimism bias 
-outs_[[1]]$nuTest # whether nu < 1 in Exp.1
-outs_[[1]]$numOptim # number of participants with optimism bias in Exp.1
-outs_[[2]]$nuTest # whether nu < 1 in Exp.2
-outs_[[2]]$numOptim # number of participants with optimism bias in Exp.2
-outs_[[3]]$nuTest # whether nu < 1 in Exp.3
-outs_[[3]]$numOptim # number of participants with optimism bias in Exp.3
 
 #################################################################
 ## parameter recovery, simulation and parameter estimation     ##
@@ -284,21 +267,21 @@ outs_[[3]]$numOptim # number of participants with optimism bias in Exp.3
 parallel = F # When run on a local PC, you can use set this variabel to true to turn on parallel computing
 for(i in 1 : nExp){
   setwd(file.path(pwd, wds[i]))
+  load("expParas.RData")
   source(sprintf("exp%d_simModelFit.R", i))
   source(sprintf("exp%d_simulation.R", i))
-  # simulate artificial participants using indvidually fit parameters 
   simulation()
-  # fit all participants
-  print(sprintf("Model fitting for simulated participants in Exp.%d", i))
-  print(sprintf("Model fitting results saved at ../genData/wtw_exp%d/simModelFit/%s", i, "QL2"))
-  sprintf("Stan warning messages saved at stanWarnings/sim_%s_%s.txt", "QL2", "QL2")
-  simModelFit("QL2", "QL2", isFirstFit = T, parallel = parallel)
-  
-  # check whether the model converge and fit again if necessary 
-  print(sprintf("Increase samples to fit simulated participants with disconvergent results in Exp.%d", i))
-  sprintf("Stan warning messages saved at stanWarnings/sim_refit_%s_%s.txt", "QL2", "QL2")
-  simModelFit("QL2", "QL2", isFirstFit = F, parallel = parallel)
-
+  # simulate artificial participants using indvidually fit parameters 
+  # # fit all participants
+  # print(sprintf("Model fitting for simulated participants in Exp.%d", i))
+  # print(sprintf("Model fitting results saved at ../genData/wtw_exp%d/simModelFit/%s", i, "QL2"))
+  # sprintf("Stan warning messages saved at stanWarnings/sim_%s_%s.txt", "QL2", "QL2")
+  # simModelFit("QL2", "QL2", isFirstFit = T, parallel = parallel)
+  # 
+  # # check whether the model converge and fit again if necessary
+  # print(sprintf("Increase samples to fit simulated participants with disconvergent results in Exp.%d", i))
+  # sprintf("Stan warning messages saved at stanWarnings/sim_refit_%s_%s.txt", "QL2", "QL2")
+  # simModelFit("QL2", "QL2", isFirstFit = F, parallel = parallel)
 }
 
 #########################################################

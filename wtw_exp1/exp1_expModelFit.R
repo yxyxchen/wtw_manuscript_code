@@ -1,4 +1,4 @@
-expModelFit = function(modelName, isFirstFit, batchIdx = NULL, parallel = False){
+expModelFit = function(modelName, isFirstFit, batchIdx = NULL, parallel = FALSE){
   # generate output directories
   dir.create("../../genData/wtw_exp1")
   dir.create("../../genData/wtw_exp1/expModelFit")
@@ -53,7 +53,7 @@ expModelFit = function(modelName, isFirstFit, batchIdx = NULL, parallel = False)
     # increase the num of Iterations 
     config = list(
       nChain = 4,
-      nIter = 1200,
+      nIter = 20000,
       adapt_delta = 0.99,
       max_treedepth = 11,
       warningFile = sprintf("stanWarnings/exp_refit_%s.txt", modelName)

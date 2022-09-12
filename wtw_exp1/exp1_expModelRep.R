@@ -61,9 +61,9 @@ expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs =
   
   ## replicate data
   if(is.null(repOutputs)){
-    #repOutputs =  modelRep(modelName, trialData, ids, nRep, T)
-    #save(repOutputs, file = sprintf("../../genData/wtw_exp1/expModelRep/%s_trct.RData", modelName))
-    load(file = sprintf("../../genData/wtw_exp1/expModelRep/%s_trct.RData", modelName))
+    repOutputs =  modelRep(modelName, trialData, ids, nRep, T)
+    save(repOutputs, file = sprintf("../../genData/wtw_exp1/expModelRep/%s_trct.RData", modelName))
+    # load(file = sprintf("../../genData/wtw_exp1/expModelRep/%s_trct.RData", modelName))
   }
 
   #################################################################

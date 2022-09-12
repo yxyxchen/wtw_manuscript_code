@@ -1,6 +1,5 @@
 # this script plots delay distributions and reward rates in two environments
 expSchematics = function(smallReward, iti, isPlot){
-  library("latex2exp")
   # small reward 
   smallReward = 0 # get 0 when the agent quits
 

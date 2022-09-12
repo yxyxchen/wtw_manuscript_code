@@ -64,7 +64,8 @@ expModelRepInd = function(){
     xlab("Task time (min)") + ylab("WTW (s)") +
     theme(legend.position = "None") +
     geom_hline(aes(yintercept = 2.2), color = conditionColors[2], size = 1, linetype = "dashed") +
-    ggtitle("Observed") + theme(plot.title = element_text(hjust = 0.5))
+    ggtitle("Observed") + theme(plot.title = element_text(hjust = 0.5)) + 
+    ylim(c(0, 20))
   
   ############### replicate results using individual parameters#######
   ################# plot on trial level #######
@@ -72,7 +73,7 @@ expModelRepInd = function(){
   source("subFxs/modelRep.R")
   source('subFxs/helpFxs.R')
   source('exp1_expSchematics.R')
-  load(file = sprintf("../../genData/wtw_exp1/expModelRep/%s_trct.RData", modelName))
+  load(file = sprintf("../../genData/wtw_exp1/expModelRep/%s_trct.RData", "QL2"))
   timeWTW_ = repOutputs$timeWTW_[c("11","20", "79")]
   trialWTW_ = repOutputs$trialWTW_[c("11","20", "79")]
   figModelInd = data.frame(
@@ -87,7 +88,8 @@ expModelRepInd = function(){
     theme(legend.position = "None") +
     geom_hline(aes(yintercept = 2.2), color = conditionColors[2], size = 1, linetype = "dashed") +
     ggtitle("Model-generated\nwith individually-fitted parameters") +
-    theme(plot.title = element_text(hjust = 0.5))
+    theme(plot.title = element_text(hjust = 0.5)) + 
+    ylim(c(0, 20))
 
   
   ############### print parameters ##############
@@ -114,7 +116,8 @@ expModelRepInd = function(){
     theme(legend.position = "None") +
     geom_hline(aes(yintercept = 2.2), color = conditionColors[2], size = 1, linetype = "dashed") +
     ggtitle("Model-generated\nwith group-averaged parameters") +
-    theme(plot.title = element_text(hjust = 0.5))
+    theme(plot.title = element_text(hjust = 0.5)) + 
+    ylim(c(0, 20))
   
   
   ############# return outputs #############

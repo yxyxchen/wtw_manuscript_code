@@ -1,4 +1,4 @@
-expModelFit = function(modelName, isFirstFit, batchIdx = NULL, parallel = False){
+expModelFit = function(modelName, isFirstFit, batchIdx = NULL, parallel = F){
   # generate output directories
   dir.create("../../genData/wtw_exp2")
   dir.create("../../genData/wtw_exp2/expModelFit")

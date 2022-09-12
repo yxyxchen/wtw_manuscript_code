@@ -2,6 +2,7 @@ modelRep = function(trialData, ids, nRep, isTrct, modelName){
   # 
   nSub = length(ids)
   nBlock = 2
+  load('expParas.RData')
   # get the generative model 
   source(sprintf("subFxs/gnrModels/%s.R", modelName))
   gnrModel = get(modelName)

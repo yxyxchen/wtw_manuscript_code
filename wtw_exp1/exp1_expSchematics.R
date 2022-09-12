@@ -2,7 +2,6 @@
 expSchematics = function(smallReward, iti, isPlot){
   # load libararies
   library("tidyverse")
-  library(latex2exp)
   source('subFxs/plotThemes.R')
   
   # load experiment parameters 

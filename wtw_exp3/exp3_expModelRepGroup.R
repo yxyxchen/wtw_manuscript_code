@@ -47,10 +47,9 @@ plotdf = data.frame(
   passCheck = rep(passCheck, each = length(tGrid) * 2),
   type = "emp"
 ) %>% filter(passCheck)  %>%
-  group_by(cbal, time, type) %>% 
+  group_by(cbal, time, type, condition) %>% 
   summarise(mu = mean(wtw),
-            se = sd(wtw) / sqrt(length(wtw)),
-            condition = condition) %>%
+            se = sd(wtw) / sqrt(length(wtw))) %>%
   mutate(ymin = mu - se,
          ymax = mu + se) %>% ungroup()
 # plotdf %>% ggplot(aes(time, mu)) + facet_grid(~condition) + geom_line()
@@ -66,10 +65,9 @@ for(j in 1 : nModel){
     passCheck = rep(passCheck, each = length(tGrid) * 2),
     type = model
   ) %>% filter(passCheck)  %>%
-    group_by(cbal, time, type) %>% 
+    group_by(cbal, time, type, condition) %>% 
     summarise(mu = mean(wtw),
-              se = sd(wtw) / sqrt(length(wtw)),
-              condition = condition) %>%
+              se = sd(wtw) / sqrt(length(wtw))) %>%
     mutate(ymin = mu - se,
            ymax = mu + se) %>% ungroup()
   
