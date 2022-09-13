@@ -36,7 +36,7 @@ transformed parameters{
   // scale raw parameters into real parameters
   real alpha = (raw_alpha + 0.5) * 0.3; // alpha ~ unif(0, 0.3)
   real tau = (raw_tau + 0.5) * 21.9 + 0.1; // tau ~ unif(0.1, 22)
-  real eta = (raw_eta + 0.5) * 6.5; // prior ~ unif(0, 6.5)
+  real eta = (raw_eta + 0.5) * 15; // prior ~ unif(0, 6.5)
   real beta_alpha = (raw_beta_alpha + 0.5) * 1; // the ratio between alpha and beta ~ unif(0, 1)
   real beta = beta_alpha * alpha; // beta 
   
