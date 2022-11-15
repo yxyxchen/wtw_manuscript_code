@@ -113,7 +113,7 @@ MFPlot = function(){
                        label.x = 1.5,
                        bracket.size = 1, size = 6, label.y = 6.8, paired = T,
                        method = "wilcox.test") + 
-    ylab(expression(bold(paste(sigma["WTW"], " (s"^2, ")")))) + myTheme  + 
+    ylab(expression(bold(paste(sigma["WTW"], " (s)")))) + myTheme  + 
     theme(plot.title = element_text(face = "bold", hjust = 0.5, color = themeColor)) + 
     scale_y_continuous(breaks = c(0, 3, 6), limits = c(0, 7)) +
     scale_fill_manual(values = conditionColors) +

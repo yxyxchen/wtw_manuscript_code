@@ -136,7 +136,7 @@ MFPlot = function(){
                        aes(label = ..p.signif..), label.x = 1.5, symnum.args= symnum.args,
                        bracket.size = 1, size = 6, label.y = 10,
                        method = "wilcox.test") + xlab("") +
-    ylab(expression(bold(paste(sigma["WTW"], " (s"^2,")"))))+ 
+    ylab(expression(bold(paste(sigma["WTW"], " (s)"))))+ 
     myTheme  + 
     theme(plot.title = element_text(face = "bold", hjust = 0.5, color = themeColor)) + 
     scale_y_continuous(breaks = c(0, 5, 10), limits = c(0, 11)) +
@@ -150,6 +150,7 @@ MFPlot = function(){
         lower.panel = my.reg.HP, upper.panel = my.reg.LP, nCmp = 1, lwd = 2, main="Exp.1") 
   figCorr = recordPlot()
   plot.new()
+  
   ##################################################################
   ##                     plot survival curves                     ##
   ##################################################################

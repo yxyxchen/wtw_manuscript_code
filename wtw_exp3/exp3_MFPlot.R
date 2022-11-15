@@ -117,7 +117,7 @@ MFPlot = function(){
     ggpubr::stat_compare_means(aes(group = condition, label = ..p.signif..),
                                method = "wilcox.test", paired = T, size = 6, label.y = 16) +
     scale_fill_manual(values = conditionColors) + 
-    ylab(expression(bold(paste(sigma["WTW"], " (s"^2, ")")))) +
+    ylab(expression(bold(paste(sigma["WTW"], " (s)")))) +
     xlab("") + ylim(c(0, 18)) + 
     theme(legend.position = "None")
 

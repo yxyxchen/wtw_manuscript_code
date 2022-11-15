@@ -196,9 +196,9 @@ cbind(outs_[[1]][[2]]$r2_df, outs_[[2]][[2]]$r2_df, outs_[[3]][[2]]$r2_df)
 # plot model-generated and observed task measures for all RL variants
 for(i in 1 : nExp){
   outs = outs_[[i]]
-  figStats = (outs[[1]]$figStats | outs[[2]]$figStats | outs[[3]]$figStats | outs[[4]]$figStats | outs[[5]]$figStats | outs[[6]]$figStats)
+  figStats = (outs[[1]]$figStats | outs[[2]]$figStats | outs[[3]]$figStats | outs[[4]]$figStats | outs[[5]]$figStats)
   setwd(pwd)
-  ggsave(file.path("..", "figures", "cmb", sprintf("modelRep_exp%d.eps", i)), figStats, width = 4 * 6, height = 3 * 4 )
+  ggsave(file.path("..", "figures", "cmb", sprintf("modelRep_exp%d.eps", i)), figStats, width = 4 * 5, height = 3 * 4 )
 }
 
 # plot model-generated and observed WTW timecourses for all RL variants

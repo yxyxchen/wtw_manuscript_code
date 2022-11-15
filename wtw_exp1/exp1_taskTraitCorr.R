@@ -82,7 +82,7 @@ taskTraitCorr = function(){
   # plot the first layer
   p = plotData %>% ggplot(aes(value, stdWTW, color = condition)) +
     facet_grid(condition ~ trait, scales = "free") + geom_point(alpha = 0.8) +
-    ylab(expression(bold(sigma[WTW])~"("~"s"^2~")")) + xlab("") +
+    ylab(expression(bold(sigma[WTW]~"(s)"))) + xlab("") +
     scale_color_manual(values = conditionColors) +
     myTheme +
     theme(legend.position = "None") +

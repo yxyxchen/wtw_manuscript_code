@@ -144,8 +144,8 @@ expModelRep = function(modelName, allData = NULL, MFResults = NULL, repOutputs =
   ggplot(aes(empStd, std, shape = condition)) + 
   geom_point(size = 4, aes(color = condition), stroke = 1, shape = 21)  + 
   geom_abline(slope = 1, intercept = 0) +
-  ylab(expression(bold(paste("Model-generated", " (s"^2,")")))) +
-    xlab(expression(bold(paste("Observed", " (s"^2,")")))) +
+  ylab(expression(bold(paste("Model-generated", " (s)")))) +
+    xlab(expression(bold(paste("Observed", " (s)")))) +
   myTheme + theme(plot.title = element_text(face = "bold", hjust = 0.5)) + 
   scale_x_continuous(breaks = c(0, 10), limits = c(0, 10)) + 
   scale_y_continuous(breaks = c(0, 10), limits = c(0, 10)) +
