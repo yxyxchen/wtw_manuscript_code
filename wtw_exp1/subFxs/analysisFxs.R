@@ -69,7 +69,7 @@ kmsc <- function(thisTrialData, tMax, plotKMSC=FALSE, grid) {
     print(p)
   }
   # resample the survival curve for averaging 
-  kmOnGrid = resample(kmF, kmT, kmGrid)
+  kmOnGrid = resample(kmF, kmT, grid)
   return(list(kmT=kmT, kmF=kmF, auc=auc, kmOnGrid = kmOnGrid, stdWTW = stdWTW))
 }
 

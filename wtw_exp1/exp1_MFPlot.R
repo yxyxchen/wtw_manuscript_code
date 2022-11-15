@@ -72,6 +72,7 @@ MFPlot = function(){
   ###################################################################
   MFResults = MFAnalysis(isTrct = T)
   sumStats = MFResults[['sumStats']]
+  MFResults$survCurve_
   sumStats$delta = MFResults$sub_auc_[,6] - MFResults$sub_auc_[,1] 
   
   stats_df = sumStats %>% gather("variable", "value", -setdiff(names(sumStats), c("auc", "stdWTW", "delta"))) %>%
