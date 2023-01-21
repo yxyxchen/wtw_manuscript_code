@@ -1,3 +1,27 @@
+library('dplyr')
+library("tidyr")
+library("ggplot2")
+library("ggpubr")
+library("lme4")
+source("subFxs/plotThemes.R")
+source("MFAnalysis.R")
+library("lmerTest")
+library("latex2exp")
+source('subFxs/loadFxs.R') 
+source('subFxs/analysisFxs.R') 
+
+
+# output dir
+dir.create('../../figures/wtw_exp1/MFplot')
+
+# load experiment parameters
+load("expParas.RData")
+
+# load exp data
+allData = loadAllData()
+hdrData = allData$hdrData           
+trialData = allData$trialData       
+ids = hdrData$id[hdrData$stress == "no_stress"]  
 
 
 b = kmsc(trialData[['31']], min(delayMaxs), F, grid = seq(0, 20, length.out = 20))$kmOnGrid

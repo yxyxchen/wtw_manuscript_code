@@ -109,10 +109,7 @@ simPostHoc = function(modelName, paraLabels, paraSamples_, delays_ = NULL){
     xlab("Simulation time (min)") + ylab("AUC (s)") +
     scale_x_continuous(breaks = recorded_timepoints[1 : (nRecord - 1)] / 60) + 
     geom_hline(aes(yintercept = optim), data = optim_df, linetype = "dashed") 
-  
   return(figAUC)
-  
-  
 }
 
 

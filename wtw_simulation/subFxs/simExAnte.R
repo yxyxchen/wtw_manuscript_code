@@ -206,6 +206,42 @@ simExAnte = function(modelName, modelLabel, paras, delays_ = list()){
       ylim(c(4.5, 8)) + scale_x_continuous(breaks = c(-2, seq(0, min(delayMaxs), by = 5)), limits = c(-3, 21)) +
       scale_color_manual(values = c("#d7191c", "#2c7bb6", "#9ecae1")) +
       theme(legend.position =  "None")
+    
+
+    # add new code to for test-retest studies
+    figPrior_testretest_intercept = 
+      data.frame(
+      time = seq(-1.5, 12, by = 0.5),
+      Qquit = rep(3, length = (12+1.5)/0.5 + 1),
+      Qwaits_prior_equal_1 = c(NaN, NaN, NaN, -0.1 * seq(0, 12, by = 0.5) + 0.75 + 3),
+      Qwaits_prior_equal_2 = c(NaN, NaN, NaN, -0.1 * seq(0, 12, by = 0.5) + 1 + 3)
+      ) %>% ggplot(aes(time, Qwaits_prior_equal_1))+ 
+      geom_line(aes(time, Qquit), color = "#d7191c", size = 2) +
+      geom_point(color = "#9ecae1", size = 3) + 
+      geom_point(aes(time, Qwaits_prior_equal_2), size = 3, color = "#2c7bb6", inherit.aes = F)  +
+      theme(legend.position =  "None") + myTheme +
+      scale_y_continuous(breaks = c(3, 3.75, 4), limits = c(2.5, 4)) +
+      scale_x_continuous(breaks = seq(0, 12, by = 3), limits = c(-2, 13)) +
+      ylab('Initial action value')  + xlab("Elapsed time t")
+      
+    ggsave(file.path("~/Downloads/prior_intercept.eps"), figPrior_testretest_intercept, width = 5, height = 4)
+    
+    figPrior_testretest_slope = 
+      data.frame(
+        time = seq(-1.5, 12, by = 0.5),
+        Qquit = rep(3, length = (12+1.5)/0.5 + 1),
+        Qwaits_prior_equal_1 = c(NaN, NaN, NaN, -0.2 * seq(0, 12, by = 0.5) + 1 + 3),
+        Qwaits_prior_equal_2 = c(NaN, NaN, NaN, -0.1 * seq(0, 12, by = 0.5) + 1 + 3)
+      ) %>% ggplot(aes(time, Qwaits_prior_equal_1))+ 
+      geom_line(aes(time, Qquit), color = "#d7191c", size = 2) +
+      geom_point(color = "#9ecae1") + 
+      geom_point(aes(time, Qwaits_prior_equal_2), color = "#2c7bb6", inherit.aes = F)  +
+      theme(legend.position =  "None") + myTheme +
+      scale_y_continuous(breaks = c(3, 3.75, 4), limits = c(2.5, 4)) + 
+      scale_x_continuous(breaks = seq(0, 12, by = 3), limits = c(-2, 13)) +
+      ylab('Initial action value')  + xlab("Elapsed time t")
+    
+    ggsave(file.path("~/Downloads/prior_slope.eps"), figPrior_testretest_slope, width = 5, height = 4)
   }
   ############ return outputs ###########
   outputs = list(
