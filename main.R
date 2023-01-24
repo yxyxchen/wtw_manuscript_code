@@ -52,13 +52,19 @@ for(i in 1 : 3){
   outs = MFPlot()
   outs_[[i]] = outs
 }
+
 # plot behavioral results 
 setwd(pwd)
+# behavioral results for exp.1
 figMF12 = ( outs_[[1]][['curve']] | outs_[[1]][['wtw']] | outs_[[1]][['auc']] | outs_[[1]][['delta']] | outs_[[1]][['sigma']]) / ( outs_[[2]][['curve']] | outs_[[2]][['wtw']] | outs_[[2]][['auc']] | outs_[[2]][['delta']] | outs_[[2]][['sigma']]) + plot_annotation(tag_levels = "a")
 ggsave(file.path("../figures/cmb","mf12.pdf"), figMF12 , width = 20, height = 8)
-
+# behavioral results for exp.2 and exp.3
 figMF3 = ( outs_[[3]][['curve']] | outs_[[3]][['wtw']] ) / ( outs_[[3]][['auc']] | outs_[[3]][['delta']] | outs_[[3]][['sigma']] ) + plot_annotation(tag_levels = "a")
 ggsave(file.path("../figures/cmb","mf3.eps"), figMF3 , width = 12, height = 8)
+
+
+ggsave("~/Downloads/wtw.eps", outs_[[2]][['wtw']] , width = 8, height = 4)
+
 
 # plot correlations among task measures
 pdf("../figures/cmb/exp3_task_corr1.pdf", width = 5, height = 5) 
