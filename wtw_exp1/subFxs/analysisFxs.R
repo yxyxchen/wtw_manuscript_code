@@ -57,6 +57,7 @@ kmsc <- function(thisTrialData, tMax, plotKMSC=FALSE, grid) {
   # calcualte the pdf of WTW
   pdf_WTW = diff(cdf_WTW)
   # calculate the std of WTW 
+  # right aligned rules
   varWTW = sum((kmT - auc) ^2 * pdf_WTW)
   stdWTW = sqrt(varWTW)
   # plot the k-m survival curve
